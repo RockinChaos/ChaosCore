@@ -142,10 +142,10 @@
 			<url>https://libraries.minecraft.net/</url>
 		</repository>
 		<!--NickAPI Repository-->
-        <repository>
-            <id>public</id>
-            <url>https://haoshoku.xyz:1234/repository/public/</url>
-        </repository>
+        <!--<repository>-->
+            <!--<id>public</id>-->
+            <!--<url>https://haoshoku.xyz:1234/repository/public/</url>-->
+        <!--</repository>-->
 		<!--SkinsRestorer Repository-->
 		<repository>
 			<id>codemc-snapshots</id>
