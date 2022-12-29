@@ -211,9 +211,8 @@ public class ConfigHandler {
     * 
     */
 	public void reloadFiles() {
-		SchedulerUtils.runLater(20L, () -> {
-			config = new ConfigHandler(); 
-		});
+		config = new ConfigHandler();
+		config.copyFiles();
 	}
 	
    /**
