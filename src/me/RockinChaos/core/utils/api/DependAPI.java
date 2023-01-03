@@ -235,14 +235,18 @@ public class DependAPI {
     public String getSkinValue(final String owner) {
     	Class<?> netty = null;
     	try {
-    		netty = ReflectionUtils.getClass("net.skinsrestorer.bukkit.SkinsRestorer");
+    		netty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerAPI");
     	} catch (Exception e1) {
-    		try {
-    			netty = ReflectionUtils.getClass("skinsrestorer.bukkit.SkinsRestorer");
-    		} catch (Exception e2) {
-    			ServerUtils.sendDebugTrace(e2);
-    			ServerUtils.logSevere("{DependAPI} [1] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
-    		}
+	    	try {
+	    		netty = ReflectionUtils.getClass("net.skinsrestorer.bukkit.SkinsRestorer");
+	    	} catch (Exception e2) {
+	    		try {
+	    			netty = ReflectionUtils.getClass("skinsrestorer.bukkit.SkinsRestorer");
+	    		} catch (Exception e3) {
+	    			ServerUtils.sendDebugTrace(e2);
+	    			ServerUtils.logSevere("{DependAPI} [1] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
+	    		}
+	    	}
     	}
     	if (netty != null) {
 	    	try {
@@ -254,7 +258,6 @@ public class DependAPI {
 				return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
 			} catch (Exception e1) {
 				try {
-					netty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerAPI");
 					final Object skinsRestorer = netty.getMethod("getApi").invoke(null); 
 					final Object playerData = skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(skinsRestorer, owner);
 					final String ownerData = (playerData != null ? (String) playerData : owner);

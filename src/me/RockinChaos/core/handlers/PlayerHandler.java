@@ -313,8 +313,9 @@ public class PlayerHandler {
 		SchedulerUtils.runAsyncLater(delay, () -> {
 			try {
 				for (int i = 0; i < 36; i++) {
-					if (item == null || player.getInventory().getItem(i).isSimilar(item)) { 
-					    ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getInventory().getItem(i), (i < 9 ? (i + 36) : i)); 
+					final ItemStack invItem = player.getInventory().getItem(i);
+					if (item == null || (invItem != null && invItem.isSimilar(item))) { 
+					    ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, (i < 9 ? (i + 36) : i)); 
 					}
 				}
 				if (ServerUtils.hasSpecificUpdate("1_9")) { 
@@ -324,12 +325,14 @@ public class PlayerHandler {
 				}
 				if (isCraftingInv(player.getOpenInventory())) {
 					for (int i = 4; i >= 0; i--) { 
-						if (item == null || player.getInventory().getItem(i).isSimilar(item) || player.getOpenInventory().getTopInventory().getItem(i).isSimilar(item)) { 
-							ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getOpenInventory().getTopInventory().getItem(i), i); 
+						final ItemStack invItem = player.getOpenInventory().getTopInventory().getItem(i);
+						if (item == null || (invItem != null && invItem.isSimilar(item))) { 
+							ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i); 
 						}
 					}
 					for (int i = 0; i <= 3; i++) { 
-						if (item == null || player.getInventory().getItem(i).isSimilar(item)) { 
+						final ItemStack invItem = player.getInventory().getItem(i);
+						if (item == null || (invItem != null && invItem.isSimilar(item))) { 
 							ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getInventory().getItem(i + 36), (8 - i)); 
 						}
 					}
