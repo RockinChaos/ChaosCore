@@ -43,7 +43,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredListener;
 
-import de.domedd.betternick.BetterNick;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.handlers.PlayerHandler;
@@ -590,26 +589,11 @@ public class StringUtils {
     * @return The newly translated String.
     */
 	public static String translateLayout(String str, final Player player, final String...placeHolder) {
-		String playerName = "EXEMPT";
-		if (player != null && Core.getCore().getDependencies().nickEnabled()) {
-			try {
-				de.domedd.betternick.api.nickedplayer.NickedPlayer np = new de.domedd.betternick.api.nickedplayer.NickedPlayer(player);
-				if (np.isNicked()) {
-					playerName = np.getRealName();
-				} else { playerName = player.getName(); }
-			} catch (NoClassDefFoundError e) {
-				try {
-					if (BetterNick.getApi().isPlayerNicked(player)) {
-						playerName = BetterNick.getApi().getRealName(player);
-					} else { playerName = player.getName(); }	
-				} catch (NullPointerException e2) { playerName = player.getName(); }
-			}
-		} else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
-			if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
-				playerName = xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
-			} else { playerName = player.getName(); }
-		} else if (player != null) { playerName = player.getName(); }
 		if (str != null && !str.isEmpty()) {
+			String playerName = PlayerHandler.getPlayerName(player);
+			if (playerName == null || playerName.isEmpty()) {
+				playerName = "EXEMPT";
+			}
 			if (playerName != null && player != null && !(player instanceof ConsoleCommandSender)) {
 				try { str = str.replace("%player%", playerName); } catch (Exception e) { ServerUtils.sendDebugTrace(e); }
 				try { str = str.replace("%player_uuid%", player.getUniqueId().toString()); } catch (Exception e) { ServerUtils.sendDebugTrace(e); }
@@ -628,12 +612,14 @@ public class StringUtils {
 				}
 				if (player == null) { try { str = str.replace("%player%", "CONSOLE"); } catch (Exception e) { ServerUtils.sendDebugTrace(e); } 
 			}
-			str = ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(str));
 			if (Core.getCore().getDependencies().placeHolderEnabled()) {
-				try { try { return PlaceholderAPI.setPlaceholders(player, str); } 
-				catch (NoSuchFieldError e) { ServerUtils.logWarn("An error has occured when setting the PlaceHolder " + e.getMessage() + ", if this issue persits contact the developer of PlaceholderAPI."); return str; }
+				try { 
+					try { 
+						str = PlaceholderAPI.setPlaceholders(player, str); 
+					} catch (NoSuchFieldError e) { ServerUtils.logWarn("An error has occured when setting the Placeholder " + e.getMessage() + ", if this issue persits contact the developer of PlaceholderAPI."); }
 				} catch (Exception e) { }
 			}
+			return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(str));
 		}
 		return str;
 	}

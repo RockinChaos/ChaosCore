@@ -388,6 +388,38 @@ public class PlayerHandler {
 	}
 	
    /**
+    * Gets the String Name of the Player.
+    * 
+    * @param player - The player to have their String Name fetched.
+    * @return The String Name of the player.
+    */
+	public static String getPlayerName(final Player player) {
+		try {
+			if (player != null && Core.getCore().getDependencies().nickEnabled()) {
+				try {
+					de.domedd.betternick.api.nickedplayer.NickedPlayer np = new de.domedd.betternick.api.nickedplayer.NickedPlayer(player);
+					if (np.isNicked()) { 
+						return np.getRealName();
+					} else { return player.getName(); }
+				} catch (NoClassDefFoundError e) {
+					if (BetterNick.getApi().isPlayerNicked(player)) { return BetterNick.getApi().getRealName(player);
+					} else { return player.getName(); }
+				}
+			} else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
+				if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
+					return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
+				} else { return player.getName(); }
+			} else if (player != null) {
+				return player.getName();
+			}
+		} catch (Exception e) { 
+			if (player != null) { return player.getName(); }
+			ServerUtils.sendDebugTrace(e);
+		}
+		return "";
+	}
+	
+   /**
     * Gets the UUID of the Player.
     * If the UUID does not exist it will fetch their String name.
     * 
