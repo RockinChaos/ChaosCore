@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.UUID;
 
@@ -637,27 +638,30 @@ public class ItemHandler {
     * @return The String of NBTData found on the ItemStack.
     */
 	public static String getNBTData(final ItemStack item, final List <String> dataList) {
-		if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
-			try {
-				Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
-				Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
-				Object cacheTag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
-				if (cacheTag != null) {
-					String returnData = "";
-					for (String dataString : dataList) {
-						String data = (String) cacheTag.getClass().getMethod(MinecraftMethod.getString.getMethod(cacheTag, String.class), String.class).invoke(cacheTag, dataString);
-						if (data != null && !data.isEmpty()) {
-							returnData += data + " ";
+		synchronized("IJ_NBT") {
+			if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
+				try {
+					Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+					Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
+					Object cacheTag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
+					if (cacheTag != null) {
+						String returnData = "";
+						for (String dataString : dataList) {
+							String data = (String) cacheTag.getClass().getMethod(MinecraftMethod.getString.getMethod(cacheTag, String.class), String.class).invoke(cacheTag, dataString);
+							if (data != null && !data.isEmpty()) {
+								returnData += data + " ";
+							}
 						}
+						return returnData.trim();
 					}
-					return returnData.trim();
+				} catch (ConcurrentModificationException e1) {
+				} catch (InvocationTargetException e2) {
+					ServerUtils.logSevere("{ItemHandler} An error has occured when getting NBTData to an item, reason: " + e2.getCause() + ".");
+					ServerUtils.sendDebugReflectTrace(e2);
+				} catch (Exception e3) {
+					ServerUtils.logSevere("{ItemHandler} An error has occured when getting NBTData to an item, reason: " + e3.getCause() + ".");
+					ServerUtils.sendDebugTrace(e3);
 				}
-			} catch (InvocationTargetException e1) {
-				ServerUtils.logSevere("{ItemHandler} An error has occured when getting NBTData to an item, reason: " + e1.getCause() + ".");
-				ServerUtils.sendDebugReflectTrace(e1);
-			} catch (Exception e2) {
-				ServerUtils.logSevere("{ItemHandler} An error has occured when getting NBTData to an item, reason: " + e2.getCause() + ".");
-				ServerUtils.sendDebugTrace(e2);
 			}
 		}
 		return null;
