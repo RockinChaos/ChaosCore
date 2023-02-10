@@ -30,7 +30,8 @@ public class CoreData {
 	private Runnable runnableConfig;
 	private String updateConfig;
 
-	private boolean debug;
+	private boolean debug = false;
+	private boolean ignoreErrors = false;
 	
 	private Runnable runnableAlter;
 	private Runnable runnableCreate;
@@ -106,6 +107,24 @@ public class CoreData {
     */
 	public void setDebug(final boolean bool) {
 		this.debug = bool;
+	}
+	
+   /**
+    * Checks if Ignore Errors is enabled.
+    * 
+    * @return If Ignore Errors is enabled.
+    */
+	public boolean ignoreErrors() {
+		return this.ignoreErrors;
+	}
+	
+   /**
+    * Sets the Ignore Errors status.
+    * 
+    * @param bool - If Ignore Errors should be enabled.
+    */
+	public void setIgnoreErrors(final boolean bool) {
+		this.ignoreErrors = bool;
 	}
 	
    /**

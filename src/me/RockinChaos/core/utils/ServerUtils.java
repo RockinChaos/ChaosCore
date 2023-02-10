@@ -253,7 +253,7 @@ public class ServerUtils {
     * @param player - The Player to have the message sent.
     */
 	public static void sendErrorStatements(final Player player) {
-		if (player != null && player.isOp()) {
+		if (player != null && player.isOp() && !Core.getCore().getData().ignoreErrors()) {
 			SchedulerUtils.runLater(60L, () -> {
 				for (String statement: errorStatements) {
 					player.sendMessage(StringUtils.translateLayout(Core.getCore().getData().getPluginPrefix() + " &c" + statement, player));
