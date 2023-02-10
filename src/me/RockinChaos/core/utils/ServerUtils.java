@@ -259,7 +259,7 @@ public class ServerUtils {
 					player.sendMessage(StringUtils.translateLayout(Core.getCore().getData().getPluginPrefix() + " &c" + statement, player));
 				}
 			});
-		} else {
+		} else if (!Core.getCore().getData().ignoreErrors()) {
 			for (String statement: errorStatements) {
 				PlayerHandler.forOnlinePlayers(player_2 -> {
 					if (player_2 != null && player_2.isOp()) {
