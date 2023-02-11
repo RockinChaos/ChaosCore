@@ -47,6 +47,8 @@ public class CoreData {
 	private String sqlUser;
 	private String sqlPass;
 	private String tablePrefix;
+	
+	private List <String> permissions = new ArrayList <String> ();
 
 	private List <String> languages = new ArrayList <String> ();
 	
@@ -268,6 +270,24 @@ public class CoreData {
 	*/
 	public void setLanguages(final List <String> languages) {
 		this.languages= languages;
+	}
+	
+   /**
+	* Gets the list of Permissions specified for the plugin.
+	* 
+	* @return The list of Permissions for the plugin.
+	*/
+	public List <String> getPermissions() {
+		return this.permissions;
+	}
+	
+   /**
+	* Sets the list of Permissions specified for the plugin.
+	* 
+	* @param permissions - The list of Permissions for the plugin.
+	*/
+	public void setPermissions(final List <String> permissions) {
+		this.permissions= permissions;
 	}
 	
    /**

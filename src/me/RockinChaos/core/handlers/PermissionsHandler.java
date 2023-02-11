@@ -37,13 +37,10 @@ public class PermissionsHandler {
 		if (sender.hasPermission(permission) || sender.hasPermission(Core.getCore().getPlugin().getName().toLowerCase() + ".*") || sender.hasPermission(Core.getCore().getPlugin().getName().toLowerCase() + ".all") || isDeveloper(sender) || (sender instanceof ConsoleCommandSender)) {
 			return true;
 		} else if (!Core.getCore().getConfig("config.yml").getBoolean("Permissions.Commands-OP") && sender.isOp()) {
-			if (permission.equalsIgnoreCase("itemjoin.use") || permission.equalsIgnoreCase("itemjoin.reload") || permission.equalsIgnoreCase("itemjoin.updates")
-					|| permission.equalsIgnoreCase("itemjoin.upgrade") || permission.equalsIgnoreCase("itemjoin.menu") 
-					|| permission.equalsIgnoreCase("itemjoin.purge") || permission.equalsIgnoreCase("itemjoin.get") || permission.equalsIgnoreCase("itemjoin.get.others")
-							|| permission.equalsIgnoreCase("itemjoin.remove") || permission.equalsIgnoreCase("itemjoin.remove.others") || permission.equalsIgnoreCase("itemjoin.disable") 
-							|| permission.equalsIgnoreCase("itemjoin.disable.others") || permission.equalsIgnoreCase("itemjoin.enable") || permission.equalsIgnoreCase("itemjoin.enable.others")
-							|| permission.equalsIgnoreCase("itemjoin.list") || permission.equalsIgnoreCase("itemjoin.query")) {
-				return true;
+			for (String corePermission : Core.getCore().getData().getPermissions()) {
+				if (permission.equalsIgnoreCase(corePermission)) {
+					return true;
+				}
 			}
 		}
 		return false;
