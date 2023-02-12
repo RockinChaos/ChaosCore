@@ -638,7 +638,7 @@ public class ItemHandler {
     * @return The String of NBTData found on the ItemStack.
     */
 	public static String getNBTData(final ItemStack item, final List <String> dataList) {
-		synchronized("IJ_NBT") {
+		synchronized("CC_NBT") {
 			if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
 				try {
 					Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
@@ -657,10 +657,12 @@ public class ItemHandler {
 				} catch (ConcurrentModificationException e1) {
 				} catch (InvocationTargetException e2) {
 					ServerUtils.logSevere("{ItemHandler} An error has occured when getting NBTData to an item, reason: " + e2.getCause() + ".");
-					ServerUtils.sendDebugReflectTrace(e2);
+					e2.getCause().printStackTrace(); 
+					ServerUtils.sendSevereTrace(e2);
 				} catch (Exception e3) {
 					ServerUtils.logSevere("{ItemHandler} An error has occured when getting NBTData to an item, reason: " + e3.getCause() + ".");
-					ServerUtils.sendDebugTrace(e3);
+					e3.getCause().printStackTrace(); 
+					ServerUtils.sendSevereTrace(e3);
 				}
 			}
 		}
