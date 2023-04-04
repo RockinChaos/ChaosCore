@@ -641,7 +641,8 @@ public class ItemHandler {
 		synchronized("CC_NBT") {
 			if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
 				try {
-					Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+					final ItemStack itemCopy = item.clone();
+					Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, itemCopy);
 					Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
 					Object cacheTag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
 					if (cacheTag != null) {
