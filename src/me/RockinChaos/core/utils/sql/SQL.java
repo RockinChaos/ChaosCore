@@ -46,15 +46,22 @@ public class SQL {
 	}
 	
    /**
-    * Removes ItemJoin tables from the database.
+    * Removes tables from the database.
     * 
     */
 	public void purgeDatabase() {
-		this.databaseData.clear();
 		SchedulerUtils.runSingleAsync(() -> {
-			synchronized("CC_SQL") { // might not work need to test
-				Database.getDatabase().executeStatement("SELECT CONCAT( 'DROP TABLE ', GROUP_CONCAT(table_name) , ';' ) AS statement FROM information_schema.tables WHERE table_schema = 'database_name' AND table_name LIKE '" + Core.getCore().getData().getTablePrefix() + "%';");
-			} { this.createTables(); }
+			for (String table: Core.getCore().getData().getDatabaseData().keySet()) {
+				synchronized("CC_SQL") {
+					if (Database.getDatabase().tableExists(Core.getCore().getData().getTablePrefix() + table)) {
+						Database.getDatabase().executeStatement("DROP TABLE IF EXISTS "  + Core.getCore().getData().getTablePrefix() + table);
+					}
+				} 
+			} { 
+				this.databaseData.clear(); {
+					this.createTables(); 
+				}
+			}
 		});
 	}
 	
