@@ -517,7 +517,7 @@ public final class ReflectionUtils {
 	* 
 	*/
 	public enum MinecraftField {
-		PlayerConnection("playerConnection", "b"),
+		PlayerConnection("playerConnection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
 		NetworkManager("networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
 		public String original;
 		public String remapped;

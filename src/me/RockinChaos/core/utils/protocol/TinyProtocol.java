@@ -67,7 +67,7 @@ public abstract class TinyProtocol {
 
 	private final MethodInvoker getPlayerHandle = ReflectionUtils.getMethod("{obc}.entity.CraftPlayer", "getHandle");
 	private final FieldAccessor<Object> getConnection = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("EntityPlayer").getCanonicalName(), (MinecraftField.PlayerConnection.getField(ReflectionUtils.getMinecraftClass("EntityPlayer"))), Object.class);
-	private final FieldAccessor<Object> getManager = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("PlayerConnection").getCanonicalName(), (MinecraftField.NetworkManager.getField(ReflectionUtils.getMinecraftClass("PlayerConnection"))), Object.class);
+	private final FieldAccessor<?> getManager = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("PlayerConnection"), null, ReflectionUtils.getMinecraftClass("NetworkManager"));
 	private final FieldAccessor<Channel> getChannel = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("NetworkManager").getCanonicalName(), Channel.class, 0);
 
 	private final Class<Object> minecraftServerClass = ReflectionUtils.getUntypedClass(ReflectionUtils.getMinecraftClass("MinecraftServer").getCanonicalName());
@@ -392,7 +392,6 @@ public abstract class TinyProtocol {
 		if (channel == null) {
 			Object connection = this.getConnection.get(this.getPlayerHandle.invoke(player));
 			Object manager = this.getManager.get(connection);
-
 			this.channelLookup.put(player.getName(), channel = this.getChannel.get(manager));
 		}
 		return channel;
