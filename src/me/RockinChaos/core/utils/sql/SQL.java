@@ -40,9 +40,16 @@ public class SQL {
 	public SQL() {
 		Database.kill(); {
 			this.createTables();
-			this.loadData();
 			ServerUtils.logDebug("{SQL} Database Connected."); 
 		}
+	}
+	
+   /**
+    * Forces the SQLData to load.
+    * 
+    */
+	public void load() {
+		this.loadData();	
 	}
 	
    /**
@@ -53,7 +60,7 @@ public class SQL {
 		SchedulerUtils.runSingleAsync(() -> {
 			for (String table: Core.getCore().getData().getDatabaseData().keySet()) {
 				synchronized("CC_SQL") {
-					if (Database.getDatabase().tableExists(Core.getCore().getData().getTablePrefix() + table)) {
+					if (Database.getDatabase() != null && Database.getDatabase().tableExists(Core.getCore().getData().getTablePrefix() + table)) {
 						Database.getDatabase().executeStatement("DROP TABLE IF EXISTS "  + Core.getCore().getData().getTablePrefix() + table);
 					}
 				} 
@@ -243,9 +250,9 @@ public class SQL {
     * Creates the missing database tables.
     * 
     */
-	private void createTables() {
-		Core.getCore().getData().getAlterTables().run(); {
-	        Core.getCore().getData().getCreateTables().run();
+	public void createTables() {
+		Core.getCore().getData().getCreateTables().run(); {
+	       Core.getCore().getData().getAlterTables().run(); 
 		}
 	}
 	
@@ -253,13 +260,17 @@ public class SQL {
     * Attempts to refresh the SQL instance.
     * 
     * @param checkSafety - If the SQL instance should be force renewed or attempted if safe.
+    * @return If the refresh was successful.
     */
-	public void refresh(final boolean checkSafety) {
+	public boolean refresh(final boolean checkSafety) {
 		if (!checkSafety) {
 			data = new SQL();
+			return true;
 		} else if ((!Core.getCore().getData().sqlEnabled() && Database.getDatabase().getConstant()) || (Core.getCore().getData().sqlEnabled() && !Database.getDatabase().getConstant())) {
 			data = new SQL();
+			return true;
 		}
+		return false;
 	}
 	
    /**
