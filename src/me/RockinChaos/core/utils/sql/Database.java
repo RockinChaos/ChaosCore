@@ -402,7 +402,6 @@ abstract class Controller {
 	protected Connection connection;
 	protected String dataFolder;
 	protected boolean stopConnection = false;
-	protected boolean constConnection = false;
 		
    /**
 	* Gets the proper SQL connection.
@@ -576,14 +575,6 @@ abstract class Controller {
 				ServerUtils.sendDebugTrace(e);
 			}
 		}
-	}
-	
-   /**
-	* Checks if the connection is an SQL Constant.
-	* 
-	*/
-	public boolean getConstant() {
-		return this.constConnection;
 	}
 	
    /**

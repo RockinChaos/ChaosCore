@@ -252,7 +252,7 @@ public class SQL {
     */
 	public void createTables() {
 		Core.getCore().getData().getCreateTables().run(); {
-	       Core.getCore().getData().getAlterTables().run(); 
+			Core.getCore().getData().getAlterTables().run(); 
 		}
 	}
 	
@@ -266,11 +266,11 @@ public class SQL {
 		if (!checkSafety) {
 			data = new SQL();
 			return true;
-		} else if ((!Core.getCore().getData().sqlEnabled() && Database.getDatabase().getConstant()) || (Core.getCore().getData().sqlEnabled() && !Database.getDatabase().getConstant())) {
+		} else { /* Temporary Placeholder */
 			data = new SQL();
 			return true;
 		}
-		return false;
+		/* return false; */
 	}
 	
    /**
