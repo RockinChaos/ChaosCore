@@ -41,6 +41,7 @@ import me.RockinChaos.core.Core;
 import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
+import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 
@@ -265,22 +266,24 @@ public class LegacyAPI {
     */
 	public static org.bukkit.inventory.meta.ItemMeta setSkullOwner(final org.bukkit.inventory.meta.SkullMeta skullMeta, final String owner) {
 		skullMeta.setOwner(owner);
-		if (!ServerUtils.hasSpecificUpdate("1_13") && ServerUtils.hasSpecificUpdate("1_8")) {
-			final Location loc = new Location(Bukkit.getWorlds().get(0), 200, 1, 200);
-			final BlockState blockState = loc.getBlock().getState();
-			try {
-				loc.getBlock().setType(Material.valueOf("SKULL"));
-				Skull skull = (Skull)loc.getBlock().getState();
-				skull.setSkullType(SkullType.PLAYER);
-				skull.setOwner(owner);
-				skull.update();
-				final String texture = ItemHandler.getSkullTexture(skull);
-				if (texture != null && !texture.isEmpty()) {
-					ItemHandler.setSkullTexture(skullMeta, texture);
-				}
-			} catch (Exception e) { }
-			blockState.update(true);
-		}
+		SchedulerUtils.run(() -> {
+			if (!ServerUtils.hasSpecificUpdate("1_13") && ServerUtils.hasSpecificUpdate("1_8")) {
+				final Location loc = new Location(Bukkit.getWorlds().get(0), 200, 1, 200);
+				final BlockState blockState = loc.getBlock().getState();
+				try {
+					loc.getBlock().setType(Material.valueOf("SKULL"));
+					final Skull skull = (Skull)loc.getBlock().getState();
+					skull.setSkullType(SkullType.PLAYER);
+					skull.setOwner(owner);
+					skull.update();
+					final String texture = ItemHandler.getSkullTexture(skull);
+					if (texture != null && !texture.isEmpty()) {
+						ItemHandler.setSkullTexture(skullMeta, texture);
+					}
+				} catch (Exception e) { }
+				blockState.update(true);
+			}
+		});
 		return skullMeta;
 	}
 	
