@@ -1,0 +1,676 @@
+/*
+ * ChaosCore
+ * Copyright (C) CraftationGaming <https://www.craftationgaming.com/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package me.RockinChaos.core.utils.api;
+
+import me.RockinChaos.core.Core;
+import me.RockinChaos.core.handlers.ItemHandler;
+import me.RockinChaos.core.utils.ReflectionUtils;
+import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
+import me.RockinChaos.core.utils.SchedulerUtils;
+import me.RockinChaos.core.utils.ServerUtils;
+import me.RockinChaos.core.utils.StringUtils;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Skull;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.math.BigInteger;
+import java.util.*;
+
+/**
+ * Welcome to the magical land of make-believe.
+ * These are Deprecated Legacy Methods and/or non-functioning methods
+ * that exist to support legacy versions of Minecraft.
+ */
+@SuppressWarnings({"deprecation", "unused", "UnstableApiUsage", "DeprecatedIsStillUsed"})
+public class LegacyAPI {
+
+    private static boolean legacyMaterial = false;
+
+    /**
+     * Updates the Players Inventory.
+     *
+     * @param player - The Player to have their Inventory updated.
+     */
+    public static void updateInventory(final Player player) {
+        player.updateInventory();
+    }
+
+    /**
+     * Gets the ItemStack in the Players Hand.
+     *
+     * @param player - The Player to have its ItemStack found.
+     * @return The found ItemStack.
+     */
+    public static ItemStack getInHandItem(final Player player) {
+        return player.getInventory().getItemInHand();
+    }
+
+    /**
+     * Sets the ItemStack to the Players Hand.
+     *
+     * @param player - The Player to have the ItemStack given.
+     * @param item   - The ItemStack to be set to the Players Hand.
+     */
+    public static void setInHandItem(final Player player, final ItemStack item) {
+        player.setItemInHand(item);
+    }
+
+    /**
+     * Creates a new ItemStack.
+     *
+     * @param material  - The Material to be set to the ItemStack.
+     * @param count     - The ItemStack size.
+     * @param dataValue - The Data Value to set to the ItemStack.
+     * @return The new ItemStack.
+     */
+    public static ItemStack newItemStack(final Material material, final int count, final short dataValue) {
+        return new ItemStack(material, count, dataValue);
+    }
+
+    /**
+     * Gets the GameRule for the World.
+     *
+     * @param world    - The world being referenced.
+     * @param gamerule - The gamerule to locate.
+     * @return The boolean value fo the gamerule.
+     */
+    public static boolean getGameRule(final World world, final String gamerule) {
+        String value = world.getGameRuleValue(gamerule);
+        return (value == null || value.isEmpty() || !Boolean.parseBoolean(value));
+    }
+
+    /**
+     * Creates a new ShapedRecipe.
+     *
+     * @param item - The ItemStack to be crafted.
+     * @return The new ShapedRecipe.
+     */
+    public static ShapedRecipe newShapedRecipe(final ItemStack item) {
+        return new ShapedRecipe(item);
+    }
+
+    /**
+     * Adds an ingredient to the ShapedRecipe with a Data Value.
+     *
+     * @param shapedRecipe - The shaped recipe reference.
+     * @param character    - The identifier of the ingredient.
+     * @param material     - The material of the ingredient.
+     * @param itemData     - The Data Value of the ingredient.
+     */
+    public static void setIngredient(final ShapedRecipe shapedRecipe, final char character, final Material material, final byte itemData) {
+        shapedRecipe.setIngredient(character, material, itemData);
+    }
+
+    /**
+     * Matches the Material from its Bukkit Material and Data Value.
+     *
+     * @param typeID    - The ID of the Material to be fetched.
+     * @param dataValue - The Data value to be matched.
+     * @return The found Bukkit Material.
+     */
+    public static org.bukkit.Material getMaterial(final int typeID, final byte dataValue) {
+        initializeLegacy();
+        return Core.getCore().getPlugin().getServer().getUnsafe().fromLegacy(new org.bukkit.material.MaterialData(findMaterial(typeID), dataValue));
+    }
+
+    /**
+     * Matches the Material from its Bukkit Material and Data Value.
+     *
+     * @param material  - The Material to be matched.
+     * @param dataValue - The Data value to be matched.
+     * @return The found Bukkit Material.
+     */
+    public static org.bukkit.Material getMaterial(final Material material, final byte dataValue) {
+        initializeLegacy();
+        return Core.getCore().getPlugin().getServer().getUnsafe().fromLegacy(new org.bukkit.material.MaterialData(material, dataValue));
+    }
+
+    /**
+     * Gets the Material from its corresponding ID.
+     *
+     * @param typeID - The ID of the Material to be fetched.
+     * @return The found Bukkit Material.
+     */
+    public static org.bukkit.Material findMaterial(final int typeID) {
+        final Material[] foundMaterial = new Material[1];
+        EnumSet.allOf(Material.class).forEach(material -> {
+            try {
+                if (StringUtils.containsIgnoreCase(material.toString(), "LEGACY_") && material.getId() == typeID || !ServerUtils.hasSpecificUpdate("1_13") && material.getId() == typeID) {
+                    try {
+                        initializeLegacy();
+                    } catch (Exception e) {
+                        ServerUtils.sendSevereTrace(e);
+                    }
+                    foundMaterial[0] = material;
+                }
+            } catch (Exception ignored) {
+            }
+        });
+        return foundMaterial[0];
+    }
+
+    /**
+     * Sends an info/debug message if the server is running Minecraft 1.13+ and is attempting to call a Legacy material.
+     */
+    private static void initializeLegacy() {
+        if (ServerUtils.hasSpecificUpdate("1_13") && !legacyMaterial) {
+            legacyMaterial = true;
+            ServerUtils.logInfo("Initializing Legacy Material Support ...");
+            ServerUtils.logDebug("Your items.yml has one or more item(s) containing a numerical id and/or data values.");
+            ServerUtils.logDebug("Minecraft 1.13 removed the use of these values, please change your items ids to reflect this change.");
+            ServerUtils.logDebug("Your custom items will continue to function but the id set may not appear as expected.");
+            ServerUtils.logDebug("If you believe this is a bug, please report it to the developer!");
+            try {
+                throw new Exception("Invalid usage of item id, this is not a bug!");
+            } catch (Exception e) {
+                ServerUtils.sendDebugTrace(e);
+            }
+        }
+    }
+
+    /**
+     * Gets the ID of the specified Material.
+     *
+     * @param material - The Material to have its ID fetched.
+     * @return The ID of the Material.
+     */
+    public static int getMaterialID(final Material material) {
+        return material.getId();
+    }
+
+    /**
+     * Gets the Durability from the ItemStack.
+     *
+     * @param item - The ItemStack to have its durability fetched.
+     * @return The Durability of the ItemStack.
+     */
+    public static short getDurability(final ItemStack item) {
+        return item.getDurability();
+    }
+
+    /**
+     * Sets the Durability to the ItemStack.
+     *
+     * @param item       - The ItemStack to have its Durability set.
+     * @param durability - The Durability to be set to the ItemStack.
+     * @return the newly set Durability on the ItemStack.
+     */
+    public static ItemStack setDurability(final ItemStack item, final short durability) {
+        item.setDurability(durability);
+        return item;
+    }
+
+    /**
+     * Gets the Enchantments String name.
+     *
+     * @param enchant - The Enchantment to have its String name fetched.
+     * @return The Enchantments String name.
+     */
+    public static String getEnchantName(final org.bukkit.enchantments.Enchantment enchant) {
+        return enchant.getName();
+    }
+
+    /**
+     * Gets the Enchantment from its String name.
+     *
+     * @param name - The String name of the Enchantment.
+     * @return The found Enchantment.
+     */
+    public static org.bukkit.enchantments.Enchantment getEnchant(final String name) {
+        return org.bukkit.enchantments.Enchantment.getByName(name.toUpperCase());
+    }
+
+    /**
+     * Gets the current Skull Owner of the SkullMeta.
+     *
+     * @param skullMeta - The SkullMeta to have its owner fetched.
+     * @return The found Skull Owner.
+     */
+    public static String getSkullOwner(final org.bukkit.inventory.meta.SkullMeta skullMeta) {
+        return skullMeta.getOwner();
+    }
+
+    /**
+     * Sets the owner to the SkullMeta.
+     *
+     * @param skullMeta - The SkullMeta to have its owner set.
+     * @param owner     - The owner to be set to the SkullMeta.
+     * @return The newly set SkullMeta.
+     */
+    public static org.bukkit.inventory.meta.ItemMeta setSkullOwner(final org.bukkit.inventory.meta.SkullMeta skullMeta, final String owner) {
+        skullMeta.setOwner(owner);
+        SchedulerUtils.run(() -> {
+            if (!ServerUtils.hasSpecificUpdate("1_13") && ServerUtils.hasSpecificUpdate("1_8")) {
+                final Location loc = new Location(Bukkit.getWorlds().get(0), 200, 1, 200);
+                final BlockState blockState = loc.getBlock().getState();
+                try {
+                    loc.getBlock().setType(Material.valueOf("SKULL"));
+                    final Skull skull = (Skull) loc.getBlock().getState();
+                    skull.setSkullType(SkullType.PLAYER);
+                    skull.setOwner(owner);
+                    skull.update();
+                    final String texture = ItemHandler.getSkullTexture(skull);
+                    if (texture != null && !texture.isEmpty()) {
+                        ItemHandler.setSkullTexture(skullMeta, texture);
+                    }
+                } catch (Exception ignored) {
+                }
+                blockState.update(true);
+            }
+        });
+        return skullMeta;
+    }
+
+    /**
+     * Checks if setTarget exists for the Entity.
+     *
+     * @param current - The Entity to be checked.
+     * @return If setTarget exists for the Entity.
+     */
+    public static boolean setTargetExists(final Entity current) {
+        try {
+            current.getClass().getMethod("setTarget", LivingEntity.class);
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Sets the Max Health of the Player.
+     *
+     * @param player    - The Player to have their max health set.
+     * @param maxHealth - The Max Health to be set.
+     */
+    public static void setMaxHealth(final Player player, final double maxHealth) {
+        player.setMaxHealth(maxHealth);
+    }
+
+    /**
+     * Gets the Block Data from the specified Block.
+     *
+     * @param block - The Block being referenced.
+     * @return The determined Block Data.
+     */
+    public static byte getBlockData(final Block block) {
+        return block.getData();
+    }
+
+    /**
+     * Gets the Bukkit Player from their String name.
+     *
+     * @param playerName - The String name of the Bukkit Player.
+     * @return The found Player.
+     */
+    public static Player getPlayer(final String playerName) {
+        return Bukkit.getPlayer(playerName);
+    }
+
+    /**
+     * Gets the Bukkit OfflinePlayer from their String name.
+     *
+     * @param playerName - The String name of the Bukkit OfflinePlayer.
+     * @return The found OfflinePlayer.
+     */
+    public static OfflinePlayer getOfflinePlayer(final String playerName) {
+        return Bukkit.getOfflinePlayer(playerName);
+    }
+
+    /**
+     * Sets the Map ID to the MapMeta.
+     *
+     * @param meta  - The MapMeta to have its Map ID set.
+     * @param mapId - The Map ID to be set to the item.
+     */
+    public static org.bukkit.inventory.meta.MapMeta setMapID(final org.bukkit.inventory.meta.MapMeta meta, final int mapId) {
+        meta.setMapId(mapId);
+        return meta;
+    }
+
+    /**
+     * Gets the ID from the MapView.
+     *
+     * @param view - The MapView to have its ID fetched.
+     * @return The ID of the MapView.
+     */
+    public static short getMapID(final org.bukkit.map.MapView view) {
+        try {
+            return (short) view.getId();
+        } catch (Exception | NoSuchMethodError e) {
+            try {
+                return (short) ReflectionUtils.getBukkitClass("map.MapView").getMethod("getId").invoke(view);
+            } catch (Exception | NoSuchMethodError e2) {
+                return 1;
+            }
+        }
+    }
+
+    /**
+     * Gets the MapView from the specified ID.
+     *
+     * @param id - The ID of the MapView to be fetched.
+     * @return The Fetched MapView.
+     */
+    public static org.bukkit.map.MapView getMapView(final int id) {
+        try {
+            return Core.getCore().getPlugin().getServer().getMap((short) id);
+        } catch (Exception | NoSuchMethodError e) {
+            try {
+                return (org.bukkit.map.MapView) ReflectionUtils.getBukkitClass("Bukkit").getMethod("getMap", short.class).invoke(ReflectionUtils.getBukkitClass("map.MapView"), (short) id);
+            } catch (Exception | NoSuchMethodError e2) {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Creates a MapView for the main Server World.
+     *
+     * @return The new MapView.
+     */
+    public static org.bukkit.map.MapView createMapView() {
+        try {
+            return Core.getCore().getPlugin().getServer().createMap(Core.getCore().getPlugin().getServer().getWorlds().get(0));
+        } catch (Exception | NoSuchMethodError e) {
+            return null;
+        }
+    }
+
+    /**
+     * Sets the Legacy Book Pages to the ItemStack.
+     *
+     * @param player - The Player being used for placeholders.
+     * @param meta   - The ItemMeta to be updated.
+     * @param pages  - The book pages to be set.
+     * @return The updated ItemMeta.
+     * @warn Only to be used on server versions below 1.8.
+     */
+    public static ItemMeta setBookPages(final Player player, final ItemMeta meta, final List<String> pages) {
+        return setPages(player, meta, pages);
+    }
+
+    /**
+     * Sets the Legacy Book Pages to the ItemStack.
+     *
+     * @param player - The Player being used for placeholders.
+     * @param meta   - The ItemMeta to be updated.
+     * @param pages  - The book pages to be set.
+     * @return The updated ItemMeta.
+     * @deprecated Only to be used on server versions below 1.8.
+     */
+    public static ItemMeta setPages(final Player player, final ItemMeta meta, final List<String> pages) {
+        if (!ServerUtils.hasSpecificUpdate("1_8") && pages != null && !pages.isEmpty()) {
+            List<String> copyPages = new ArrayList<>(pages);
+            copyPages.set(0, ItemHandler.cutDelay(copyPages.get(0)));
+            List<String> bookList = new ArrayList<>();
+            for (String page : pages) {
+                bookList.add(StringUtils.translateLayout(page, player));
+            }
+            ((BookMeta) meta).setPages(bookList);
+            return meta;
+        }
+        return meta;
+    }
+
+    /**
+     * Sets the ItemStack as glowing.
+     *
+     * @param tempItem - The ItemStack to be updated.
+     * @return The glowing ItemStack.
+     */
+    public static ItemStack setGlowing(final ItemStack tempItem) {
+        return setGlowEnchant(tempItem);
+    }
+
+    /**
+     * Sets the armor value to the items attributes.
+     *
+     * @param tempItem         - The ItemStack to be updated.
+     * @param attribIdentifier - The identifier of the attributes.
+     * @param attributes       - A list of attributes to be set.
+     * @return The new ItemStack with set Attributes.
+     */
+    public static ItemStack setAttributes(final ItemStack tempItem, final String attribIdentifier, final Map<String, Double> attributes) {
+        if (!ServerUtils.hasSpecificUpdate("1_13") && attributes != null && !attributes.isEmpty()) {
+            try {
+                String slot;
+                if (ItemHandler.getDesignatedSlot(tempItem.getType()).equalsIgnoreCase("noslot")) {
+                    slot = "HAND";
+                } else {
+                    slot = ItemHandler.getDesignatedSlot(tempItem.getType()).toUpperCase();
+                }
+                Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
+                Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
+                Class<?> baseClass = ReflectionUtils.getMinecraftClass("NBTBase");
+                Object nms = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, tempItem);
+                Object tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
+                Object modifiers = ReflectionUtils.getMinecraftClass("NBTTagList").getConstructor().newInstance();
+                if (tag == null) {
+                    tag = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
+                }
+                for (String attribute : attributes.keySet()) {
+                    int uuid = new BigInteger((attribIdentifier + attribute).getBytes()).intValue();
+                    Object attrib = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
+                    double value = attributes.get(attribute);
+                    StringBuilder name = new StringBuilder(attribute.toLowerCase().replaceFirst("_", "."));
+                    if (name.toString().contains("_")) {
+                        String[] nameSplit = name.toString().split("_");
+                        name = new StringBuilder(nameSplit[0]);
+                        nameSplit[0] = "";
+                        for (String rename : nameSplit) {
+                            name.append(org.apache.commons.lang.StringUtils.capitalize(rename));
+                        }
+                    }
+                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(attrib, String.class, String.class), String.class, String.class).invoke(attrib, "AttributeName", name.toString());
+                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(attrib, String.class, String.class), String.class, String.class).invoke(attrib, "Name", name.toString());
+                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(attrib, String.class, String.class), String.class, String.class).invoke(attrib, "Slot", slot);
+                    attrib.getClass().getMethod(MinecraftMethod.setDouble.getMethod(attrib, String.class, double.class), String.class, double.class).invoke(attrib, "Amount", value);
+                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(attrib, String.class, int.class), String.class, int.class).invoke(attrib, "Operation", 0);
+                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(attrib, String.class, int.class), String.class, int.class).invoke(attrib, "UUIDLeast", uuid);
+                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(attrib, String.class, int.class), String.class, int.class).invoke(attrib, "UUIDMost", (uuid / 2));
+                    modifiers.getClass().getMethod(MinecraftMethod.add.getMethod(modifiers, baseClass), baseClass).invoke(modifiers, attrib);
+                }
+                tag.getClass().getMethod(MinecraftMethod.set.getMethod(tag, String.class, baseClass), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
+                return (ItemStack) craftItemStack.getMethod("asCraftMirror", nms.getClass()).invoke(null, nms);
+            } catch (Exception e) {
+                ServerUtils.sendDebugTrace(e);
+            }
+        }
+        return tempItem;
+    }
+
+    /**
+     * Sets the ItemStack as glowing.
+     *
+     * @param tempItem - The ItemStack to be updated.
+     * @return The updated ItemStack.
+     * @deprecated Only to be used on server versions below 1.8.
+     */
+    private static ItemStack setGlowEnchant(final ItemStack tempItem) {
+        if (!ServerUtils.hasSpecificUpdate("1_11")) {
+            try {
+                Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
+                Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
+                Class<?> baseClass = ReflectionUtils.getMinecraftClass("NBTBase");
+                Object nms = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, tempItem);
+                Object tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
+                if (tag == null) {
+                    tag = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
+                }
+                Object ench = ReflectionUtils.getMinecraftClass("NBTTagList").getConstructor().newInstance();
+                tag.getClass().getMethod(MinecraftMethod.set.getMethod(tag, String.class, baseClass), String.class, baseClass).invoke(tag, "ench", ench);
+                nms.getClass().getMethod(MinecraftMethod.setTag.getMethod(nms, tag.getClass()), tag.getClass()).invoke(nms, tag);
+                return (((ItemStack) craftItemStack.getMethod("asCraftMirror", nms.getClass()).invoke(null, nms)));
+            } catch (Exception e) {
+                ServerUtils.sendDebugTrace(e);
+            }
+        }
+        return tempItem;
+    }
+
+    /**
+     * Color Encodes a String so that it is completely hidden in color codes,
+     * this will be invisible to a normal eye and will not display any text.
+     * Only to be used on server versions below 1.13, will not function on 1.13+.
+     *
+     * @param str - The String to be Color Encoded.
+     * @return The Color Encoded String.
+     */
+    public static String colorEncode(final String str) {
+        try {
+            StringBuilder hiddenData = new StringBuilder();
+            for (char c : str.toCharArray()) {
+                hiddenData.append("§").append(c);
+            }
+            return hiddenData.toString();
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            return null;
+        }
+    }
+
+    /**
+     * Decodes a Color Encoded String.
+     * Only to be used on server versions below 1.13, will not function on 1.13+.
+     *
+     * @param str - The String to be Color Decoded.
+     * @return The Color Decoded String.
+     */
+    public static String colorDecode(final String str) {
+        try {
+            String[] hiddenData = str.split("(?:\\w{2,}|\\d[0-9A-Fa-f])+");
+            StringBuilder returnData = new StringBuilder();
+            String[] d = hiddenData[hiddenData.length - 1].split("§");
+            for (int i = 1; i < d.length; i++) {
+                returnData.append(d[i]);
+            }
+            return returnData.toString();
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            return null;
+        }
+    }
+
+    /**
+     * Checks if the Sk89q Plugins are the Legacy version.
+     *
+     * @return If the plugins are Legacy.
+     */
+    public static boolean legacySk89q() {
+        try {
+            Class.forName("com.sk89q.worldedit.Vector");
+            return true;
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /**
+     * Gets the Data Value from the ItemStack.
+     *
+     * @param item - The ItemStack to have its Data Value fetched.
+     */
+    public static int getDataValue(final ItemStack item) {
+        return Objects.requireNonNull(item.getData()).getData();
+    }
+
+    /**
+     * Gets the Data Value for the corresponding Material.
+     *
+     * @param material - The Material to have its data value fetched.
+     * @return The Data Value.
+     */
+    public static int getDataValue(final Material material) {
+        if (material == Material.STONE) {
+            return 6;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "DIRT")) {
+            return 2;
+        } else if (material.toString().equalsIgnoreCase("WOOD")) {
+            return 5;
+        } else if (material.toString().equalsIgnoreCase("LOG")) {
+            return 3;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SAPLING")) {
+            return 5;
+        } else if (material.toString().equalsIgnoreCase("SAND")) {
+            return 1;
+        } else if (material.toString().equalsIgnoreCase("LEAVES")) {
+            return 3;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SPONGE")) {
+            return 1;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SANDSTONE") && !StringUtils.containsIgnoreCase(material.toString(), "STAIRS")) {
+            return 2;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "LONG_GRASS")) {
+            return 2;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "RED_ROSE")) {
+            return 8;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "WOOD_STEP")) {
+            return 5;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "STEP")) {
+            return 7;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "STAINED_GLASS")) {
+            return 15;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "MONSTER_EGGS")) {
+            return 5;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SMOOTH_BRICK")) {
+            return 3;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "COBBLE_WALL")) {
+            return 1;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "QUARTZ_BLOCK")) {
+            return 2;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "STAINED_CLAY")) {
+            return 15;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "LOG_2")) {
+            return 1;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "LEAVES_2")) {
+            return 1;
+        } else if (material.toString().equalsIgnoreCase("PRISMARINE")) {
+            return 2;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "CARPET")) {
+            return 15;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "DOUBLE_PLANT")) {
+            return 5;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "RED_SANDSTONE")) {
+            return 2;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "GOLDEN_APPLE")) {
+            return 1;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "RAW_FISH")) {
+            return 3;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "COOKED_FISHED")) {
+            return 1;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "INK_SAC")) {
+            return 15;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SKULL_ITEM") && ServerUtils.hasSpecificUpdate("1_9")) {
+            return 5;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SKULL_ITEM")) {
+            return 4;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "CONCRETE")) {
+            return 15;
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "WOOL")) {
+            return 15;
+        }
+        return 0;
+    }
+}
