@@ -28,8 +28,7 @@ import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.annotation.Nonnull;
-
-@SuppressWarnings({"unused", "UnstableApiUsage"})
+@SuppressWarnings({"unused"})
 public class BungeeAPI implements PluginMessageListener {
 
     private static BungeeAPI bungee;
