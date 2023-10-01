@@ -262,7 +262,12 @@ public class SQL {
      * @return If the refresh was successful.
      */
     public boolean refresh() {
-        data = new SQL();
-        return true;
+        try {
+            data = new SQL();
+            return true;
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+            return false;
+        }
     }
 }

@@ -72,7 +72,7 @@ public abstract class TinyProtocol {
     private final List<Channel> serverChannels = Lists.newArrayList();
     private final String handlerName;
     protected volatile boolean closed;
-    protected Plugin plugin;
+    protected final Plugin plugin;
     private Listener listener;
     private List<Object> networkManagers;
     private ChannelInboundHandlerAdapter serverChannelHandler;
@@ -511,7 +511,7 @@ public abstract class TinyProtocol {
             if (PACKET_LOGIN_IN_START.isInstance(packet)) {
                 GameProfile profile;
                 if (ServerUtils.hasSpecificUpdate("1_19")) {
-                    profile = new GameProfile(null, ReflectionUtils.getField(PACKET_LOGIN_IN_START, String.class, 0).get(packet));
+                    profile = new GameProfile(UUID.randomUUID(), ReflectionUtils.getField(PACKET_LOGIN_IN_START, String.class, 0).get(packet));
                 } else {
                     profile = ReflectionUtils.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0).get(packet);
                 }

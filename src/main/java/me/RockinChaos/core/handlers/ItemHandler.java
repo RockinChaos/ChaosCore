@@ -50,6 +50,8 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class ItemHandler {
 
+    final static Class<?> propertyClass = Property.class;
+
     /**
      * Adds a list of lores to the specified ItemStack.
      *
@@ -195,6 +197,16 @@ public class ItemHandler {
             item = new ItemStack(Material.AIR);
         }
         return item;
+    }
+
+    /**
+     * If the given ItemStack is null, return an air ItemStack, otherwise return the given ItemStack.
+     *
+     * @param stack The ItemStack to check.
+     * @return air or the given ItemStack.
+     */
+    public static ItemStack itemNotNull(ItemStack stack) {
+        return stack == null ? new ItemStack(Material.AIR) : stack;
     }
 
     /**
@@ -384,7 +396,8 @@ public class ItemHandler {
             if (ServerUtils.hasSpecificUpdate("1_8")) {
                 ItemMeta itemMeta = item.getItemMeta();
                 if (itemMeta != null) {
-                    GameProfile gameProfile = new GameProfile(UUID.randomUUID(), null);
+                    final UUID uuid = UUID.randomUUID();
+                    GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
                     gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
                     Field declaredField = itemMeta.getClass().getDeclaredField("profile");
                     declaredField.setAccessible(true);
@@ -407,7 +420,8 @@ public class ItemHandler {
     public static ItemMeta setSkullTexture(final ItemMeta itemMeta, final String skullTexture) {
         try {
             if (ServerUtils.hasSpecificUpdate("1_8")) {
-                GameProfile gameProfile = new GameProfile(UUID.randomUUID(), null);
+                final UUID uuid = UUID.randomUUID();
+                GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
                 gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
                 Field declaredField = itemMeta.getClass().getDeclaredField("profile");
                 declaredField.setAccessible(true);
@@ -425,6 +439,7 @@ public class ItemHandler {
      * @param meta - The ItemMeta to have its Skull Texture found.
      * @return The found Skull Texture String value.
      */
+    @SuppressWarnings("JavaReflectionMemberAccess")
     public static String getSkullTexture(final ItemMeta meta) {
         try {
             final Class<?> cls = ReflectionUtils.getCraftBukkitClass("inventory.CraftMetaSkull");
@@ -434,8 +449,18 @@ public class ItemHandler {
             final GameProfile profile = (GameProfile) field.get(real);
             final Collection<Property> props = profile.getProperties().get("textures");
             for (final Property property : props) {
-                if (property.getName().equals("textures")) {
-                    return property.getValue();
+                try {
+                    if (propertyClass.getMethod("getName").invoke(property).equals("textures")) {
+                        return ((String) propertyClass.getMethod("getValue").invoke(property));
+                    }
+                } catch (Exception e) {
+                    try {
+                        if (propertyClass.getMethod("name").invoke(property).equals("textures")) {
+                            return ((String) propertyClass.getMethod("value").invoke(property));
+                        }
+                    } catch (Exception e2) {
+                        ServerUtils.sendSevereTrace(e);
+                    }
                 }
             }
         } catch (Exception ignored) {
@@ -449,6 +474,7 @@ public class ItemHandler {
      * @param skull - The Skull to have its Skull Texture found.
      * @return The found Skull Texture String value.
      */
+    @SuppressWarnings("JavaReflectionMemberAccess")
     public static String getSkullTexture(final Skull skull) {
         try {
             final Field field = skull.getClass().getDeclaredField("profile");
@@ -456,8 +482,18 @@ public class ItemHandler {
             final GameProfile profile = (GameProfile) field.get(skull);
             final Collection<Property> props = profile.getProperties().get("textures");
             for (final Property property : props) {
-                if (property.getName().equals("textures")) {
-                    return property.getValue();
+                try {
+                    if (propertyClass.getMethod("getName").invoke(property).equals("textures")) {
+                        return ((String) propertyClass.getMethod("getValue").invoke(property));
+                    }
+                } catch (Exception e) {
+                    try {
+                        if (propertyClass.getMethod("name").invoke(property).equals("textures")) {
+                            return ((String) propertyClass.getMethod("value").invoke(property));
+                        }
+                    } catch (Exception e2) {
+                        ServerUtils.sendSevereTrace(e);
+                    }
                 }
             }
         } catch (Exception ignored) {
