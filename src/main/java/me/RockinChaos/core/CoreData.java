@@ -123,7 +123,7 @@ public class CoreData {
      * @return If Ignore Errors is enabled.
      */
     public boolean ignoreErrors() {
-        return this.ignoreErrors;
+        return !this.ignoreErrors;
     }
 
     /**
