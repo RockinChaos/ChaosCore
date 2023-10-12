@@ -438,6 +438,25 @@ public class StringUtils {
     }
 
     /**
+     * Gets a random number of spaces between the upper and lower limit while excluding the comparator.
+     *
+     * @param lower - The lowest number of spaces.
+     * @param upper - The highest number of spaces.
+     * @param comparator - A number that should never be used.
+     */
+    public static Map<StringBuilder, Integer> getSpacers(final int lower, final int upper, final int comparator) {
+        StringBuilder spaces = new StringBuilder();
+        int sNum = StringUtils.getRandom(0, 5);
+        while (comparator == sNum) {
+            sNum = StringUtils.getRandom(0, 5);
+        }
+        for (int s = 0; s <= sNum; s++) {
+            spaces.append(" ");
+        }
+        return Collections.singletonMap(spaces, sNum);
+    }
+
+    /**
      * Gets a random Integer between the upper and lower limits.
      *
      * @param lower - The lower limit.

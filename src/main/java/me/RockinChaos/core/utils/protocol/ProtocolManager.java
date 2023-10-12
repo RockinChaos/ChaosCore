@@ -20,10 +20,7 @@ package me.RockinChaos.core.utils.protocol;
 import io.netty.channel.Channel;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.ServerUtils;
-import me.RockinChaos.core.utils.protocol.events.InventoryCloseEvent;
-import me.RockinChaos.core.utils.protocol.events.PlayerAutoCraftEvent;
-import me.RockinChaos.core.utils.protocol.events.PlayerCloneItemEvent;
-import me.RockinChaos.core.utils.protocol.events.PlayerPickItemEvent;
+import me.RockinChaos.core.utils.protocol.events.*;
 import me.RockinChaos.core.utils.protocol.packet.PacketContainer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -101,6 +98,15 @@ public class ProtocolManager {
                     final InventoryCloseEvent CloseInventory = new InventoryCloseEvent(player.getOpenInventory());
                     callEvent(CloseInventory);
                     return CloseInventory.isCancelled();
+                } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload")) {
+                    final PacketContainer container = protocol.getContainer(packet);
+                    if (container.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && player.getOpenInventory().getType().name().equalsIgnoreCase("ANVIL")){
+                        final Object UnbufferedPayload = container.read(1).getData();
+                        final String renameText = (String) UnbufferedPayload.getClass().getMethod("c", int.class).invoke(UnbufferedPayload, 31);
+                        final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(player.getOpenInventory(), renameText);
+                        callEvent(PrepareAnvil);
+                        return PrepareAnvil.isCancelled();
+                    }
                 } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick")) {
                     final PacketContainer container = protocol.getContainer(packet);
                     if (container.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {

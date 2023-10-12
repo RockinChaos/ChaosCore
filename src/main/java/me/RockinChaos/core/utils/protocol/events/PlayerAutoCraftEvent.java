@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("unused")
 public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    protected Inventory craftingInventory;
+    protected final Inventory craftingInventory;
     private Result useAutoCraft;
 
     /**

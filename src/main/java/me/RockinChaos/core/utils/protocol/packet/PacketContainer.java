@@ -25,8 +25,8 @@ import java.util.HashMap;
 @SuppressWarnings("unused")
 public class PacketContainer {
 
-    protected Object packet;
-    HashMap<Integer, PacketObject> dataFields = new HashMap<>();
+    protected final Object packet;
+    final HashMap<Integer, PacketObject> dataFields = new HashMap<>();
 
     /**
      * Creates a new PacketContainer instance.

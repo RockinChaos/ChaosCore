@@ -32,8 +32,8 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("unused")
 public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    protected int slot;
-    protected ClickType clickType;
+    protected final int slot;
+    protected final ClickType clickType;
     private Result useClone;
 
     /**

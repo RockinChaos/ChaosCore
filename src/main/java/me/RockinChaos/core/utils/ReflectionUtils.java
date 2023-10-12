@@ -378,18 +378,19 @@ public final class ReflectionUtils {
      * @param item   - The ItemStack to be sent to the slot.
      * @param index  - The slot to have the item sent.
      */
-    public static void sendPacketPlayOutSetSlot(Player player, ItemStack item, int index) throws Exception {
+    public static void sendPacketPlayOutSetSlot(Player player, ItemStack item, int index, int windowId) throws Exception {
         Class<?> itemStack = getMinecraftClass("ItemStack");
         Object nms = getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+        final Class<?> playOutSlot = ReflectionUtils.getMinecraftClass("PacketPlayOutSetSlot");
         Object packet;
         if (MC_REMAPPED) {
             try {
-                packet = getMinecraftClass("PacketPlayOutSetSlot").getConstructor(int.class, int.class, int.class, itemStack).newInstance(0, 0, index, itemStack.cast(nms));
+                packet = playOutSlot.getConstructor(int.class, int.class, int.class, itemStack).newInstance(windowId, 0, index, itemStack.cast(nms));
             } catch (NoSuchMethodException e) {
-                packet = getMinecraftClass("PacketPlayOutSetSlot").getConstructor(int.class, int.class, itemStack).newInstance(0, index, itemStack.cast(nms));
+                packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(0, index, itemStack.cast(nms));
             }
         } else {
-            packet = getMinecraftClass("PacketPlayOutSetSlot").getConstructor(int.class, int.class, itemStack).newInstance(0, index, itemStack.cast(nms));
+            packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(0, index, itemStack.cast(nms));
         }
         sendPacket(player, packet);
     }
@@ -402,9 +403,46 @@ public final class ReflectionUtils {
      */
     public static void sendPacket(final Player player, final Object packet) throws Exception {
         Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
-        Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField(nmsPlayer.getClass())).get(nmsPlayer);
+        Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
         Class<?> packetClass = getMinecraftClass("Packet");
         playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(playerHandle.getClass(), packetClass), packetClass).invoke(playerHandle, packet);
+    }
+
+    public static Object literalChatComponent(String content) {
+        try {
+            if (ServerUtils.hasSpecificUpdate("1_19")) {
+                return getMinecraftClass("IChatBaseComponent").getMethod("b", String.class).invoke(null, content);
+            } else {
+                return getMinecraftClass("ChatComponentText").getConstructor(String.class).newInstance(content);
+            }
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+        }
+        return null;
+    }
+
+    public static Object jsonChatComponent(String json) {
+        try {
+            return getMinecraftClass("IChatBaseComponent").getMethod("a", String.class).invoke(null, json);
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+        }
+        return null;
+    }
+
+    /**
+     * Turns a {@link Player} into an NMS one
+     *
+     * @param player The player to be converted
+     * @return the NMS EntityPlayer
+     */
+    public static Object getEntity(final Player player) {
+        try {
+            return player.getClass().getMethod("getHandle").invoke(player);
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+        }
+        return null;
     }
 
     /**
@@ -478,16 +516,16 @@ public final class ReflectionUtils {
      * Searchable methods that no longer require NBT Reflections.
      */
     public enum MinecraftMethod {
-        add("add", "c"),
-        set("set", "a"),
-        setInt("setInt", "a"),
-        getPage("a", "a"),
-        getTag("getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : "s")),
-        setTag("setTag", "c"),
-        setString("setString", "a"),
-        getString("getString", "l"),
-        setDouble("setDouble", "a"),
-        sendPacket("sendPacket", "a");
+        add("add", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "add")),
+        set("set", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "set")),
+        setInt("setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
+        getPage("a", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getPage")),
+        getTag("getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
+        setTag("setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
+        setString("setString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
+        getString("getString", (ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString")),
+        setDouble("setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
+        sendPacket("sendPacket", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
         public final String original;
         public final String remapped;
 
@@ -511,6 +549,19 @@ public final class ReflectionUtils {
      */
     public enum MinecraftField {
         PlayerConnection("playerConnection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
+        ActiveContainer("activeContainer", (ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
+                ServerUtils.hasSpecificUpdate("1_19") ? "bU" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bV" : ServerUtils.hasSpecificUpdate("1_18") ? "bW" : "bV")),
+        DefaultContainer("defaultContainer", (ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
+                ServerUtils.hasSpecificUpdate("1_19") ? "bT" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bU" : ServerUtils.hasSpecificUpdate("1_18") ? "bV" : "bU")),
+        Inventory("inventory", (ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
+                ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
+        At("at", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
+        Anvil("ANVIL", "h"),
+        AddSlotListener("addSlotListener", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
+        RenameText("renameText", "v"),
+        GetSlot("getSlot", (ServerUtils.hasPreciseUpdate("1_18_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getSlot")),
+        HasItem("hasItem", (ServerUtils.hasSpecificUpdate("1_18") ? "f" : "hasItem")),
+        GetItem("getItem", (ServerUtils.hasSpecificUpdate("1_18") ? "e" : "getItem")),
         NetworkManager("networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
         public final String original;
         public final String remapped;
@@ -520,7 +571,7 @@ public final class ReflectionUtils {
             this.remapped = remapped;
         }
 
-        public String getField(final Class<?> canonicalClass) {
+        public String getField() {
             try {
                 return (ReflectionUtils.remapped() ? this.remapped : this.original);
             } catch (Exception e) {
@@ -542,6 +593,7 @@ public final class ReflectionUtils {
         PacketLoginInStart(".network.protocol.login"),
         PacketPlayOutSetSlot(".network.protocol.game"),
         PacketPlayOutOpenWindow(".network.protocol.game"),
+        PacketPlayOutCloseWindow(".network.protocol.game"),
         PlayerConnection(".server.network"),
         EntityPlayer(".server.level"),
         NetworkManager(".network"),
@@ -556,9 +608,12 @@ public final class ReflectionUtils {
         BlockPosition(".core"),
         ContainerAnvil(".world.inventory"),
         EntityHuman(".world.entity.player"),
+        ICrafting(".world.inventory"),
         ContainerAccess(".world.inventory"),
         Containers(".world.inventory"),
         Container(".world.inventory"),
+        ContainerProperty(".world.inventory"),
+        ChatComponentText(".network.chat"),
         World(".world.level"),
         PlayerInventory(".world.entity.player");
         public final String tag;
