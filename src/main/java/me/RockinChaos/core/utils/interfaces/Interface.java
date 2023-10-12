@@ -21,6 +21,8 @@ import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
+import me.RockinChaos.core.utils.interfaces.types.Button;
+import me.RockinChaos.core.utils.interfaces.types.Page;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
