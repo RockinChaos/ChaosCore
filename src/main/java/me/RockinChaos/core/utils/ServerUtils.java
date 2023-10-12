@@ -37,6 +37,7 @@ public class ServerUtils {
     private static final String serverVersion = packageName.substring(packageName.lastIndexOf('.') + 1).replace("_", "").replace("R0", "").replace("R1", "").replace("R2", "").replace("R3", "").replace("R4", "").replace("R5", "").replaceAll("[a-z]", "");
     private static final String serverPreciseVersion = packageName.substring(packageName.lastIndexOf('.') + 1).replace("_", "").replace("R", "").replaceAll("[a-z]", "");
     private static final List<String> errorStatements = new ArrayList<>();
+    private static final String devPlayer = (hasSpecificUpdate("1_8") ? "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee" : "RockinChaos");
 
     /**
      * Checks if the server is running the specified version.
@@ -180,7 +181,7 @@ public class ServerUtils {
             String prefix = "[" + Core.getCore().getPlugin().getName() + "_DEBUG] ";
             message = prefix + message;
             Bukkit.getServer().getLogger().warning(message);
-            Player player = PlayerHandler.getPlayerString("ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee");
+            Player player = PlayerHandler.getPlayerString(devPlayer);
             if (player != null && player.isOnline()) {
                 player.sendMessage(message);
             }
@@ -195,7 +196,7 @@ public class ServerUtils {
     public static void sendDebugTrace(final Exception e) {
         if (Core.getCore().getData().debugEnabled()) {
             e.printStackTrace();
-            Player player = PlayerHandler.getPlayerString("ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee");
+            Player player = PlayerHandler.getPlayerString(devPlayer);
             if (player != null && player.isOnline()) {
                 player.sendMessage(e.toString());
             }
@@ -212,7 +213,7 @@ public class ServerUtils {
     }
 
     /**
-     * Sends the StackTrace of an Throwable if it is Severe.
+     * Sends the StackTrace of a Throwable if it is Severe.
      *
      * @param e - The exception to be sent.
      */
@@ -245,13 +246,13 @@ public class ServerUtils {
      * @param player - The Player to have the message sent.
      */
     public static void sendErrorStatements(final Player player) {
-        if (player != null && player.isOp() && !Core.getCore().getData().ignoreErrors()) {
+        if (player != null && player.isOp() && Core.getCore().getData().ignoreErrors()) {
             SchedulerUtils.runLater(60L, () -> {
                 for (String statement : errorStatements) {
                     player.sendMessage(StringUtils.translateLayout(Core.getCore().getData().getPluginPrefix() + " &c" + statement, player));
                 }
             });
-        } else if (!Core.getCore().getData().ignoreErrors()) {
+        } else if (Core.getCore().getData().ignoreErrors()) {
             for (String statement : errorStatements) {
                 PlayerHandler.forOnlinePlayers(player_2 -> {
                     if (player_2 != null && player_2.isOp()) {

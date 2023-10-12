@@ -351,6 +351,9 @@ public class PlayerHandler {
 
     /**
      * Updates the specified players inventory.
+     * <p>
+     * Notes;
+     * WindowId: 0 - Player Inventory Instance.
      *
      * @param player - The player to have their inventory updated.
      * @param item   - The item expected to be updated.
@@ -359,28 +362,40 @@ public class PlayerHandler {
     public static void updateInventory(final Player player, final ItemStack item, final long delay) {
         SchedulerUtils.runAsyncLater(delay, () -> {
             try {
+                /*
+                    Updates Main Inventory Slot(s)
+                 */
                 for (int i = 0; i < 36; i++) {
                     final ItemStack invItem = player.getInventory().getItem(i);
                     if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
-                        ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, (i < 9 ? (i + 36) : i));
+                        ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, (i < 9 ? (i + 36) : i), 0);
                     }
                 }
+                /*
+                    Updates Offhand Slot.
+                 */
                 if (ServerUtils.hasSpecificUpdate("1_9")) {
                     if (item == null || (getOffHandItem(player) != null && Objects.requireNonNull(getOffHandItem(player)).clone().isSimilar(item))) {
-                        ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45);
+                        ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45, 0);
                     }
                 }
                 if (isCraftingInv(player.getOpenInventory())) {
+                    /*
+                        Updates Crafting Slot(s)
+                     */
                     for (int i = 4; i >= 0; i--) {
                         final ItemStack invItem = player.getOpenInventory().getTopInventory().getItem(i);
                         if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
-                            ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i);
+                            ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i, 0);
                         }
                     }
+                    /*
+                        Updates Armor Slot(s)
+                     */
                     for (int i = 0; i <= 3; i++) {
                         final ItemStack invItem = player.getInventory().getItem(i);
                         if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
-                            ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getInventory().getItem(i + 36), (8 - i));
+                            ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getInventory().getItem(i + 36), (8 - i), 0);
                         }
                     }
                 }
@@ -423,7 +438,9 @@ public class PlayerHandler {
     public static Player getPlayerString(final String playerName) {
         Player args = null;
         try {
-            args = Bukkit.getPlayer(UUID.fromString(playerName));
+            if (ServerUtils.hasSpecificUpdate("1_8")) {
+                args = Bukkit.getPlayer(UUID.fromString(playerName));
+            }
         } catch (Exception ignored) {
         }
         if (playerName != null && Core.getCore().getDependencies().nickEnabled()) {

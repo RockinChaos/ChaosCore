@@ -50,8 +50,6 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class ItemHandler {
 
-    final static Class<?> propertyClass = Property.class;
-
     /**
      * Adds a list of lores to the specified ItemStack.
      *
@@ -441,6 +439,7 @@ public class ItemHandler {
      */
     @SuppressWarnings("JavaReflectionMemberAccess")
     public static String getSkullTexture(final ItemMeta meta) {
+        Class<?> propertyClass = Property.class;
         try {
             final Class<?> cls = ReflectionUtils.getCraftBukkitClass("inventory.CraftMetaSkull");
             final Object real = cls.cast(meta);
@@ -476,6 +475,7 @@ public class ItemHandler {
      */
     @SuppressWarnings("JavaReflectionMemberAccess")
     public static String getSkullTexture(final Skull skull) {
+        Class<?> propertyClass = Property.class;
         try {
             final Field field = skull.getClass().getDeclaredField("profile");
             field.setAccessible(true);
