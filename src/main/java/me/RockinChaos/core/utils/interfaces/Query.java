@@ -24,6 +24,7 @@ import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import me.RockinChaos.core.utils.interfaces.types.Container;
+import me.RockinChaos.core.utils.protocol.ProtocolManager;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -105,6 +106,9 @@ public class Query {
         if (ServerUtils.hasSpecificUpdate("1_11")) {
             Bukkit.getPluginManager().registerEvents(this.typingListener, Core.getCore().getPlugin());
         } else {
+            if (ProtocolManager.isDead()) {
+                ProtocolManager.handleProtocols();
+            }
             Bukkit.getPluginManager().registerEvents(this.typingListener_LEGACY, Core.getCore().getPlugin());
         }
         this.container = new Container(this.player, this.titleComponent, this.initialContents[this.initialContents.length - 1]);
@@ -288,7 +292,7 @@ public class Query {
                 if (outItem == null) {
                     outItem = query.getInventory().getItem(Slot.INPUT_LEFT);
                 }
-                if (leftItem == null || outItem == null) {
+                if (leftItem == null) {
                     throw new IllegalStateException("replaceInputText can only be used if slots OUTPUT or INPUT_LEFT are not empty");
                 }
                 final ItemStack leftItemCloned = leftItem.clone();
@@ -300,6 +304,18 @@ public class Query {
                 query.container.setAction(true);
                 {
                     query.getInventory().setItem(Slot.INPUT_LEFT, leftItemCloned);
+                    /*
+                        Prevents the output from ghosting when double-clicking.
+                     */
+                    if (!ServerUtils.hasSpecificUpdate("1_11") && outItem != null) {
+                        final ItemStack outItemCloned = outItem.clone();
+                        final ItemMeta outMeta = outItemCloned.getItemMeta();
+                        if (outMeta != null) {
+                            outMeta.setDisplayName(outText + query.container.getSpacers());
+                            outItemCloned.setItemMeta(outMeta);
+                        }
+                        query.getInventory().setItem(Slot.OUTPUT, outItemCloned);
+                    }
                 }
             };
         }
@@ -363,6 +379,7 @@ public class Query {
             return (query, player) -> runnable.run();
         }
     }
+
 
     /**
      * A builder class for an {@link Query} object.
@@ -760,7 +777,7 @@ public class Query {
          */
         public String getText() {
             String displayName = "";
-            final ItemStack stackFetch = this.leftItem; //(ServerUtils.hasSpecificUpdate("1_12") ? this.leftItem : this.outputItem);
+            final ItemStack stackFetch = this.leftItem;
             if (stackFetch.hasItemMeta()) {
                 final ItemMeta itemMeta = stackFetch.getItemMeta();
                 if (itemMeta != null) {
@@ -808,7 +825,9 @@ public class Query {
 
         /**
          * Handles the anvil input event for the virtualInventory.
-         * This uses packets so the use is limited to server versions below 1.9.
+         * This uses packets so the use is limited to server versions 1.8 - 1.10.
+         * <p>
+         * SchedulerUtils#runAsync is required to prevent item ghosting .
          *
          * @param event - {@link me.RockinChaos.core.utils.protocol.events.PrepareAnvilEvent}.
          */
@@ -818,11 +837,11 @@ public class Query {
                 final String renameText = event.getRenameText();
                 container.handleTyping(renameText);
                 {
-                    SchedulerUtils.run(() -> {
-                        event.setResult(container.getResult((Player) event.getView().getPlayer(), renameText));
+                    SchedulerUtils.runAsync(() -> {
+                        event.setResult(container.getResult(event.getPlayer(), renameText));
                         {
                             container.setAction(false);
-                            LegacyAPI.updateInventory(player);
+                            LegacyAPI.updateInventory(event.getPlayer());
                         }
                     });
                 }

@@ -234,7 +234,7 @@ public class Container {
      * Gets the result item for the Container.
      *
      * @param player - the player being referenced.
-     * @param inventory - The AnvilInventory instance.
+     * @param entryText - The rename text.
      * @return The newly formatted result item.
      */
     public ItemStack getResult(final Player player, final String entryText) {
@@ -246,13 +246,9 @@ public class Container {
                 boolean isAction = renameText.startsWith("-->") || this.isAction;
                 renameText = renameText.substring((renameText.startsWith("--> ") ? 4 : renameText.startsWith("-->") ? 3 : renameText.startsWith("-> ") ? 3 : renameText.startsWith("->") ? 2 : renameText.startsWith("--") ? 2 : renameText.startsWith("-") ? 1 : 0));
                 if (renameText.isEmpty() && isAction && this.outText != null && !this.outText.isEmpty()) {
-                    Map.Entry<StringBuilder, Integer> rSpaces = StringUtils.getSpacers(0, 5, this.outPreview).entrySet().iterator().next();
-                    this.outPreview = rSpaces.getValue();
-                    renameText = this.outText + rSpaces.getKey();
+                    renameText = this.outText + this.getSpacers();
                 } else if (renameText.isEmpty()) {
-                    Map.Entry<StringBuilder, Integer> rSpaces = StringUtils.getSpacers(0, 5, this.outPreview).entrySet().iterator().next();
-                    this.outPreview = rSpaces.getValue();
-                    renameText = itemMeta.getDisplayName() + rSpaces.getKey();
+                    renameText = itemMeta.getDisplayName() + this.getSpacers();
                 }
                 itemMeta.setDisplayName(StringUtils.translateLayout(renameText, player));
                 item.setItemMeta(itemMeta);
@@ -269,7 +265,7 @@ public class Container {
     /**
      * Handles the typing action in the AnvilInventory to be reflected in the left item and input field.
      *
-     * @param inventory - The AnvilInventory instance.
+     * @param entryText - The rename text.
      */
     public void handleTyping(final String entryText) {
         String renameText = entryText;
@@ -327,6 +323,19 @@ public class Container {
      */
     public void setOutText(final String outText) {
         this.outText = outText;
+    }
+
+    /**
+     * Gets the spacers for the output item.
+     * <p>
+     * Helps prevent ghost items.
+     *
+     * @return The String spacers for the output item.
+     */
+    public String getSpacers() {
+        Map.Entry<StringBuilder, Integer> rSpaces = StringUtils.getSpacers(0, 5, this.outPreview).entrySet().iterator().next();
+        this.outPreview = rSpaces.getValue();
+        return "" + rSpaces.getKey();
     }
 
     /**
