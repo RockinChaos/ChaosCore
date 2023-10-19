@@ -89,7 +89,7 @@ public class LanguageAPI {
         if (sender instanceof ConsoleCommandSender) {
             langMessage = ChatColor.stripColor(langMessage);
             sender.sendMessage(langMessage);
-        } else if (ServerUtils.hasSpecificUpdate("1_8")) {
+        } else if (ServerUtils.hasPreciseUpdate("1_8_8")) {
             TextSection textComponent = ChatComponent.of(langMessage);
             if (hoverMessage != null) {
                 TextSection.HoverEvent hoverEvent = new TextSection.HoverEvent(ChatComponent.of(hoverMessage));
