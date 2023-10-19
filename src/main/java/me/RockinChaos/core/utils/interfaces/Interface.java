@@ -132,6 +132,32 @@ public class Interface implements InventoryHolder {
     }
 
     /**
+     * Called on player chat.
+     * Handles the player chat event for the button clicked.
+     *
+     * @param player - the player involved in the typing event.
+     */
+    public void onTyping(final Player player) {
+        if (this.panePlayer.equals(player) && this.activeButton != -1) {
+            this.pages.get(this.currentIndex).handleTyping(player, this.activeButton);
+            this.pendingChat = false;
+        } else if (!canChat) {
+            this.pendingChat = false;
+        }
+    }
+
+    /**
+     * Attempts to close the active player query.
+     *
+     * @param player - the player involved in the typing event.
+     */
+    public void closeQuery(final Player player) {
+        if (this.panePlayer.equals(player) && this.activeButton != -1) {
+            this.pages.get(this.currentIndex).closeQuery(player, this.activeButton);
+        }
+    }
+
+    /**
      * Allows the button to be clicked.
      *
      * @param bool - Allows the button to be clicked.

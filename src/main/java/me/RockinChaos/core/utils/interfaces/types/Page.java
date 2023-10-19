@@ -17,6 +17,7 @@
  */
 package me.RockinChaos.core.utils.interfaces.types;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
@@ -66,6 +67,29 @@ public class Page {
     public void handleChat(final AsyncPlayerChatEvent event, int slot) {
         Button button = this.buttons.get(slot);
         button.onChat(event);
+    }
+
+    /**
+     * Called on player typing.
+     * Handles the typing event for the inventory page.
+     *
+     * @param player - the player involved in the typing event.
+     * @param slot  - The slot that relates to the button that was clicked for the page.
+     */
+    public void handleTyping(final Player player, int slot) {
+        Button button = this.buttons.get(slot);
+        button.onTyping(player);
+    }
+
+    /**
+     * Attempts to close the active player query.
+     *
+     * @param player - the player involved in the typing event.
+     * @param slot  - The slot that relates to the button that was clicked for the page.
+     */
+    public void closeQuery(final Player player, int slot) {
+        Button button = this.buttons.get(slot);
+        button.closeQuery();
     }
 
     /**

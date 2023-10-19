@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.interfaces.types;
 
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.SchedulerUtils;
+import me.RockinChaos.core.utils.interfaces.Query;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.ItemStack;
@@ -34,6 +36,8 @@ public class Button {
     private final ItemStack itemStack;
     private Consumer<InventoryClickEvent> clickAction;
     private Consumer<AsyncPlayerChatEvent> chatAction;
+    private Consumer<Query.Builder> typingAction;
+    private Query activeQuery;
 
     /**
      * Creates a new button instance.
@@ -76,6 +80,19 @@ public class Button {
      *
      * @param itemStack   - The ItemStack the button is to be placed as.
      * @param clickAction - The method to be executed upon clicking the button.
+     * @param typingAction  - The method to be executed upon typing in an anvil after clicking the button.
+     */
+    public Button(final ItemStack itemStack, final Consumer<InventoryClickEvent> clickAction, final Consumer<Query.Builder> typingAction, final int placeholder) {
+        this.itemStack = itemStack;
+        this.clickAction = clickAction;
+        this.typingAction = typingAction;
+    }
+
+    /**
+     * Creates a new button instance.
+     *
+     * @param itemStack   - The ItemStack the button is to be placed as.
+     * @param clickAction - The method to be executed upon clicking the button.
      */
     public Button(final ItemStack itemStack, final boolean tempIdentifier, final Consumer<InventoryClickEvent> clickAction) {
         this.itemStack = itemStack;
@@ -110,6 +127,15 @@ public class Button {
     }
 
     /**
+     * Sets the typing action method to be executed.
+     *
+     * @param typingAction - The typing action method to be executed.
+     */
+    public void setTypingAction(final Consumer<Query.Builder> typingAction) {
+        this.typingAction = typingAction;
+    }
+
+    /**
      * Called on player inventory click.
      * Executes the pending click actions.
      *
@@ -134,12 +160,47 @@ public class Button {
     }
 
     /**
+     * Called on player typing.
+     * Executes the pending typing actions.
+     *
+     * @param player - the player involved in the typing event.
+     */
+    public void onTyping(final Player player) {
+        if (Core.getCore().getPlugin().isEnabled()) {
+            final Query.Builder builder = new Query.Builder().text(" ");
+            SchedulerUtils.run(() -> {
+                this.typingAction.accept(builder);
+                {
+                    this.activeQuery = builder.open(player);
+                }
+            });
+        }
+    }
+
+    /**
+     * Attempts to force close any active queries.
+     *
+     */
+    public void closeQuery() {
+        this.activeQuery.closeInventory();
+    }
+
+    /**
      * Checks if the button is waits for a chat event.
      *
      * @return If the button is listening for a chat event.
      */
     public boolean chatEvent() {
         return this.chatAction != null;
+    }
+
+    /**
+     * Checks if the button is waits for a typing event.
+     *
+     * @return If the button is listening for a typing event.
+     */
+    public boolean typingEvent() {
+        return this.typingAction != null;
     }
 
     /**
