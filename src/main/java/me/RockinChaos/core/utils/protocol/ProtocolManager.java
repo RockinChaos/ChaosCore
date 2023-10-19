@@ -102,7 +102,7 @@ public class ProtocolManager {
                     final PacketContainer container = protocol.getContainer(packet);
                     if (container.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && player.getOpenInventory().getType().name().equalsIgnoreCase("ANVIL")){
                         final Object UnbufferedPayload = container.read(1).getData();
-                        final String renameText = (String) UnbufferedPayload.getClass().getMethod("c", int.class).invoke(UnbufferedPayload, 31);
+                        final String renameText = (String) UnbufferedPayload.getClass().getMethod(ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
                         final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(player.getOpenInventory(), renameText);
                         callEvent(PrepareAnvil);
                         return PrepareAnvil.isCancelled();
@@ -166,7 +166,7 @@ public class ProtocolManager {
      *
      * @return If the protocol handler(s) are open.
      */
-    public static boolean isHandling() {
+    public static boolean isDead() {
         return (protocol == null);
     }
 }

@@ -53,20 +53,16 @@ import java.util.logging.Level;
 public abstract class TinyProtocol {
 
     private final AtomicInteger ID = new AtomicInteger(0);
-
     private final MethodInvoker getPlayerHandle = ReflectionUtils.getMethod("{obc}.entity.CraftPlayer", "getHandle");
     private final FieldAccessor<Object> getConnection = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("EntityPlayer").getCanonicalName(), (MinecraftField.PlayerConnection.getField()), Object.class);
     private final FieldAccessor<?> getManager = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("PlayerConnection"), null, ReflectionUtils.getMinecraftClass("NetworkManager"));
     private final FieldAccessor<Channel> getChannel = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("NetworkManager").getCanonicalName(), Channel.class, 0);
-
     private final Class<Object> minecraftServerClass = ReflectionUtils.getUntypedClass(ReflectionUtils.getMinecraftClass("MinecraftServer").getCanonicalName());
     private final Class<Object> serverConnectionClass = ReflectionUtils.getUntypedClass(ReflectionUtils.getMinecraftClass("ServerConnection").getCanonicalName());
     private final FieldAccessor<Object> getMinecraftServer = ReflectionUtils.getField("{obc}.CraftServer", minecraftServerClass, 0);
     private final FieldAccessor<Object> getServerConnection = ReflectionUtils.getField(minecraftServerClass, serverConnectionClass, 0);
     private final FieldAccessor<?> getNetworkMarkers = ReflectionUtils.getField(serverConnectionClass, (Class<?>) List.class, 1);
-
     private final Class<?> PACKET_LOGIN_IN_START = ReflectionUtils.getMinecraftClass("PacketLoginInStart");
-
     private final Map<String, Channel> channelLookup = new MapMaker().weakValues().makeMap();
     private final Set<Channel> uninjectedChannels = Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
     private final List<Channel> serverChannels = Lists.newArrayList();
