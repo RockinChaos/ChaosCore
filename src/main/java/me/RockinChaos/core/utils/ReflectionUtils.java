@@ -525,7 +525,7 @@ public final class ReflectionUtils {
         setString("setString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
         getString("getString", (ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString")),
         setDouble("setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
-        sendPacket("sendPacket", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
+        sendPacket("sendPacket", (ServerUtils.hasPreciseUpdate("1_20_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
         public final String original;
         public final String remapped;
 
@@ -549,11 +549,11 @@ public final class ReflectionUtils {
      */
     public enum MinecraftField {
         PlayerConnection("playerConnection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
-        ActiveContainer("activeContainer", (ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
+        ActiveContainer("activeContainer", (ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bU" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bV" : ServerUtils.hasSpecificUpdate("1_18") ? "bW" : "bV")),
-        DefaultContainer("defaultContainer", (ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
+        DefaultContainer("defaultContainer", (ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bT" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bU" : ServerUtils.hasSpecificUpdate("1_18") ? "bV" : "bU")),
-        Inventory("inventory", (ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
+        Inventory("inventory", (ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
         At("at", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
         Anvil("ANVIL", "h"),
