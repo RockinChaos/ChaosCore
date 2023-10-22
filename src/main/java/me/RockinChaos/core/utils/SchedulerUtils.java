@@ -54,6 +54,18 @@ public class SchedulerUtils {
     }
 
     /**
+     * Runs the repeating task on the main thread.
+     * @param runnable - The task to be performed.
+     * @param delay - The ticks to wait before performing the task.
+     * @param interval - The interval in which to run the task.
+     */
+    public static void runRepeatingTask(final long delay, final long interval, final Runnable runnable) {
+        if (Core.getCore().getPlugin().isEnabled()) {
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getCore().getPlugin(), runnable, interval, delay);
+        }
+    }
+
+    /**
      * Runs the task repeating on the main thread.
      *
      * @param runnable - The task to be performed.

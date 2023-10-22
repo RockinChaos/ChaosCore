@@ -114,7 +114,7 @@ public class ConfigHandler {
                 if (!file.exists() && source != null) {
                     Files.copy(source, file.toPath());
                 }
-                if (path.contains(Core.getCore().getData().getUpdateConfig())) {
+                if (Core.getCore().getData().getUpdateConfig() != null && !Core.getCore().getData().getUpdateConfig().isEmpty() && path.contains(Core.getCore().getData().getUpdateConfig())) {
                     this.Generating = true;
                 }
             } catch (Exception e) {
@@ -198,7 +198,7 @@ public class ConfigHandler {
             ServerUtils.logSevere("Check your YAML formatting by using a YAML-PARSER such as http://yaml-online-parser.appspot.com/");
         }
         if (!this.noSource.get(configFile)) {
-            if (this.Generating && configFile.equalsIgnoreCase(Core.getCore().getData().getUpdateConfig())) {
+            if (this.Generating && Core.getCore().getData().getUpdateConfig() != null && !Core.getCore().getData().getUpdateConfig().isEmpty() && configFile.equalsIgnoreCase(Core.getCore().getData().getUpdateConfig())) {
                 SchedulerUtils.run(Core.getCore().getData().runUpdateConfig());
                 this.getSource(Core.getCore().getData().getUpdateConfig());
                 this.Generating = false;

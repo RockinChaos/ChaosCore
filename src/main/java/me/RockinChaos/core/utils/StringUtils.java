@@ -22,10 +22,7 @@ import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.handlers.PlayerHandler;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Statistic;
+import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -157,6 +154,16 @@ public class StringUtils {
      */
     public static List<String> split(final String str) {
         return new ArrayList<>(Arrays.asList(str.split(", ")));
+    }
+
+    /**
+     * Converts a Location to a readable String value.
+     *
+     * @param location - The location to become a String.
+     * @return The Location as a String value.
+     */
+    public static String locationToString(final Location location) {
+        return location.getX() + "," + location.getY() + "," + location.getZ() + "," + location.getYaw() + "," + location.getPitch();
     }
 
     /**

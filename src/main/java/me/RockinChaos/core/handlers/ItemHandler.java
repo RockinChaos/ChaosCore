@@ -198,6 +198,16 @@ public class ItemHandler {
     }
 
     /**
+     * Sets the ItemStack Model Data.
+     *
+     * @param itemMeta - The ItemMeta being modified.
+     * @param data - The model data being set.
+     */
+    public static void setData(final ItemMeta itemMeta, final int data) {
+        itemMeta.setCustomModelData(data);
+    }
+
+    /**
      * If the given ItemStack is null, return an air ItemStack, otherwise return the given ItemStack.
      *
      * @param stack The ItemStack to check.
