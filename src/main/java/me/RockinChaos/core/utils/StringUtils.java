@@ -626,9 +626,9 @@ public class StringUtils {
      * @param str - The String to have its Color Codes properly Converted to String.
      * @return The newly formatted String.
      */
-    public static String restoreColor(final String str) {
-        return str.replace('ยง', '&'); 
-    }
+	public static String restoreColor(final String str) {
+		return str.replace('ง', '&');
+	}
 
     /**
      * Formats any color codes found in the String to Bukkit Colors so the
