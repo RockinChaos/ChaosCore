@@ -627,7 +627,7 @@ public class StringUtils {
      * @return The newly formatted String.
      */
     public static String restoreColor(final String str) {
-        return str.replace('ง', '&');
+        return str.replace('ยง', '&');
     }
 
     /**
