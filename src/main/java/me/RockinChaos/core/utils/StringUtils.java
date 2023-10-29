@@ -447,8 +447,8 @@ public class StringUtils {
     /**
      * Gets a random number of spaces between the upper and lower limit while excluding the comparator.
      *
-     * @param lower - The lowest number of spaces.
-     * @param upper - The highest number of spaces.
+     * @param lower      - The lowest number of spaces.
+     * @param upper      - The highest number of spaces.
      * @param comparator - A number that should never be used.
      */
     public static Map<StringBuilder, Integer> getSpacers(final int lower, final int upper, final int comparator) {
@@ -626,9 +626,9 @@ public class StringUtils {
      * @param str - The String to have its Color Codes properly Converted to String.
      * @return The newly formatted String.
      */
-	public static String restoreColor(final String str) {
-		return str.replace('§', '&');
-	}
+    public static String restoreColor(final String str) {
+        return str.replace('§', '&');
+    }
 
     /**
      * Formats any color codes found in the String to Bukkit Colors so the
