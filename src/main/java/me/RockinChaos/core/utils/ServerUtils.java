@@ -117,7 +117,7 @@ public class ServerUtils {
         if (Core.getCore().getData().debugEnabled()) {
             String prefix = "[" + Core.getCore().getPlugin().getName() + "_DEBUG] ";
             message = prefix + message;
-            Bukkit.getServer().getLogger().warning(message);
+            Bukkit.getServer().getLogger().info(message);
             Player player = PlayerHandler.getPlayerString(devPlayer);
             if (player != null && player.isOnline()) {
                 player.sendMessage(message);
