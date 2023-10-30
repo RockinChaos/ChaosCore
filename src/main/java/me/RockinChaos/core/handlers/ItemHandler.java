@@ -515,15 +515,16 @@ public class ItemHandler {
      * Sets the Skull Owner name to the ItemMeta.
      *
      * @param meta  - The ItemMeta to have its Skull Owner changed.
+     * @param uuid - The UUID of the reference player.
      * @param owner - The String name of the Skull Owner to be set.
      * @return The ItemMeta with the new Skull Owner.
      */
-    public static ItemMeta setSkullOwner(final ItemMeta meta, final String owner) {
+    public static ItemMeta setSkullOwner(final ItemMeta meta, final UUID uuid, final String owner) {
         if (!ServerUtils.hasSpecificUpdate("1_8")) {
             ServerUtils.logDebug("{ItemHandler} Minecraft does not support offline player heads below Version 1.8.");
             ServerUtils.logDebug("{ItemHandler} Player heads will only be given a skin if the player has previously joined the sever.");
         }
-        setStoredSkull(meta, owner);
+        setStoredSkull(meta, uuid, owner);
         return meta;
     }
 
@@ -531,14 +532,15 @@ public class ItemHandler {
      * Sets the locale stored skull owner.
      *
      * @param meta  - The referenced ItemMeta.
+     * @param uuid - The UUID of the reference player.
      * @param owner - The referenced Skull Owner
      */
-    public static void setStoredSkull(final ItemMeta meta, final String owner) {
+    public static void setStoredSkull(final ItemMeta meta, final UUID uuid, final String owner) {
         if (!owner.isEmpty()) {
             SkullMeta skullMeta = (SkullMeta) meta;
             OfflinePlayer player = LegacyAPI.getOfflinePlayer(owner);
             if (Core.getCore().getDependencies().skinsRestorerEnabled()) {
-                final String textureValue = Core.getCore().getDependencies().getSkinValue(owner);
+                final String textureValue = Core.getCore().getDependencies().getSkinValue(uuid, owner);
                 if (textureValue != null) {
                     setSkullTexture(meta, textureValue);
                 } else {

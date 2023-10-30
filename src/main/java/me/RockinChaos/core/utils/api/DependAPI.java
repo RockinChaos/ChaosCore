@@ -23,6 +23,8 @@ import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.Bukkit;
 
+import java.util.UUID;
+
 @SuppressWarnings("unused")
 public class DependAPI {
 
@@ -243,7 +245,7 @@ public class DependAPI {
      * @param owner - The skull owner to have their skin fetched.
      * @return The found Skin Texture value.
      */
-    public String getSkinValue(final String owner) {
+    public String getSkinValue(final UUID uuid, final String owner) {
         Class<?> netty = null;
         try {
             netty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerProvider");
@@ -268,7 +270,7 @@ public class DependAPI {
             try {
                 final Object skinsRestorer = netty.getMethod("get").invoke(null);
                 final Object skinsAPI = skinsRestorer.getClass().getMethod("getPlayerStorage").invoke(skinsRestorer);
-                final Object playerData = skinsAPI.getClass().getMethod("getSkinForPlayer", java.util.UUID.class, String.class).invoke(skinsAPI, null, owner);
+                final Object playerData = skinsAPI.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(skinsAPI, uuid, owner);
                 final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
                 return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
             } catch (Exception e1) {
