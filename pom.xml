@@ -117,9 +117,8 @@
         </repository>
         <!--Citizens Repository-->
         <repository>
-            <id>Intelligence Repository-haoshoku</id>
-            <name>Intelligence Repository</name>
-            <url>https://mvn.intelligence-modding.de/haoshoku</url>
+            <id>citizens-repo</id>
+            <url>https://maven.citizensnpcs.co/repo</url>
         </repository>
         <!--ProtocolLib Repository-->
         <repository>
@@ -136,7 +135,6 @@
 			<id>CraftationGaming</id>
 			<url>https://raw.githubusercontent.com/RockinChaos/repository/maven-public/</url>
 		</repository>
-
     </repositories>
 
     <dependencies>
