@@ -1,11 +1,11 @@
 image: maven:latest
 
 stages:
-  - Build
+  - Compile and Deploy
   - Downstream Projects
 
-compile-deploy:
-  stage: Build
+build:
+  stage: Compile and Deploy
   script:
     - 'mvn deploy -s .gitlab/pipelines/ci-settings.xml'
     - 'mv target/*-b${CI_PIPELINE_IID}.jar ./'
@@ -24,7 +24,7 @@ compile-deploy:
     - if: $CI_PIPELINE_SOURCE == "web"
     - if: $CI_PIPELINE_SOURCE == "pipeline"
 
-trigger-pipelines:
+trigger:
   stage: Downstream Projects
   script:
     - 'curl --request POST --form token=${CI_JOB_TOKEN} --form ref=master ${CI_API_V4_URL}/projects/${ITEMJOIN_ID}/trigger/pipeline'
