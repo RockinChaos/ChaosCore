@@ -18,7 +18,6 @@
 package me.RockinChaos.core.handlers;
 
 import me.RockinChaos.core.Core;
-import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -199,7 +198,7 @@ public class ConfigHandler {
         }
         if (!this.noSource.get(configFile)) {
             if (this.Generating && Core.getCore().getData().getUpdateConfig() != null && !Core.getCore().getData().getUpdateConfig().isEmpty() && configFile.equalsIgnoreCase(Core.getCore().getData().getUpdateConfig())) {
-                SchedulerUtils.run(Core.getCore().getData().runUpdateConfig());
+                Core.getCore().getData().runUpdateConfig().run();
                 this.getSource(Core.getCore().getData().getUpdateConfig());
                 this.Generating = false;
             }
