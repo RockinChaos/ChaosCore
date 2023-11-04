@@ -34,10 +34,20 @@ import java.util.Map;
 public class ServerUtils {
 
     private static final String packageName = Bukkit.getServer().getClass().getPackage().getName();
-    private static final String serverVersion = packageName.substring(packageName.lastIndexOf('.') + 1).replace("_", "").replace("R0", "").replace("R1", "").replace("R2", "").replace("R3", "").replace("R4", "").replace("R5", "").replaceAll("[a-z]", "");
-    private static final String serverPreciseVersion = packageName.substring(packageName.lastIndexOf('.') + 1).replace("_", "").replace("R", "").replaceAll("[a-z]", "");
+    private static final String packageSub = packageName.substring(packageName.lastIndexOf('.') + 1);
+    private static final String serverVersion = packageSub.replace("_", "").replace("R0", "").replace("R1", "").replace("R2", "").replace("R3", "").replace("R4", "").replace("R5", "").replaceAll("[a-z]", "");
+    private static final String serverPreciseVersion = packageSub.replace("_", "").replace("R", "").replaceAll("[a-z]", "");
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = (hasSpecificUpdate("1_8") ? "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee" : "RockinChaos");
+
+    /**
+     * Gets the current server version.
+     *
+     * @return The specific server version in the format of (x_xx_x).
+     */
+    public static String getVersion() {
+        return packageSub.split("-")[0].replace(".", "_").replace("R", "").replaceAll("[a-z]", "");
+    }
 
     /**
      * Checks if the server is running the specified version.
