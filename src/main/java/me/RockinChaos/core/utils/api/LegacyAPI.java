@@ -256,11 +256,12 @@ public class LegacyAPI {
     /**
      * Sets the owner to the SkullMeta.
      *
+     * @param player - The Player being referenced.
      * @param skullMeta - The SkullMeta to have its owner set.
      * @param owner     - The owner to be set to the SkullMeta.
      * @return The newly set SkullMeta.
      */
-    public static org.bukkit.inventory.meta.ItemMeta setSkullOwner(final org.bukkit.inventory.meta.SkullMeta skullMeta, final String owner) {
+    public static org.bukkit.inventory.meta.ItemMeta setSkullOwner(final Player player, final org.bukkit.inventory.meta.SkullMeta skullMeta, final String owner) {
         skullMeta.setOwner(owner);
         SchedulerUtils.run(() -> {
             if (!ServerUtils.hasSpecificUpdate("1_13") && ServerUtils.hasSpecificUpdate("1_8")) {
@@ -274,7 +275,7 @@ public class LegacyAPI {
                     skull.update();
                     final String texture = ItemHandler.getSkullTexture(skull);
                     if (texture != null && !texture.isEmpty()) {
-                        ItemHandler.setSkullTexture(skullMeta, texture);
+                        ItemHandler.setSkullTexture(player, skullMeta, texture);
                     }
                 } catch (Exception ignored) {
                 }

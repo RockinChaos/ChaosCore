@@ -50,6 +50,8 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class ItemHandler {
 
+    private static final Map<String, GameProfile> gameProfiles = new HashMap<>();
+
     /**
      * Adds a list of lores to the specified ItemStack.
      *
@@ -396,41 +398,35 @@ public class ItemHandler {
     /**
      * Sets the Skull Texture to the ItemStack.
      *
+     * @param player     - The player being referenced.
      * @param item         - The ItemStack to have its Skull Texture changed.
      * @param skullTexture - The Skull Texture to be added to the ItemStack.
      */
-    public static ItemStack setSkullTexture(final ItemStack item, final String skullTexture) {
-        try {
-            if (ServerUtils.hasSpecificUpdate("1_8")) {
-                ItemMeta itemMeta = item.getItemMeta();
-                if (itemMeta != null) {
-                    final UUID uuid = UUID.randomUUID();
-                    GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
-                    gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
-                    Field declaredField = itemMeta.getClass().getDeclaredField("profile");
-                    declaredField.setAccessible(true);
-                    declaredField.set(itemMeta, gameProfile);
-                    item.setItemMeta(itemMeta);
-                }
-            }
-        } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
-        }
+    public static ItemStack setSkullTexture(final Player player, final ItemStack item, final String skullTexture) {
+        ItemMeta itemMeta = setSkullTexture(player, item.getItemMeta(), skullTexture);
+        item.setItemMeta(itemMeta);
         return item;
     }
 
     /**
      * Sets the Skull Texture to the ItemStack.
      *
+     * @param player     - The player being referenced.
      * @param itemMeta     - The ItemMeta to have its Skull Texture changed.
      * @param skullTexture - The Skull Texture to be added to the ItemStack.
      */
-    public static ItemMeta setSkullTexture(final ItemMeta itemMeta, final String skullTexture) {
+    public static ItemMeta setSkullTexture(final Player player, final ItemMeta itemMeta, final String skullTexture) {
         try {
             if (ServerUtils.hasSpecificUpdate("1_8")) {
-                final UUID uuid = UUID.randomUUID();
-                GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
-                gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
+                GameProfile gameProfile;
+                if (!gameProfiles.containsKey(skullTexture)) {
+                    final UUID uuid = UUID.randomUUID();
+                    gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
+                    gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
+                    gameProfiles.put(skullTexture, gameProfile);
+                } else {
+                    gameProfile = gameProfiles.get(skullTexture);
+                }
                 Field declaredField = itemMeta.getClass().getDeclaredField("profile");
                 declaredField.setAccessible(true);
                 declaredField.set(itemMeta, gameProfile);
@@ -515,16 +511,16 @@ public class ItemHandler {
      * Sets the Skull Owner name to the ItemMeta.
      *
      * @param meta  - The ItemMeta to have its Skull Owner changed.
-     * @param uuid - The UUID of the reference player.
+     * @param player - The Player being referenced.
      * @param owner - The String name of the Skull Owner to be set.
      * @return The ItemMeta with the new Skull Owner.
      */
-    public static ItemMeta setSkullOwner(final ItemMeta meta, final UUID uuid, final String owner) {
+    public static ItemMeta setSkullOwner(final ItemMeta meta, final Player player, final String owner) {
         if (!ServerUtils.hasSpecificUpdate("1_8")) {
             ServerUtils.logDebug("{ItemHandler} Minecraft does not support offline player heads below Version 1.8.");
             ServerUtils.logDebug("{ItemHandler} Player heads will only be given a skin if the player has previously joined the sever.");
         }
-        setStoredSkull(meta, uuid, owner);
+        setStoredSkull(meta, player, owner);
         return meta;
     }
 
@@ -532,29 +528,29 @@ public class ItemHandler {
      * Sets the locale stored skull owner.
      *
      * @param meta  - The referenced ItemMeta.
-     * @param uuid - The UUID of the reference player.
+     * @param player - The Player being referenced.
      * @param owner - The referenced Skull Owner
      */
-    public static void setStoredSkull(final ItemMeta meta, final UUID uuid, final String owner) {
+    public static void setStoredSkull(final ItemMeta meta, final Player player, final String owner) {
         if (!owner.isEmpty()) {
             SkullMeta skullMeta = (SkullMeta) meta;
-            OfflinePlayer player = LegacyAPI.getOfflinePlayer(owner);
+            OfflinePlayer offPlayer = LegacyAPI.getOfflinePlayer(owner);
             if (Core.getCore().getDependencies().skinsRestorerEnabled()) {
-                final String textureValue = Core.getCore().getDependencies().getSkinValue(uuid, owner);
+                final String textureValue = Core.getCore().getDependencies().getSkinValue(player.getUniqueId(), owner);
                 if (textureValue != null) {
-                    setSkullTexture(meta, textureValue);
+                    setSkullTexture(player, meta, textureValue);
                 } else {
                     try {
-                        skullMeta.setOwningPlayer(player);
+                        skullMeta.setOwningPlayer(offPlayer);
                     } catch (Throwable t) {
-                        LegacyAPI.setSkullOwner(skullMeta, player.getName());
+                        LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
                     }
                 }
             } else {
                 try {
-                    skullMeta.setOwningPlayer(player);
+                    skullMeta.setOwningPlayer(offPlayer);
                 } catch (Throwable t) {
-                    LegacyAPI.setSkullOwner(skullMeta, player.getName());
+                    LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
                 }
             }
         }
