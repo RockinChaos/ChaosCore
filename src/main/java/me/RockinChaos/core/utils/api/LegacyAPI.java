@@ -35,6 +35,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.MapMeta;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -346,9 +347,8 @@ public class LegacyAPI {
      * @param meta  - The MapMeta to have its Map ID set.
      * @param mapId - The Map ID to be set to the item.
      */
-    public static org.bukkit.inventory.meta.MapMeta setMapID(final org.bukkit.inventory.meta.MapMeta meta, final int mapId) {
+    public static void setMapID(final MapMeta meta, final int mapId) {
         meta.setMapId(mapId);
-        return meta;
     }
 
     /**
