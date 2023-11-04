@@ -289,11 +289,11 @@ public class DependAPI {
                         final Object skinData = skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(skinsRestorer, ownerData);
                         return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
                     } catch (Exception e3) {
-                        if (!StringUtils.containsIgnoreCase(e3.getCause().getMessage(), "SkinStorage is not initialized. Is SkinsRestorer in proxy mode?") || !StringUtils.containsIgnoreCase(e3.getCause().getMessage(), "proxy mode")) {
-                            ServerUtils.sendSevereTrace(e3);
-                            ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
-                            ServerUtils.logWarn("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
-                        }
+                        ServerUtils.sendSevereTrace(e1);
+                        ServerUtils.sendSevereTrace(e2);
+                        ServerUtils.sendSevereTrace(e3);
+                        ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
+                        ServerUtils.logWarn("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
                     }
                 }
             }
