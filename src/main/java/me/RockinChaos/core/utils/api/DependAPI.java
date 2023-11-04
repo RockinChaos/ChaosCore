@@ -123,15 +123,6 @@ public class DependAPI {
     }
 
     /**
-     * Checks if BetterNick is Enabled.
-     *
-     * @return If BetterNick is Enabled.
-     */
-    public boolean nickEnabled() {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled("BetterNick") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "BetterNick");
-    }
-
-    /**
      * Checks if NickAPI is Enabled.
      *
      * @return If NickAPI is Enabled.
@@ -305,7 +296,7 @@ public class DependAPI {
      * Sends a logging message of the found and enabled soft dependencies.
      */
     public void sendUtilityDepends() {
-        String enabledPlugins = (this.authMeEnabled() ? "AuthMe, " : "") + (this.nickEnabled() ? "BetterNick, " : "") + (this.nickAPIEnabled() ? "NickAPI, " : "")
+        String enabledPlugins = (this.authMeEnabled() ? "AuthMe, " : "") + (this.nickAPIEnabled() ? "NickAPI, " : "")
                 + (this.exploitFixerEnabled() ? "ExploitFixer, " : "") + (this.hyperVerseEnabled() ? "Hyperverse, " : "") + (this.coreEnabled() ? "Multiverse-Core, " : "") + (this.inventoryEnabled() ? "Multiverse-Inventories, " : "")
                 + (this.myWorldsEnabled() ? "My Worlds, " : "") + (this.perInventoryEnabled() ? "PerWorldInventory, " : "")
                 + (this.perPluginsEnabled() ? "PerWorldPlugins, " : "") + (this.tokenEnchantEnabled() ? "TokenEnchant, " : "")
@@ -333,7 +324,6 @@ public class DependAPI {
     public void addCustomCharts(final MetricsAPI metrics) {
         metrics.addCustomChart(new MetricsAPI.SimplePie("language", () -> Core.getCore().getLang().getLanguage()));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.authMeEnabled() ? "AuthMe" : ""));
-        metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.nickEnabled() ? "BetterNick" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.nickAPIEnabled() ? "NickAPI" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.exploitFixerEnabled() ? "ExploitFixer" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.hyperVerseEnabled() ? "HeadDatabase" : ""));

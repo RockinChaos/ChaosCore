@@ -17,7 +17,6 @@
  */
 package me.RockinChaos.core.handlers;
 
-import de.domedd.betternick.BetterNick;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.SchedulerUtils;
@@ -443,22 +442,7 @@ public class PlayerHandler {
             }
         } catch (Exception ignored) {
         }
-        if (playerName != null && Core.getCore().getDependencies().nickEnabled()) {
-            try {
-                de.domedd.betternick.api.nickedplayer.NickedPlayer np = new de.domedd.betternick.api.nickedplayer.NickedPlayer(LegacyAPI.getPlayer(playerName));
-                if (np.isNicked()) {
-                    return LegacyAPI.getPlayer(np.getRealName());
-                } else {
-                    return LegacyAPI.getPlayer(playerName);
-                }
-            } catch (NoClassDefFoundError e) {
-                if (BetterNick.getApi().isPlayerNicked(LegacyAPI.getPlayer(playerName))) {
-                    return LegacyAPI.getPlayer(BetterNick.getApi().getRealName(LegacyAPI.getPlayer(playerName)));
-                } else {
-                    return LegacyAPI.getPlayer(playerName);
-                }
-            }
-        } else if (playerName != null && Core.getCore().getDependencies().nickAPIEnabled()) {
+        if (playerName != null && Core.getCore().getDependencies().nickAPIEnabled()) {
             if (xyz.haoshoku.nick.api.NickAPI.isNicked(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName))) {
                 return xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName);
             } else {
@@ -478,22 +462,7 @@ public class PlayerHandler {
      */
     public static String getPlayerName(final Player player) {
         try {
-            if (player != null && Core.getCore().getDependencies().nickEnabled()) {
-                try {
-                    de.domedd.betternick.api.nickedplayer.NickedPlayer np = new de.domedd.betternick.api.nickedplayer.NickedPlayer(player);
-                    if (np.isNicked()) {
-                        return np.getRealName();
-                    } else {
-                        return player.getName();
-                    }
-                } catch (NoClassDefFoundError e) {
-                    if (BetterNick.getApi().isPlayerNicked(player)) {
-                        return BetterNick.getApi().getRealName(player);
-                    } else {
-                        return player.getName();
-                    }
-                }
-            } else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
+            if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
                 if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
                     return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
                 } else {
@@ -519,25 +488,6 @@ public class PlayerHandler {
         try {
             if (player != null && ServerUtils.hasSpecificUpdate("1_8")) {
                 return player.getUniqueId().toString();
-            } else if (player != null && Core.getCore().getDependencies().nickEnabled()) {
-                try {
-                    de.domedd.betternick.api.nickedplayer.NickedPlayer np = new de.domedd.betternick.api.nickedplayer.NickedPlayer(player);
-                    if (np.isNicked()) {
-                        if (ServerUtils.hasSpecificUpdate("1_8")) {
-                            return np.getUniqueId().toString();
-                        } else {
-                            return np.getRealName();
-                        }
-                    } else {
-                        return player.getName();
-                    }
-                } catch (NoClassDefFoundError e) {
-                    if (BetterNick.getApi().isPlayerNicked(player)) {
-                        return BetterNick.getApi().getRealName(player);
-                    } else {
-                        return player.getName();
-                    }
-                }
             } else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
                 if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
                     return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
@@ -564,25 +514,6 @@ public class PlayerHandler {
         try {
             if (player != null && ServerUtils.hasSpecificUpdate("1_8")) {
                 return player.getUniqueId().toString();
-            } else if (player != null && Core.getCore().getDependencies().nickEnabled()) {
-                try {
-                    de.domedd.betternick.api.nickedplayer.NickedPlayer np = new de.domedd.betternick.api.nickedplayer.NickedPlayer((BetterNick) player);
-                    if (np.isNicked()) {
-                        if (ServerUtils.hasSpecificUpdate("1_8")) {
-                            return np.getUniqueId().toString();
-                        } else {
-                            return np.getRealName();
-                        }
-                    } else {
-                        return player.getName();
-                    }
-                } catch (NoClassDefFoundError e) {
-                    if (BetterNick.getApi().isPlayerNicked((Player) player)) {
-                        return BetterNick.getApi().getRealName((Player) player);
-                    } else {
-                        return player.getName();
-                    }
-                }
             } else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
                 if (xyz.haoshoku.nick.api.NickAPI.isNickedName(Objects.requireNonNull(player.getName()))) {
                     return xyz.haoshoku.nick.api.NickAPI.getOriginalName(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(player.getName()));
