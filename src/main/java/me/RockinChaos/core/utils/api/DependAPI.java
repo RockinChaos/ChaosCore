@@ -29,6 +29,9 @@ import java.util.UUID;
 public class DependAPI {
 
     private static DependAPI depends;
+    private boolean proxySkins = false;
+    private Class<?> skinsNetty;
+    private Object skinsRestorer;
 
     /**
      * Creates a new DependAPI instance.
@@ -182,7 +185,75 @@ public class DependAPI {
      * @return If SkinsRestorer is Enabled.
      */
     public boolean skinsRestorerEnabled() {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled("SkinsRestorer") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "SkinsRestorer");
+        if (this.skinsNetty == null || this.skinsRestorer == null) {
+            initSkins();
+        }
+        return !this.proxySkins && Bukkit.getServer().getPluginManager().isPluginEnabled("SkinsRestorer") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "SkinsRestorer");
+    }
+
+    /**
+     * Checks the API version of SkinsRestorer to see if its functionally compatible with the current plugin version.
+     * Sets all SkinsRestorer API calls.
+     *
+     */
+    private void initSkins() {
+        try {
+            this.skinsNetty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerProvider");
+        } catch (Exception e1) {
+            try {
+                this.skinsNetty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerAPI");
+            } catch (Exception e2) {
+                try {
+                    this.skinsNetty = ReflectionUtils.getClass("net.skinsrestorer.bukkit.SkinsRestorer");
+                } catch (Exception e3) {
+                    try {
+                        this.skinsNetty = ReflectionUtils.getClass("skinsrestorer.bukkit.SkinsRestorer");
+                    } catch (Exception e4) {
+                        ServerUtils.sendDebugTrace(e4);
+                        ServerUtils.logSevere("{DependAPI} [1] Unsupported SkinsRestorer version detected, disabling SkinsRestorer support.");
+                        ServerUtils.logWarn("{DependAPI} [1] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                    }
+                }
+            }
+        }
+        if (this.skinsNetty != null) {
+            try {
+                final Object skinsInstance = this.skinsNetty.getMethod("get").invoke(null);
+                this.skinsRestorer = skinsInstance.getClass().getMethod("getPlayerStorage").invoke(skinsInstance);
+            } catch (Exception e1) {
+                try {
+                    final Object skinsInstance = this.skinsNetty.getMethod("getInstance").invoke(null);
+                    this.skinsRestorer = skinsInstance.getClass().getMethod("getSkinsRestorerBukkitAPI").invoke(skinsInstance);
+                } catch (Exception e2) {
+                    try {
+                        this.skinsRestorer = this.skinsNetty.getMethod("getApi").invoke(null);
+                    } catch (Exception e3) {
+                        this.isSkinsProxy(e1.getCause());
+                        this.isSkinsProxy(e2.getCause());
+                        this.isSkinsProxy(e3.getCause());
+                        if (!this.proxySkins) {
+                            ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version detected, disabling SkinsRestorer support.");
+                            ServerUtils.logWarn("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Runs a check to see if proxy mode is enabled for SkinsRestorer
+     *
+     * @param cause - The Throwable reference to fetch the cause message.
+     */
+    private void isSkinsProxy(final Throwable cause) {
+        if (cause != null) {
+            if (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode")) {
+                ServerUtils.sendSevereThrowable(cause);
+            } else {
+                this.proxySkins = true;
+            }
+        }
     }
 
     /**
@@ -237,58 +308,34 @@ public class DependAPI {
      * @return The found Skin Texture value.
      */
     public String getSkinValue(final UUID uuid, final String owner) {
-        Class<?> netty = null;
         try {
-            netty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerProvider");
+            final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
+            final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
+            return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
         } catch (Exception e1) {
             try {
-                netty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerAPI");
+                final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
+                final String ownerData = (playerData != null ? (String) playerData : owner);
+                final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
+                return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
             } catch (Exception e2) {
                 try {
-                    netty = ReflectionUtils.getClass("net.skinsrestorer.bukkit.SkinsRestorer");
-                } catch (Exception e3) {
-                    try {
-                        netty = ReflectionUtils.getClass("skinsrestorer.bukkit.SkinsRestorer");
-                    } catch (Exception e4) {
-                        ServerUtils.sendDebugTrace(e4);
-                        ServerUtils.logSevere("{DependAPI} [1] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
-                        ServerUtils.logWarn("{DependAPI} [1] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
-                    }
-                }
-            }
-        }
-        if (netty != null) {
-            try {
-                final Object skinsRestorer = netty.getMethod("get").invoke(null);
-                final Object skinsAPI = skinsRestorer.getClass().getMethod("getPlayerStorage").invoke(skinsRestorer);
-                final Object playerData = skinsAPI.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(skinsAPI, uuid, owner);
-                final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
-                return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
-            } catch (Exception e1) {
-                 try {
-                    final Object skinsRestorer = netty.getMethod("getInstance").invoke(null);
-                    final Object skinsAPI = skinsRestorer.getClass().getMethod("getSkinsRestorerBukkitAPI").invoke(skinsRestorer);
-                    final Object playerData = skinsAPI.getClass().getMethod("getSkinName", String.class).invoke(skinsAPI, owner);
+                    final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
                     final String ownerData = (playerData != null ? (String) playerData : owner);
-                    final Object skinData = skinsAPI.getClass().getMethod("getSkinData", String.class).invoke(skinsAPI, ownerData);
+                    final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
                     return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
-                } catch (Exception e2) {
-                    try {
-                        final Object skinsRestorer = netty.getMethod("getApi").invoke(null);
-                        final Object playerData = skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(skinsRestorer, owner);
-                        final String ownerData = (playerData != null ? (String) playerData : owner);
-                        final Object skinData = skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(skinsRestorer, ownerData);
-                        return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
-                    } catch (Exception e3) {
-                        ServerUtils.sendSevereTrace(e1);
-                        ServerUtils.sendSevereTrace(e2);
-                        ServerUtils.sendSevereTrace(e3);
-                        ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
-                        ServerUtils.logWarn("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                } catch (Exception e3) {
+                    ServerUtils.logDebug("Start of the first trace.");
+                    ServerUtils.sendDebugTrace(e1);
+                    ServerUtils.logDebug("Start of the second trace.");
+                    ServerUtils.sendDebugTrace(e2);
+                    ServerUtils.logDebug("Start of the third trace.");
+                    ServerUtils.sendDebugTrace(e3);
+                    ServerUtils.logSevere("{DependAPI} [3] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
+                    ServerUtils.logWarn("{DependAPI} [3] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
                     }
                 }
             }
-        }
         return null;
     }
 
