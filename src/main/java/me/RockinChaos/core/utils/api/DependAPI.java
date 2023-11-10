@@ -257,6 +257,44 @@ public class DependAPI {
     }
 
     /**
+     * Gets the set SkinsRestorer skin.
+     *
+     * @param owner - The skull owner to have their skin fetched.
+     * @return The found Skin Texture value.
+     */
+    public String getSkinValue(final UUID uuid, final String owner) {
+        try {
+            final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
+            final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
+            return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
+        } catch (Exception e1) {
+            try {
+                final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
+                final String ownerData = (playerData != null ? (String) playerData : owner);
+                final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
+                return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
+            } catch (Exception e2) {
+                try {
+                    final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
+                    final String ownerData = (playerData != null ? (String) playerData : owner);
+                    final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
+                    return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
+                } catch (Exception e3) {
+                    ServerUtils.logDebug("Start of the first trace.");
+                    ServerUtils.sendDebugTrace(e1);
+                    ServerUtils.logDebug("Start of the second trace.");
+                    ServerUtils.sendDebugTrace(e2);
+                    ServerUtils.logDebug("Start of the third trace.");
+                    ServerUtils.sendDebugTrace(e3);
+                    ServerUtils.logSevere("{DependAPI} [3] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
+                    ServerUtils.logWarn("{DependAPI} [3] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Checks if Citizens is Enabled.
      *
      * @return If Citizens is Enabled.
@@ -299,44 +337,6 @@ public class DependAPI {
      */
     public VaultAPI getVault() {
         return VaultAPI.getVault(false);
-    }
-
-    /**
-     * Gets the set SkinsRestorer skin.
-     *
-     * @param owner - The skull owner to have their skin fetched.
-     * @return The found Skin Texture value.
-     */
-    public String getSkinValue(final UUID uuid, final String owner) {
-        try {
-            final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
-            final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
-            return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
-        } catch (Exception e1) {
-            try {
-                final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
-                final String ownerData = (playerData != null ? (String) playerData : owner);
-                final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
-                return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
-            } catch (Exception e2) {
-                try {
-                    final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
-                    final String ownerData = (playerData != null ? (String) playerData : owner);
-                    final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
-                    return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
-                } catch (Exception e3) {
-                    ServerUtils.logDebug("Start of the first trace.");
-                    ServerUtils.sendDebugTrace(e1);
-                    ServerUtils.logDebug("Start of the second trace.");
-                    ServerUtils.sendDebugTrace(e2);
-                    ServerUtils.logDebug("Start of the third trace.");
-                    ServerUtils.sendDebugTrace(e3);
-                    ServerUtils.logSevere("{DependAPI} [3] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
-                    ServerUtils.logWarn("{DependAPI} [3] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
-                    }
-                }
-            }
-        return null;
     }
 
     /**
