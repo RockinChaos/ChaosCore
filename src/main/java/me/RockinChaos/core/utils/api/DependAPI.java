@@ -185,10 +185,11 @@ public class DependAPI {
      * @return If SkinsRestorer is Enabled.
      */
     public boolean skinsRestorerEnabled() {
-        if (this.skinsNetty == null || this.skinsRestorer == null) {
+        final boolean skinsEnabled = Bukkit.getServer().getPluginManager().isPluginEnabled("SkinsRestorer") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "SkinsRestorer");
+        if (skinsEnabled && (this.skinsNetty == null || this.skinsRestorer == null)) {
             initSkins();
         }
-        return !this.proxySkins && Bukkit.getServer().getPluginManager().isPluginEnabled("SkinsRestorer") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "SkinsRestorer");
+        return !this.proxySkins && skinsEnabled;
     }
 
     /**
