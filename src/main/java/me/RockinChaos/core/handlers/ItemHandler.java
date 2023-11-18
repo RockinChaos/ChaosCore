@@ -37,6 +37,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -142,6 +143,97 @@ public class ItemHandler {
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the exact Trim Material for the String.
+     *
+     * @param name - Name of the Trim Material.
+     * @return The proper Trim Material instance.
+     */
+    public static org.bukkit.inventory.meta.trim.TrimMaterial getTrimMaterial(final String name) {
+        if (ServerUtils.hasSpecificUpdate("1_20")) {
+            try {
+                Field field = org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredField(name);
+                Object value = field.get(name);
+                return (org.bukkit.inventory.meta.trim.TrimMaterial) value;
+            } catch (Exception e) {
+                ServerUtils.logWarn("{ItemHandler} Failed to get the Trim Material " + name + ", check that you are using the proper name.");
+                ServerUtils.sendDebugTrace(e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the full list of available Armor Trim Materials.
+     *
+     * @return The full list of available armor trim materials.
+     */
+    public static List<org.bukkit.inventory.meta.trim.TrimMaterial> getTrimMaterials() {
+        if (ServerUtils.hasSpecificUpdate("1_20")) {
+            List<org.bukkit.inventory.meta.trim.TrimMaterial> trimMaterials = new ArrayList<>();
+            try {
+                for (Field fieldMaterial : org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredFields()) {
+                    trimMaterials.add((org.bukkit.inventory.meta.trim.TrimMaterial) fieldMaterial.get(fieldMaterial.getName()));
+                }
+                return trimMaterials;
+            } catch (Exception e) {
+                ServerUtils.sendSevereTrace(e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the exact Trim Pattern for the String.
+     *
+     * @param name - Name of the Trim Pattern.
+     * @return The proper Trim Pattern instance.
+     */
+    public static org.bukkit.inventory.meta.trim.TrimPattern getTrimPattern(final String name) {
+        if (ServerUtils.hasSpecificUpdate("1_20")) {
+            try {
+                Field field = org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredField(name);
+                Object value = field.get(name);
+                return (org.bukkit.inventory.meta.trim.TrimPattern) value;
+            } catch (Exception e) {
+                ServerUtils.logWarn("{ItemHandler} Failed to get the Trim Pattern " + name + ", check that you are using the proper name.");
+                ServerUtils.sendDebugTrace(e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the full list of available Armor Trim Patterns.
+     *
+     * @return The full list of available armor trim patterns.
+     */
+    public static List<org.bukkit.inventory.meta.trim.TrimPattern> getTrimPatterns() {
+        if (ServerUtils.hasSpecificUpdate("1_20")) {
+            List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
+            try {
+                for (Field fieldPattern : org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredFields()) {
+                    trimPatterns.add((org.bukkit.inventory.meta.trim.TrimPattern) fieldPattern.get(fieldPattern.getName()));
+                }
+                return trimPatterns;
+            } catch (Exception e) {
+                ServerUtils.sendSevereTrace(e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Sets the ItemStack Armor Trim Pattern
+     */
+    public static void setArmorTrim(final ItemStack item, final String material, final String pattern) {
+        final ItemMeta itemMeta = item.getItemMeta();
+        if (material != null && pattern != null && itemMeta != null) {
+            ((ArmorMeta) itemMeta).setTrim(new org.bukkit.inventory.meta.trim.ArmorTrim(Objects.requireNonNull(getTrimMaterial(material)), Objects.requireNonNull(getTrimPattern(pattern))));
+            item.setItemMeta(itemMeta);
+        }
     }
 
     /**
@@ -290,6 +382,12 @@ public class ItemHandler {
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_POTION_EFFECTS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+            if (ServerUtils.hasSpecificUpdate("1_20")) {
+                tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ARMOR_TRIM);
+            }
+            if (ServerUtils.hasSpecificUpdate("1_17")) {
+                tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DYE);
+            }
         }
         if (ServerUtils.hasSpecificUpdate("1_9") && refMat.equalsIgnoreCase("WATER_BOTTLE") && tempMeta != null) {
             ((PotionMeta) tempMeta).setBasePotionData(new org.bukkit.potion.PotionData(PotionType.WATER));
@@ -963,8 +1061,17 @@ public class ItemHandler {
      * @return If the slot is a custom slot.
      */
     public static boolean isCustomSlot(final String slot) {
-        return slot.equalsIgnoreCase("Offhand") || slot.equalsIgnoreCase("Arbitrary") || slot.equalsIgnoreCase("Helmet")
-                || slot.equalsIgnoreCase("Chestplate") || slot.equalsIgnoreCase("Leggings") || slot.equalsIgnoreCase("Boots") || isCraftingSlot(slot) || slot.contains("%");
+        return slot.equalsIgnoreCase("OFFHAND") || slot.equalsIgnoreCase("ARBITRARY") || isArmor(slot) || isCraftingSlot(slot) || slot.contains("%");
+    }
+
+    /**
+     * Checks if the specified String is an armor type.
+     *
+     * @param context - The string to be checked.
+     * @return If the string is an armor type.
+     */
+    public static boolean isArmor(final String context) {
+        return StringUtils.containsIgnoreCase(context, "HELMET") || StringUtils.containsIgnoreCase(context, "CHESTPLATE") || StringUtils.containsIgnoreCase(context, "LEGGINGS") || StringUtils.containsIgnoreCase(context, "BOOTS");
     }
 
     /**
@@ -1038,6 +1145,62 @@ public class ItemHandler {
 
         public boolean isSlot(String slot) {
             return this.name.equalsIgnoreCase(slot);
+        }
+    }
+
+    /**
+     * Trim Material types.
+     */
+    public enum TrimMaterial {
+        AMETHYST("AMETHYST_SHARD"),
+        COPPER("COPPER_INGOT"),
+        DIAMOND("DIAMOND"),
+        EMERALD("EMERALD"),
+        GOLD("GOLD_INGOT"),
+        IRON("IRON_INGOT"),
+        LAPIS("LAPIS_LAZULI"),
+        NETHERITE("NETHERITE_INGOT"),
+        QUARTZ("QUARTZ"),
+        REDSTONE("REDSTONE");
+        private final String name;
+
+        TrimMaterial(String name) {
+            this.name = name;
+        }
+
+        public Material getMaterial() {
+            return ItemHandler.getMaterial(this.name, null);
+        }
+    }
+
+    /**
+     * Trim Pattern types.
+     */
+    public enum TrimPattern {
+        COAST("COAST_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        DUNE("DUNE_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        EYE("EYE_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        HOST("HOST_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        RAISER("RAISER_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        RIB("RIB_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        SENTRY("SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        SHAPER("SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        SILENCE("SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        SNOUT("SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        SPIRE("SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        TIDE("TIDE_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        VEX("VEX_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        WARD("WARD_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        WAYFINDER("WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE"),
+        WILD("WILD_ARMOR_TRIM_SMITHING_TEMPLATE");
+        private final String name;
+
+        TrimPattern(String name) {
+            this.name = name;
+        }
+
+        public Material getMaterial() {
+            return ItemHandler.getMaterial(this.name, null);
         }
     }
 }
