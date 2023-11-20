@@ -221,7 +221,7 @@ public class StringUtils {
             if (container.has(key, org.bukkit.persistence.PersistentDataType.STRING)) {
                 return container.get(key, org.bukkit.persistence.PersistentDataType.STRING);
             }
-        } else if (itemMeta != null) {
+        } else if (itemMeta != null && itemMeta.hasDisplayName()) {
             return LegacyAPI.colorDecode(itemMeta.getDisplayName());
         }
         return null;

@@ -35,6 +35,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.*;
@@ -374,7 +375,8 @@ public class PlayerHandler {
                     Updates Offhand Slot.
                  */
                 if (ServerUtils.hasSpecificUpdate("1_9")) {
-                    if (item == null || (getOffHandItem(player) != null && Objects.requireNonNull(getOffHandItem(player)).clone().isSimilar(item))) {
+                    final ItemStack offHand = getOffHandItem(player);
+                    if (item == null || (offHand != null && offHand.clone().isSimilar(item))) {
                         ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45, 0);
                     }
                 }
@@ -411,18 +413,19 @@ public class PlayerHandler {
      * @return The ItemStacks current skull owner.
      */
     public static String getSkullOwner(final ItemStack item) {
-        if (ServerUtils.hasSpecificUpdate("1_12") && item != null && item.hasItemMeta() && ItemHandler.isSkull(item.getType())
-                && ((SkullMeta) Objects.requireNonNull(item.getItemMeta())).hasOwner() && ItemHandler.usesOwningPlayer()) {
-            String owner = Objects.requireNonNull(((SkullMeta) item.getItemMeta()).getOwningPlayer()).getName();
-            if (owner != null) {
-                return owner;
-            }
-        } else if (item != null && item.hasItemMeta()
-                && ItemHandler.isSkull(item.getType())
-                && ((SkullMeta) Objects.requireNonNull(item.getItemMeta())).hasOwner()) {
-            String owner = LegacyAPI.getSkullOwner(((SkullMeta) item.getItemMeta()));
-            if (owner != null) {
-                return owner;
+        if ( item != null && item.hasItemMeta()) {
+            final ItemMeta itemMeta = item.getItemMeta();
+            if (ServerUtils.hasSpecificUpdate("1_12") && itemMeta != null && ItemHandler.isSkull(item.getType())
+                    && ((SkullMeta) itemMeta).hasOwner() && ItemHandler.usesOwningPlayer()) {
+                final OfflinePlayer owner = ((SkullMeta) itemMeta).getOwningPlayer();
+                if (owner != null && owner.getName() != null) {
+                    return owner.getName();
+                }
+            } else if (itemMeta != null && ItemHandler.isSkull(item.getType()) && ((SkullMeta) itemMeta).hasOwner()) {
+                String owner = LegacyAPI.getSkullOwner(((SkullMeta) itemMeta));
+                if (owner != null) {
+                    return owner;
+                }
             }
         }
         return "NULL";
@@ -511,20 +514,23 @@ public class PlayerHandler {
      * @return The UUID of the player or if not found, their String name.
      */
     public static String getOfflinePlayerID(final OfflinePlayer player) {
-        try {
-            if (player != null && ServerUtils.hasSpecificUpdate("1_8")) {
-                return player.getUniqueId().toString();
-            } else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
-                if (xyz.haoshoku.nick.api.NickAPI.isNickedName(Objects.requireNonNull(player.getName()))) {
-                    return xyz.haoshoku.nick.api.NickAPI.getOriginalName(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(player.getName()));
+        if (player != null) {
+            final String playerName = player.getName();
+            try {
+                if (ServerUtils.hasSpecificUpdate("1_8")) {
+                    return player.getUniqueId().toString();
+                } else if (Core.getCore().getDependencies().nickAPIEnabled()) {
+                    if (playerName != null && xyz.haoshoku.nick.api.NickAPI.isNickedName(playerName)) {
+                        return xyz.haoshoku.nick.api.NickAPI.getOriginalName(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName));
+                    } else {
+                        return playerName;
+                    }
                 } else {
-                    return player.getName();
+                    return playerName;
                 }
-            } else if (player != null) {
-                return player.getName();
+            } catch (Exception e) {
+                return playerName;
             }
-        } catch (Exception e) {
-            return player.getName();
         }
         return "";
     }

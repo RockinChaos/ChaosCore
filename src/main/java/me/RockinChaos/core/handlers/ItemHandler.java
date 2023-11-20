@@ -212,7 +212,7 @@ public class ItemHandler {
      */
     public static List<org.bukkit.inventory.meta.trim.TrimPattern> getTrimPatterns() {
         if (ServerUtils.hasSpecificUpdate("1_20")) {
-            List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
+            final List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
             try {
                 for (Field fieldPattern : org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredFields()) {
                     trimPatterns.add((org.bukkit.inventory.meta.trim.TrimPattern) fieldPattern.get(fieldPattern.getName()));
@@ -231,8 +231,12 @@ public class ItemHandler {
     public static void setArmorTrim(final ItemStack item, final String material, final String pattern) {
         final ItemMeta itemMeta = item.getItemMeta();
         if (material != null && pattern != null && itemMeta != null) {
-            ((ArmorMeta) itemMeta).setTrim(new org.bukkit.inventory.meta.trim.ArmorTrim(Objects.requireNonNull(getTrimMaterial(material)), Objects.requireNonNull(getTrimPattern(pattern))));
-            item.setItemMeta(itemMeta);
+            final org.bukkit.inventory.meta.trim.TrimMaterial trimMaterial = getTrimMaterial(material);
+            final org.bukkit.inventory.meta.trim.TrimPattern trimPattern = getTrimPattern(pattern);
+            if (trimMaterial != null && trimPattern != null) {
+                ((ArmorMeta) itemMeta).setTrim(new org.bukkit.inventory.meta.trim.ArmorTrim(trimMaterial, trimPattern));
+                item.setItemMeta(itemMeta);
+            }
         }
     }
 
@@ -245,9 +249,10 @@ public class ItemHandler {
     public static short getDurability(final ItemStack item) {
         if (!ServerUtils.hasSpecificUpdate("1_13")) {
             return LegacyAPI.getDurability(item);
-        } else {
-            return ((short) ((org.bukkit.inventory.meta.Damageable) Objects.requireNonNull(item.getItemMeta())).getDamage());
+        } else if (item.getItemMeta() != null) {
+            return ((short) ((org.bukkit.inventory.meta.Damageable) item.getItemMeta()).getDamage());
         }
+        return 0;
     }
 
     /**
@@ -260,7 +265,7 @@ public class ItemHandler {
     public static ItemStack setDurability(final ItemStack item, final int durability) {
         if (item.getType().getMaxDurability() != 0 && durability != 0) {
             if (ServerUtils.hasSpecificUpdate("1_13")) {
-                ItemMeta tempMeta = item.getItemMeta();
+                final ItemMeta tempMeta = item.getItemMeta();
                 if (tempMeta != null) {
                     ((org.bukkit.inventory.meta.Damageable) tempMeta).setDamage(durability);
                     item.setItemMeta(tempMeta);
@@ -322,7 +327,7 @@ public class ItemHandler {
      * @param lores    - The custom lore to be added to the ItemStack.
      */
     public static ItemStack getItem(String material, final int count, final boolean glowing, boolean hideAttributes, String name, final String... lores) {
-        ItemStack tempItem;
+        ItemStack tempItem = new ItemStack(Material.AIR);
         String refMat = "";
         if (!ServerUtils.hasSpecificUpdate("1_8") && material.equals("BARRIER")) {
             material = "WOOL:14";
@@ -338,7 +343,10 @@ public class ItemHandler {
             material = "STONE";
         }
         if (ServerUtils.hasSpecificUpdate("1_13")) {
-            tempItem = new ItemStack(Objects.requireNonNull(getMaterial(material, null)), count);
+            final Material bukkitMaterial = getMaterial(material, null);
+            if (bukkitMaterial != null) {
+                tempItem = new ItemStack(bukkitMaterial, count);
+            }
         } else {
             short dataValue = 0;
             if (material.contains(":")) {
@@ -934,9 +942,9 @@ public class ItemHandler {
     public static boolean containsNBTData(final ItemStack item, final List<String> dataList) {
         if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR && getNBTData(item, dataList) != null) {
             return true;
-        } else if (!Core.getCore().getData().dataTagsEnabled()) {
-            return item != null && item.hasItemMeta() && Objects.requireNonNull(item.getItemMeta()).hasDisplayName()
-                    && StringUtils.colorDecode(item) != null && !Objects.requireNonNull(StringUtils.colorDecode(item)).isEmpty();
+        } else if (!Core.getCore().getData().dataTagsEnabled() && item != null) {
+            final String colorDecode = StringUtils.colorDecode(item);
+            return colorDecode != null && !colorDecode.isEmpty();
         }
         return false;
     }
@@ -1008,8 +1016,9 @@ public class ItemHandler {
      * @return The String with the removed Delay Formatting.
      */
     public static String cutDelay(final String context) {
-        if (getDelayFormat(context) != null) {
-            return context.replace(Objects.requireNonNull(getDelayFormat(context)), "");
+        final String delayFormat = getDelayFormat(context);
+        if (delayFormat != null) {
+            return context.replace(delayFormat, "");
         }
         return context;
     }

@@ -31,7 +31,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
-import java.util.Objects;
 
 public class Container {
 
@@ -62,11 +61,12 @@ public class Container {
             final Class<?> blockPosition = ReflectionUtils.getMinecraftClass("BlockPosition");
             final Class<?> containerAnvil = ReflectionUtils.getMinecraftClass("ContainerAnvil");
             final Object world = player.getWorld().getClass().getMethod("getHandle").invoke(player.getWorld());
-            final Object playerInventory;
-            if (ServerUtils.hasSpecificUpdate("1_17")) {
-                playerInventory = Objects.requireNonNull(ReflectionUtils.getEntity(player)).getClass().getMethod(MinecraftField.Inventory.getField()).invoke(ReflectionUtils.getEntity(player));
-            } else {
-                playerInventory = Objects.requireNonNull(ReflectionUtils.getEntity(player)).getClass().getField(MinecraftField.Inventory.getField()).get(ReflectionUtils.getEntity(player));
+            final Object entityPlayer = ReflectionUtils.getEntity(player);
+            Object playerInventory = null;
+            if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
+                playerInventory = entityPlayer.getClass().getMethod(MinecraftField.Inventory.getField()).invoke(entityPlayer);
+            } else if (entityPlayer != null) {
+                playerInventory = entityPlayer.getClass().getField(MinecraftField.Inventory.getField()).get(entityPlayer);
             }
             this.outItem = outItem;
             this.containerId = this.getRealNextContainerId(player);
@@ -184,10 +184,11 @@ public class Container {
      */
     public void addActiveContainerSlotListener(final Player player) {
         try {
-            if (ServerUtils.hasSpecificUpdate("1_17")) {
-                Objects.requireNonNull(ReflectionUtils.getEntity(player)).getClass().getMethod(MinecraftField.AddSlotListener.getField(), this.mineContainer).invoke(ReflectionUtils.getEntity(player), this.container);
+            final Object entityPlayer = ReflectionUtils.getEntity(player);
+            if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
+                entityPlayer.getClass().getMethod(MinecraftField.AddSlotListener.getField(), this.mineContainer).invoke(entityPlayer, this.container);
             } else {
-                this.mineContainer.getMethod(MinecraftField.AddSlotListener.getField(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, ReflectionUtils.getEntity(player));
+                this.mineContainer.getMethod(MinecraftField.AddSlotListener.getField(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, entityPlayer);
             }
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);

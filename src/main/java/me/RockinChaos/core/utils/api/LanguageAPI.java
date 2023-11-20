@@ -30,7 +30,6 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
@@ -273,33 +272,38 @@ public class LanguageAPI {
      * Gets the current Language from the config and saves it to memory.
      */
     public void langFile() {
-        final String lang = Objects.requireNonNull(Core.getCore().getConfig("config.yml").getString("Language")).replace(" ", "");
-        if (StringUtils.containsValue(Core.getCore().getData().getLanguages(), lang)) {
-            if (lang.equalsIgnoreCase("TraditionalChinese") || lang.equalsIgnoreCase("TwChinese")) {
-                this.setLanguage("tw");
-            } else if (lang.equalsIgnoreCase("SimplifiedChinese") || lang.equalsIgnoreCase("CnChinese") || lang.equalsIgnoreCase("Chinese")) {
-                this.setLanguage("cn");
-            } else if (StringUtils.containsIgnoreCase(lang, "Chinese")) {
-                this.setLanguage("cn");
-            } else if (lang.equalsIgnoreCase("Spanish")) {
-                this.setLanguage("es");
-            } else if (lang.equalsIgnoreCase("Russian")) {
-                this.setLanguage("ru");
-            } else if (lang.equalsIgnoreCase("French")) {
-                this.setLanguage("fr");
-            } else if (lang.equalsIgnoreCase("Dutch")) {
-                this.setLanguage("nl");
-            } else if (lang.equalsIgnoreCase("Portuguese")) {
-                this.setLanguage("pt");
-            } else if (lang.equalsIgnoreCase("Italian")) {
-                this.setLanguage("it");
+        String lang = Core.getCore().getConfig("config.yml").getString("Language");
+        if (lang != null) {
+            lang = lang.replace(" ", "");
+            if (StringUtils.containsValue(Core.getCore().getData().getLanguages(), lang)) {
+                if (lang.equalsIgnoreCase("TraditionalChinese") || lang.equalsIgnoreCase("TwChinese")) {
+                    this.setLanguage("tw");
+                } else if (lang.equalsIgnoreCase("SimplifiedChinese") || lang.equalsIgnoreCase("CnChinese") || lang.equalsIgnoreCase("Chinese")) {
+                    this.setLanguage("cn");
+                } else if (StringUtils.containsIgnoreCase(lang, "Chinese")) {
+                    this.setLanguage("cn");
+                } else if (lang.equalsIgnoreCase("Spanish")) {
+                    this.setLanguage("es");
+                } else if (lang.equalsIgnoreCase("Russian")) {
+                    this.setLanguage("ru");
+                } else if (lang.equalsIgnoreCase("French")) {
+                    this.setLanguage("fr");
+                } else if (lang.equalsIgnoreCase("Dutch")) {
+                    this.setLanguage("nl");
+                } else if (lang.equalsIgnoreCase("Portuguese")) {
+                    this.setLanguage("pt");
+                } else if (lang.equalsIgnoreCase("Italian")) {
+                    this.setLanguage("it");
+                } else {
+                    this.setLanguage("en");
+                }
             } else {
+                ServerUtils.logSevere("{Lang} The language " + lang + " was specified but could not be found!");
+                ServerUtils.logSevere("{Lang} Please check the language specified in the config.yml for proper spelling");
+                ServerUtils.logSevere("{Lang} Defaulting to the English language ...");
                 this.setLanguage("en");
             }
         } else {
-            ServerUtils.logSevere("{Lang} The language " + lang + " was specified but could not be found!");
-            ServerUtils.logSevere("{Lang} Please check the language specified in the config.yml for proper spelling");
-            ServerUtils.logSevere("{Lang} Defaulting to the English language ...");
             this.setLanguage("en");
         }
     }
