@@ -17,7 +17,6 @@
  */
 package me.RockinChaos.core.utils.enchants;
 
-import me.RockinChaos.core.Core;
 import org.bukkit.enchantments.Enchantment;
 
 @SuppressWarnings("unused")
@@ -29,6 +28,6 @@ public abstract class EnchantWrapper extends Enchantment {
      * @param namespace - The name that should be set as the Enchantment.
      */
     public EnchantWrapper(final String namespace) {
-        super(new org.bukkit.NamespacedKey(Core.getCore().getPlugin(), namespace));
+        //super(new org.bukkit.NamespacedKey(Core.getCore().getPlugin(), namespace)); -- Yeeted until a future date.
     }
 }

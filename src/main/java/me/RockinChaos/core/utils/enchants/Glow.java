@@ -17,9 +17,11 @@
  */
 package me.RockinChaos.core.utils.enchants;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 
@@ -81,6 +83,7 @@ public class Glow extends EnchantWrapper {
      * @return The Glow name.
      * @deprecated Enchantments are badly named, use getKey().
      */
+    @Deprecated
     public @Nonnull String getName() {
         return "Glowing";
     }
@@ -101,6 +104,7 @@ public class Glow extends EnchantWrapper {
      * @return If the Enchantment is cursed.
      * @deprecated Cursed enchantments are no longer special.
      */
+    @Deprecated
     public boolean isCursed() {
         return false;
     }
@@ -113,5 +117,15 @@ public class Glow extends EnchantWrapper {
     @Override
     public boolean isTreasure() {
         return false;
+    }
+
+    /**
+     * Gets the NamepsacedKey for the glow enchant.
+     *
+     * @return The Glow NamespacedKey.
+     */
+    @Override
+    public @NonNull NamespacedKey getKey() {
+        return org.bukkit.NamespacedKey.minecraft(this.getName().toLowerCase());
     }
 }

@@ -18,9 +18,6 @@
 package me.RockinChaos.core.utils.enchants;
 
 import me.RockinChaos.core.utils.ServerUtils;
-import org.bukkit.enchantments.Enchantment;
-
-import java.lang.reflect.Field;
 
 @SuppressWarnings("unused")
 public class Enchantments {
@@ -46,12 +43,12 @@ public class Enchantments {
     public void registerGlow() {
         if (ServerUtils.hasSpecificUpdate("1_13") && !this.glowRegistered) {
             try {
-                Field f = Enchantment.class.getDeclaredField("acceptingNew");
+                /* Field f = Enchantment.class.getDeclaredField("acceptingNew");
                 f.setAccessible(true);
                 f.set(null, true);
                 Glow glow = new Glow();
                 Enchantment.registerEnchantment(glow);
-                glowRegistered = true;
+                glowRegistered = true; */ // Yeeted until a future date.
             } catch (IllegalArgumentException ignored) {
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
