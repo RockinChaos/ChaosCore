@@ -27,10 +27,7 @@ import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.block.Skull;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -132,7 +129,7 @@ public class ItemHandler {
             return LegacyAPI.getEnchant(name);
         } else {
             try {
-                Enchantment enchantName = Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft(name.toLowerCase()));
+                Enchantment enchantName = LegacyAPI.getEnchantByKey(name);
                 if (enchantName != null) {
                     return enchantName;
                 } else {
@@ -398,7 +395,11 @@ public class ItemHandler {
             }
         }
         if (ServerUtils.hasSpecificUpdate("1_9") && refMat.equalsIgnoreCase("WATER_BOTTLE") && tempMeta != null) {
-            ((PotionMeta) tempMeta).setBasePotionData(new org.bukkit.potion.PotionData(PotionType.WATER));
+            if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+                ((PotionMeta) tempMeta).setBasePotionType(PotionType.WATER);
+            } else {
+                LegacyAPI.setPotionData(((PotionMeta) tempMeta), PotionType.WATER);
+            }
         }
         tempItem.setItemMeta(tempMeta);
         return tempItem;

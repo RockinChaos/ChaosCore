@@ -633,6 +633,7 @@ public class Query {
          * @return An {@link Response} object for when the container is to display text to the user.
          * @deprecated Since 1.6.2, use {@link ResponseAction#close()}.
          */
+        @Deprecated
         public static List<ResponseAction> close() {
             return Collections.singletonList(ResponseAction.close());
         }
@@ -644,6 +645,7 @@ public class Query {
          * @return A list containing the {@link ResponseAction} for legacy compat.
          * @deprecated Since 1.6.2, use {@link ResponseAction#replaceInputText(String)}.
          */
+        @Deprecated
         public static List<ResponseAction> text(final String text) {
             return Collections.singletonList(ResponseAction.replaceInputText(text));
         }
@@ -655,6 +657,7 @@ public class Query {
          * @return A list containing the {@link ResponseAction} for legacy compat.
          * @deprecated Since 1.6.2, use {@link ResponseAction#openInventory(Inventory)}.
          */
+        @Deprecated
         public static List<ResponseAction> openInventory(final Inventory inventory) {
             return Collections.singletonList(ResponseAction.openInventory(inventory));
         }

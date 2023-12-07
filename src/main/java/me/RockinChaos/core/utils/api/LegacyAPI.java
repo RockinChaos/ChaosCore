@@ -28,6 +28,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -36,6 +37,9 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -235,6 +239,43 @@ public class LegacyAPI {
     }
 
     /**
+     * Gets the list of Enchantments.
+     *
+     * @return The full list of registered Enchants.
+     */
+    public static List<Enchantment> getEnchants() {
+        return List.of(Enchantment.values());
+    }
+
+    /**
+     * Gets the PotionEffectType instance from its String name.
+     *
+     * @param effect - The Effect to have its String name fetched.
+     * @return The PotionEffectType instance.
+     */
+    public static PotionEffectType getEffectByName(final String effect) {
+        if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+            final PotionEffectType type = Registry.EFFECT.get(Objects.requireNonNull(NamespacedKey.fromString(effect.toLowerCase())));
+            if (type != null) {
+                return type;
+            } else {
+                return PotionEffectType.getByName(effect.toUpperCase());
+            }
+        } else {
+            return PotionEffectType.getByName(effect.toUpperCase());
+        }
+    }
+
+    /**
+     * Gets the list of PotionEffectType.
+     *
+     * @return The full list of registered Effects.
+     */
+    public static List<PotionEffectType> getEffects() {
+        return List.of(PotionEffectType.values());
+    }
+
+    /**
      * Gets the Enchantment from its String name.
      *
      * @param name - The String name of the Enchantment.
@@ -422,6 +463,7 @@ public class LegacyAPI {
      * @return The updated ItemMeta.
      * @deprecated Only to be used on server versions below 1.8.
      */
+    @Deprecated
     public static ItemMeta setPages(final Player player, final ItemMeta meta, final List<String> pages) {
         if (!ServerUtils.hasSpecificUpdate("1_8") && pages != null && !pages.isEmpty()) {
             List<String> copyPages = new ArrayList<>(pages);
@@ -510,6 +552,7 @@ public class LegacyAPI {
      * @return The updated ItemStack.
      * @deprecated Only to be used on server versions below 1.8.
      */
+    @Deprecated
     private static ItemStack setGlowEnchant(final ItemStack tempItem) {
         if (!ServerUtils.hasSpecificUpdate("1_11")) {
             try {
@@ -590,9 +633,48 @@ public class LegacyAPI {
     }
 
     /**
+     * Sets the potion type as a potion data to the PotionMeta.
+     * @param tempMeta - The PotionMeta having the potion data set to.
+     * @param potionType - The potion type to be set.
+     */
+    public static void setPotionData(final PotionMeta tempMeta, final PotionType potionType) {
+        tempMeta.setBasePotionData(new org.bukkit.potion.PotionData(potionType));
+    }
+
+    /**
+     * Gets the Potion Name from its Type.
+     *
+     * @param type - The potion name to be fetched.
+     * @return the potion effect type name.
+     */
+    public static String getEffectName(final PotionEffectType type) {
+        return type.getName();
+    }
+
+    /**
+     * Gets the Enchantment instance from its String name.
+     *
+     * @param name - The enchantment name to be fetched.
+     * @return the Enchantment instance.
+     */
+    public static Enchantment getEnchantByKey(final String name) {
+        if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+            final Enchantment enchant = Registry.ENCHANTMENT.get(org.bukkit.NamespacedKey.minecraft(name.toLowerCase()));
+            if (enchant != null) {
+                return enchant;
+            } else {
+                return Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft(name.toLowerCase()));
+            }
+        } else {
+            return Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft(name.toLowerCase()));
+        }
+    }
+
+    /**
      * Gets the Data Value from the ItemStack.
      *
      * @param item - The ItemStack to have its Data Value fetched.
+     * @return The data value as an Integer.
      */
     public static int getDataValue(final ItemStack item) {
         return Objects.requireNonNull(item.getData()).getData();

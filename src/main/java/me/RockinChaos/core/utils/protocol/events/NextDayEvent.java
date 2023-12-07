@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("unused")
 public class NextDayEvent extends Event implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
-	private boolean isDay = false;
+	private final boolean isDay;
 	private final World world;
 	private Result allowChange;
 	
