@@ -354,7 +354,7 @@ public class ItemHandler {
             tempItem = LegacyAPI.newItemStack(getMaterial(material, null), count, dataValue);
         }
         if (glowing) {
-            tempItem.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+            setGlowing(tempItem);
         }
         ItemMeta tempMeta = tempItem.getItemMeta();
         if (ServerUtils.hasSpecificUpdate("1_8") && tempMeta != null) {
@@ -975,6 +975,26 @@ public class ItemHandler {
         } catch (Exception ignored) {
         }
         return false;
+    }
+
+    /**
+     * Sets the ItemStack to glow.
+     *
+     * @return The ItemStack instance.
+     */
+    public static ItemStack setGlowing(final ItemStack item) {
+        Enchantment enchant;
+        if (item.getType().name().equalsIgnoreCase("ENCHANTED_BOOK")) {
+            enchant = getEnchantByName("BINDING_CURSE");
+        } else if (item.getType().name().equalsIgnoreCase("BOW")) {
+            enchant = getEnchantByName("LUCK");
+        } else {
+            enchant = getEnchantByName("ARROW_INFINITE");
+        }
+        if (enchant != null) {
+            item.addUnsafeEnchantment(enchant, 1);
+        }
+        return item;
     }
 
     /**
