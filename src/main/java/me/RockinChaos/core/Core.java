@@ -24,7 +24,6 @@ import me.RockinChaos.core.utils.api.BungeeAPI;
 import me.RockinChaos.core.utils.api.ChanceAPI;
 import me.RockinChaos.core.utils.api.DependAPI;
 import me.RockinChaos.core.utils.api.LanguageAPI;
-import me.RockinChaos.core.utils.enchants.Enchantments;
 import me.RockinChaos.core.utils.sql.SQL;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -134,15 +133,6 @@ public class Core {
      */
     public ChanceAPI getChances() {
         return ChanceAPI.getChances();
-    }
-
-    /**
-     * Gets the Enchantments for the Plugin.
-     *
-     * @return The cached Enchantments.
-     */
-    public Enchantments getEnchants() {
-        return Enchantments.getEnchants();
     }
 
     /**
