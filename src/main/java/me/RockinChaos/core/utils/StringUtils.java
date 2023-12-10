@@ -29,6 +29,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredListener;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -154,6 +155,16 @@ public class StringUtils {
      */
     public static List<String> split(final String str) {
         return new ArrayList<>(Arrays.asList(str.split(", ")));
+    }
+
+    /**
+     * Checks if the StringBuilder is Empty.
+     *
+     * @param stringBuilder - The StringBuilder being checked.
+     * @return If the StringBuilder is Empty.
+     */
+    public static boolean isEmpty(final @NonNull StringBuilder stringBuilder) {
+        return stringBuilder.toString().isEmpty();
     }
 
     /**
@@ -692,7 +703,7 @@ public class StringUtils {
                     ServerUtils.sendDebugTrace(e);
                 }
                 try {
-                    final double health = (ServerUtils.hasSpecificUpdate("1_8") ? player.getHealth() : (double) player.getClass().getMethod("getHealth").invoke(player));
+                    final double health = player.getHealth();
                     str = str.replace("%player_health%", String.valueOf(health));
                 } catch (Exception e) {
                     ServerUtils.sendDebugTrace(e);
