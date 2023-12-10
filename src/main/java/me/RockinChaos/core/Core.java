@@ -20,6 +20,7 @@ package me.RockinChaos.core;
 import me.RockinChaos.core.handlers.ConfigHandler;
 import me.RockinChaos.core.handlers.LogHandler;
 import me.RockinChaos.core.handlers.UpdateHandler;
+import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.api.BungeeAPI;
 import me.RockinChaos.core.utils.api.ChanceAPI;
 import me.RockinChaos.core.utils.api.DependAPI;
@@ -55,12 +56,22 @@ public class Core {
     }
 
     /**
-     * Gets the instance of the ChaosCOre.
+     * Gets the instance of the ChaosCore.
      *
      * @return The ChaosCore instance.
      */
     public static Core getCore() {
         return core;
+    }
+
+    /**
+     * Checks if ChaosCore is enabled.
+     * Server Version must be at least 1.8
+     *
+     * @return If ChaosCore is enabled.
+     */
+    public boolean isEnabled() {
+        return ServerUtils.hasSpecificUpdate("1_8");
     }
 
     /**

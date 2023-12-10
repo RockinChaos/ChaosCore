@@ -50,11 +50,9 @@ public class Interface implements InventoryHolder {
     private boolean canChat = false;
     private boolean pendingChat = false;
     private boolean pendingClick = false;
-
     private Button controlBack;
     private Button controlNext;
     private Button controlExit;
-
     private Button exitButton;
 
     /**

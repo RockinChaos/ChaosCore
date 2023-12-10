@@ -38,7 +38,7 @@ public class ServerUtils {
     private static final String serverVersion = packageSub.replace("_", "").replace("R0", "").replace("R1", "").replace("R2", "").replace("R3", "").replace("R4", "").replace("R5", "").replaceAll("[a-z]", "");
     private static final String serverPreciseVersion = packageSub.replace("_", "").replace("R", "").replaceAll("[a-z]", "");
     private static final List<String> errorStatements = new ArrayList<>();
-    private static final String devPlayer = (hasSpecificUpdate("1_8") ? "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee" : "RockinChaos");
+    private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
 
     /**
      * Gets the current server version.

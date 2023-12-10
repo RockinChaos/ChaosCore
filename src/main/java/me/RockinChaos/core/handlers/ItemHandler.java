@@ -326,9 +326,6 @@ public class ItemHandler {
     public static ItemStack getItem(String material, final int count, final boolean glowing, boolean hideAttributes, String name, final String... lores) {
         ItemStack tempItem = new ItemStack(Material.AIR);
         String refMat = "";
-        if (!ServerUtils.hasSpecificUpdate("1_8") && material.equals("BARRIER")) {
-            material = "WOOL:14";
-        }
         if (material.equalsIgnoreCase("AIR") || material.equalsIgnoreCase("AIR:0")) {
             material = "GLASS_PANE";
         }
@@ -357,7 +354,7 @@ public class ItemHandler {
             setGlowing(tempItem);
         }
         ItemMeta tempMeta = tempItem.getItemMeta();
-        if (ServerUtils.hasSpecificUpdate("1_8") && tempMeta != null) {
+        if (tempMeta != null) {
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
         }
         if (name != null && tempMeta != null) {
@@ -380,7 +377,7 @@ public class ItemHandler {
             }
             tempMeta.setLore(loreList);
         }
-        if (ServerUtils.hasSpecificUpdate("1_8") && hideAttributes && tempMeta != null) {
+        if (hideAttributes && tempMeta != null) {
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DESTROYS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
@@ -524,20 +521,18 @@ public class ItemHandler {
      */
     public static ItemMeta setSkullTexture(final Player player, final ItemMeta itemMeta, final String skullTexture) {
         try {
-            if (ServerUtils.hasSpecificUpdate("1_8")) {
-                GameProfile gameProfile;
-                if (!gameProfiles.containsKey(skullTexture)) {
-                    final UUID uuid = UUID.randomUUID();
-                    gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
-                    gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
-                    gameProfiles.put(skullTexture, gameProfile);
-                } else {
-                    gameProfile = gameProfiles.get(skullTexture);
-                }
-                Field declaredField = itemMeta.getClass().getDeclaredField("profile");
-                declaredField.setAccessible(true);
-                declaredField.set(itemMeta, gameProfile);
+            GameProfile gameProfile;
+            if (!gameProfiles.containsKey(skullTexture)) {
+                final UUID uuid = UUID.randomUUID();
+                gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
+                gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
+                gameProfiles.put(skullTexture, gameProfile);
+            } else {
+                gameProfile = gameProfiles.get(skullTexture);
             }
+            Field declaredField = itemMeta.getClass().getDeclaredField("profile");
+            declaredField.setAccessible(true);
+            declaredField.set(itemMeta, gameProfile);
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
         }
@@ -623,10 +618,6 @@ public class ItemHandler {
      * @return The ItemMeta with the new Skull Owner.
      */
     public static ItemMeta setSkullOwner(final ItemMeta meta, final Player player, final String owner) {
-        if (!ServerUtils.hasSpecificUpdate("1_8")) {
-            ServerUtils.logDebug("{ItemHandler} Minecraft does not support offline player heads below Version 1.8.");
-            ServerUtils.logDebug("{ItemHandler} Player heads will only be given a skin if the player has previously joined the sever.");
-        }
         setStoredSkull(meta, player, owner);
         return meta;
     }

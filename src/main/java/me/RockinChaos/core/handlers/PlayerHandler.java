@@ -440,9 +440,7 @@ public class PlayerHandler {
     public static Player getPlayerString(final String playerName) {
         Player args = null;
         try {
-            if (ServerUtils.hasSpecificUpdate("1_8")) {
-                args = Bukkit.getPlayer(UUID.fromString(playerName));
-            }
+            args = Bukkit.getPlayer(UUID.fromString(playerName));
         } catch (Exception ignored) {
         }
         if (playerName != null && Core.getCore().getDependencies().nickAPIEnabled()) {
@@ -489,16 +487,16 @@ public class PlayerHandler {
      */
     public static String getPlayerID(final Player player) {
         try {
-            if (player != null && ServerUtils.hasSpecificUpdate("1_8")) {
-                return player.getUniqueId().toString();
-            } else if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
-                if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
-                    return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
+            if (player != null) {
+                if (Core.getCore().getDependencies().nickAPIEnabled()) {
+                    if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
+                        return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
+                    } else {
+                        return player.getName();
+                    }
                 } else {
-                    return player.getName();
+                    return player.getUniqueId().toString();
                 }
-            } else if (player != null) {
-                return player.getName();
             }
         } catch (Exception e) {
             return player.getName();
@@ -517,16 +515,14 @@ public class PlayerHandler {
         if (player != null) {
             final String playerName = player.getName();
             try {
-                if (ServerUtils.hasSpecificUpdate("1_8")) {
-                    return player.getUniqueId().toString();
-                } else if (Core.getCore().getDependencies().nickAPIEnabled()) {
+                if (Core.getCore().getDependencies().nickAPIEnabled()) {
                     if (playerName != null && xyz.haoshoku.nick.api.NickAPI.isNickedName(playerName)) {
                         return xyz.haoshoku.nick.api.NickAPI.getOriginalName(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName));
                     } else {
                         return playerName;
                     }
                 } else {
-                    return playerName;
+                    return player.getUniqueId().toString();
                 }
             } catch (Exception e) {
                 return playerName;

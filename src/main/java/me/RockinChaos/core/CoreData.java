@@ -17,8 +17,6 @@
  */
 package me.RockinChaos.core;
 
-import me.RockinChaos.core.utils.ServerUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -84,10 +82,7 @@ public class CoreData {
      * @return If NBTData is enabled.
      */
     public boolean dataTagsEnabled() {
-        if (ServerUtils.hasSpecificUpdate("1_8")) {
-            return this.dataTags;
-        }
-        return false;
+        return this.dataTags;
     }
 
     /**

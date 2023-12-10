@@ -34,8 +34,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -49,7 +47,7 @@ import java.util.*;
  * These are Deprecated Legacy Methods and/or non-functioning methods
  * that exist to support legacy versions of Minecraft.
  */
-@SuppressWarnings({"deprecation", "unused", "UnstableApiUsage", "DeprecatedIsStillUsed"})
+@SuppressWarnings({"deprecation", "unused", "UnstableApiUsage"})
 public class LegacyAPI {
 
     private static boolean legacyMaterial = false;
@@ -244,7 +242,7 @@ public class LegacyAPI {
      * @return The full list of registered Enchants.
      */
     public static List<Enchantment> getEnchants() {
-        return List.of(Enchantment.values());
+        return Arrays.asList(Enchantment.values());
     }
 
     /**
@@ -272,7 +270,7 @@ public class LegacyAPI {
      * @return The full list of registered Effects.
      */
     public static List<PotionEffectType> getEffects() {
-        return List.of(PotionEffectType.values());
+        return Arrays.asList(PotionEffectType.values());
     }
 
     /**
@@ -306,7 +304,7 @@ public class LegacyAPI {
     public static org.bukkit.inventory.meta.ItemMeta setSkullOwner(final Player player, final org.bukkit.inventory.meta.SkullMeta skullMeta, final String owner) {
         skullMeta.setOwner(owner);
         SchedulerUtils.run(() -> {
-            if (!ServerUtils.hasSpecificUpdate("1_13") && ServerUtils.hasSpecificUpdate("1_8")) {
+            if (!ServerUtils.hasSpecificUpdate("1_13")) {
                 final Location loc = new Location(Bukkit.getWorlds().get(0), 200, 1, 200);
                 final BlockState blockState = loc.getBlock().getState();
                 try {
@@ -442,53 +440,6 @@ public class LegacyAPI {
     }
 
     /**
-     * Sets the Legacy Book Pages to the ItemStack.
-     *
-     * @param player - The Player being used for placeholders.
-     * @param meta   - The ItemMeta to be updated.
-     * @param pages  - The book pages to be set.
-     * @return The updated ItemMeta.
-     * @warn Only to be used on server versions below 1.8.
-     */
-    public static ItemMeta setBookPages(final Player player, final ItemMeta meta, final List<String> pages) {
-        return setPages(player, meta, pages);
-    }
-
-    /**
-     * Sets the Legacy Book Pages to the ItemStack.
-     *
-     * @param player - The Player being used for placeholders.
-     * @param meta   - The ItemMeta to be updated.
-     * @param pages  - The book pages to be set.
-     * @return The updated ItemMeta.
-     * @deprecated Only to be used on server versions below 1.8.
-     */
-    @Deprecated
-    public static ItemMeta setPages(final Player player, final ItemMeta meta, final List<String> pages) {
-        if (!ServerUtils.hasSpecificUpdate("1_8") && pages != null && !pages.isEmpty()) {
-            List<String> copyPages = new ArrayList<>(pages);
-            copyPages.set(0, ItemHandler.cutDelay(copyPages.get(0)));
-            List<String> bookList = new ArrayList<>();
-            for (String page : pages) {
-                bookList.add(StringUtils.translateLayout(page, player));
-            }
-            ((BookMeta) meta).setPages(bookList);
-            return meta;
-        }
-        return meta;
-    }
-
-    /**
-     * Sets the ItemStack as glowing.
-     *
-     * @param tempItem - The ItemStack to be updated.
-     * @return The glowing ItemStack.
-     */
-    public static ItemStack setGlowing(final ItemStack tempItem) {
-        return setGlowEnchant(tempItem);
-    }
-
-    /**
      * Sets the armor value to the items attributes.
      *
      * @param tempItem         - The ItemStack to be updated.
@@ -538,36 +489,6 @@ public class LegacyAPI {
                 }
                 tag.getClass().getMethod(MinecraftMethod.set.getMethod(tag, String.class, baseClass), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
                 return (ItemStack) craftItemStack.getMethod("asCraftMirror", nms.getClass()).invoke(null, nms);
-            } catch (Exception e) {
-                ServerUtils.sendDebugTrace(e);
-            }
-        }
-        return tempItem;
-    }
-
-    /**
-     * Sets the ItemStack as glowing.
-     *
-     * @param tempItem - The ItemStack to be updated.
-     * @return The updated ItemStack.
-     * @deprecated Only to be used on server versions below 1.8.
-     */
-    @Deprecated
-    private static ItemStack setGlowEnchant(final ItemStack tempItem) {
-        if (!ServerUtils.hasSpecificUpdate("1_11")) {
-            try {
-                Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
-                Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
-                Class<?> baseClass = ReflectionUtils.getMinecraftClass("NBTBase");
-                Object nms = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, tempItem);
-                Object tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
-                if (tag == null) {
-                    tag = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
-                }
-                Object ench = ReflectionUtils.getMinecraftClass("NBTTagList").getConstructor().newInstance();
-                tag.getClass().getMethod(MinecraftMethod.set.getMethod(tag, String.class, baseClass), String.class, baseClass).invoke(tag, "ench", ench);
-                nms.getClass().getMethod(MinecraftMethod.setTag.getMethod(nms, tag.getClass()), tag.getClass()).invoke(nms, tag);
-                return (((ItemStack) craftItemStack.getMethod("asCraftMirror", nms.getClass()).invoke(null, nms)));
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
             }

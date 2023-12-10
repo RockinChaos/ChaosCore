@@ -18,7 +18,6 @@
 package me.RockinChaos.core.handlers;
 
 import me.RockinChaos.core.Core;
-import me.RockinChaos.core.utils.ServerUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -70,17 +69,7 @@ public class PermissionsHandler {
     private static boolean isDeveloper(final CommandSender sender) {
         if (Core.getCore().getData().debugEnabled()) {
             if (sender instanceof Player) {
-                try {
-                    if (ServerUtils.hasSpecificUpdate("1_8") && ((Player) sender).getUniqueId().toString().equalsIgnoreCase("ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee")) {
-                        return true;
-                    } else if (sender.getName().equalsIgnoreCase("RockinChaos")) {
-                        return true;
-                    }
-                } catch (Exception e) {
-                    if (sender.getName().equalsIgnoreCase("RockinChaos")) {
-                        return true;
-                    }
-                }
+                return ((Player) sender).getUniqueId().toString().equalsIgnoreCase("ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee");
             }
         }
         return false;
