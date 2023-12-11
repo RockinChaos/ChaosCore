@@ -17,47 +17,39 @@
  */
 package me.RockinChaos.core.utils.api;
 
-import me.RockinChaos.core.Core;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.StringJoiner;
 
 @SuppressWarnings("unused")
 public class PasteAPI {
-    private final String devKey;
     private final String pasteData;
-
-    private int pasteState = 1;
-    private String pasteFormat = "yaml";
-    private String pasteExpire = "10M";
-    private String pasteName = Core.getCore().getPlugin().getName() + " Plugin by RockinChaos";
 
     /**
      * Creates a new PasteAPI instance.
      *
-     * @param devKey    - The key for Pastebin.
      * @param pasteData - The data to be pasted.
      */
-    public PasteAPI(final String devKey, final String pasteData) {
-        this.devKey = devKey;
+    public PasteAPI(final String pasteData) {
         this.pasteData = pasteData;
     }
 
     /**
-     * Attempts to get a successful pastebin connection.
+     * Attempts to get a successful paste connection.
      *
-     * @return The successful pastebin connection.
+     * @return The successful paste connection.
      */
     private static HttpURLConnection getHttpURLConnection(String postOptions) throws IOException {
         final byte[] postBytes = postOptions.getBytes(StandardCharsets.UTF_8);
-        final HttpURLConnection connection = (HttpURLConnection) new URL("https://pastebin.com/api/api_post.php").openConnection();
+        final HttpURLConnection connection = (HttpURLConnection) new URL("https://paste.craftationgaming.com/documents").openConnection();
         connection.setDoOutput(true);
         connection.setFixedLengthStreamingMode(postBytes.length);
         connection.setRequestMethod("POST");
@@ -71,87 +63,12 @@ public class PasteAPI {
     }
 
     /**
-     * Sets the name of the pastebin.
+     * Attempts to get a successful paste URL.
      *
-     * @param pasteName - The name to be set.
+     * @return The successful paste URL.
      */
-    public void setPasteName(final String pasteName) {
-        this.pasteName = pasteName;
-    }
-
-    /**
-     * Sets the format of the pastebin.
-     * <p>
-     * <a href="https://pastebin.com/doc_api#5">...</a>
-     * Default is yaml.
-     *
-     * @param pasteFormat - The format to be set.
-     */
-    public void setPasteFormat(final String pasteFormat) {
-        this.pasteFormat = pasteFormat;
-    }
-
-    /**
-     * Sets the state of the pastebin.
-     * <p>
-     * 0 = Public
-     * 1 = Unlisted
-     * 2 = Private (only allowed in combination with api_user_key, as you have to be logged into your account to access the paste)
-     *
-     * @param pasteState - The state to be set.
-     */
-    public void setPasteState(final int pasteState) {
-        this.pasteState = pasteState;
-    }
-
-    /**
-     * Sets the expiry duration of the pastebin.
-     * <p>
-     * N = Never
-     * 10M = 10 Minutes
-     * 1H = 1 Hour
-     * 1D = 1 Day
-     * 1W = 1 Week
-     * 2W = 2 Weeks
-     * 1M = 1 Month
-     * 6M = 6 Months
-     * 1Y = 1 Year
-     *
-     * @param pasteExpire - The expiry duration to be set.
-     */
-    public void setPasteExpire(final String pasteExpire) {
-        this.pasteExpire = pasteExpire;
-    }
-
-    /**
-     * Gets the option set of the pastebin URI.
-     *
-     * @return The option set as a String.
-     */
-    private String getOptions() throws UnsupportedEncodingException {
-        final Map<String, String> options = new HashMap<>();
-        options.put("api_option", "paste");
-        options.put("api_dev_key", this.devKey);
-        options.put("api_paste_code", this.pasteData);
-        options.put("api_paste_name", this.pasteName);
-        options.put("api_paste_format", this.pasteFormat);
-        options.put("api_paste_private", String.valueOf(this.pasteState));
-        options.put("api_paste_expire_date", this.pasteExpire);
-        final StringJoiner stringJoiner = new StringJoiner("&");
-        for (Entry<String, String> entry : options.entrySet()) {
-            stringJoiner.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
-        }
-        return stringJoiner.toString();
-    }
-
-    /**
-     * Attempts to get a successful pastebin URL.
-     *
-     * @return The successful pastebin URL.
-     */
-    public String getPaste() throws IOException {
-        final String postOptions = this.getOptions();
-        final HttpURLConnection connection = getHttpURLConnection(postOptions);
+    public String getPaste() throws IOException, ParseException {
+        final HttpURLConnection connection = getHttpURLConnection(this.pasteData);
         final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         final StringBuilder response = new StringBuilder();
         String inputLine;
@@ -160,6 +77,8 @@ public class PasteAPI {
         }
         in.close();
         connection.disconnect();
-        return response.toString();
+        final JSONObject objectReader = (JSONObject) JSONValue.parseWithException(response.toString());
+        final String pasteKey = objectReader.get("key").toString();
+        return "https://paste.craftationgaming.com/" + pasteKey;
     }
 }
