@@ -38,6 +38,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -52,6 +53,7 @@ import java.util.logging.Level;
 @SuppressWarnings("unused")
 public abstract class TinyProtocol {
 
+    protected final Plugin plugin;
     private final AtomicInteger ID = new AtomicInteger(0);
     private final MethodInvoker getPlayerHandle = ReflectionUtils.getMethod("{obc}.entity.CraftPlayer", "getHandle");
     private final FieldAccessor<Object> getConnection = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("EntityPlayer").getCanonicalName(), (MinecraftField.PlayerConnection.getField()), Object.class);
@@ -68,7 +70,6 @@ public abstract class TinyProtocol {
     private final List<Channel> serverChannels = Lists.newArrayList();
     private final String handlerName;
     protected volatile boolean closed;
-    protected final Plugin plugin;
     private Listener listener;
     private List<Object> networkManagers;
     private ChannelInboundHandlerAdapter serverChannelHandler;
@@ -82,7 +83,7 @@ public abstract class TinyProtocol {
      *
      * @param plugin - the plugin.
      */
-    public TinyProtocol(final Plugin plugin) {
+    public TinyProtocol(final @Nonnull Plugin plugin) {
         this.plugin = plugin;
         this.handlerName = this.getHandlerName();
         this.registerBukkitEvents();
@@ -208,7 +209,7 @@ public abstract class TinyProtocol {
     /**
      * Register online players.
      */
-    private void registerPlayers(final Plugin plugin) {
+    private void registerPlayers(final @Nonnull Plugin plugin) {
         Collection<?> playersOnlineNew;
         Player[] playersOnlineOld;
         try {
@@ -266,7 +267,7 @@ public abstract class TinyProtocol {
      * @param player - the destination player.
      * @param packet - the packet to send.
      */
-    public void sendPacket(final Player player, final Object packet) {
+    public void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) {
         this.sendPacket(this.getChannel(player), packet);
     }
 
@@ -278,7 +279,7 @@ public abstract class TinyProtocol {
      * @param channel - client identified by a channel.
      * @param packet  - the packet to send.
      */
-    public void sendPacket(final Channel channel, final Object packet) {
+    public void sendPacket(final @Nonnull Channel channel, final @Nonnull Object packet) {
         channel.pipeline().writeAndFlush(packet);
     }
 
@@ -290,7 +291,7 @@ public abstract class TinyProtocol {
      * @param player - the player that sent the packet.
      * @param packet - the packet that will be received by the server.
      */
-    public void receivePacket(final Player player, final Object packet) {
+    public void receivePacket(final @Nonnull Player player, final @Nonnull Object packet) {
         this.receivePacket(this.getChannel(player), packet);
     }
 
@@ -302,7 +303,7 @@ public abstract class TinyProtocol {
      * @param channel - client identified by a channel.
      * @param packet  - the packet that will be received by the server.
      */
-    public void receivePacket(final Channel channel, final Object packet) {
+    public void receivePacket(final @Nonnull Channel channel, final @Nonnull Object packet) {
         channel.pipeline().context("encoder").fireChannelRead(packet);
     }
 
@@ -313,7 +314,7 @@ public abstract class TinyProtocol {
      *
      * @return A unique channel handler name.
      */
-    protected String getHandlerName() {
+    protected @Nonnull String getHandlerName() {
         return "tiny-" + this.plugin.getName() + "-" + this.ID.incrementAndGet();
     }
 
@@ -324,7 +325,7 @@ public abstract class TinyProtocol {
      *
      * @param player - the player to inject.
      */
-    public void injectPlayer(final Player player) {
+    public void injectPlayer(final @Nonnull Player player) {
         this.injectChannelInternal(this.getChannel(player)).player = player;
     }
 
@@ -333,7 +334,7 @@ public abstract class TinyProtocol {
      *
      * @param channel - the channel to inject.
      */
-    public void injectChannel(final Channel channel) {
+    public void injectChannel(final @Nonnull Channel channel) {
         this.injectChannelInternal(channel);
     }
 
@@ -343,7 +344,7 @@ public abstract class TinyProtocol {
      * @param channel - the channel to inject.
      * @return The packet interceptor.
      */
-    private PacketInterceptor injectChannelInternal(final Channel channel) {
+    private @Nonnull PacketInterceptor injectChannelInternal(final @Nonnull Channel channel) {
         try {
             PacketInterceptor interceptor = (PacketInterceptor) channel.pipeline().get(this.handlerName);
             if (interceptor == null) {
@@ -369,7 +370,7 @@ public abstract class TinyProtocol {
      * @param player - the player.
      * @return The Netty channel.
      */
-    public Channel getChannel(final Player player) {
+    public @Nonnull Channel getChannel(final @Nonnull Player player) {
         Channel channel = this.channelLookup.get(player.getName());
         if (channel == null) {
             Object connection = this.getConnection.get(this.getPlayerHandle.invoke(player));
@@ -384,7 +385,7 @@ public abstract class TinyProtocol {
      *
      * @param player - the injected player.
      */
-    public void uninjectPlayer(final Player player) {
+    public void uninjectPlayer(final @Nonnull Player player) {
         this.uninjectChannel(this.getChannel(player));
     }
 
@@ -395,7 +396,7 @@ public abstract class TinyProtocol {
      *
      * @param channel - the injected channel.
      */
-    public void uninjectChannel(final Channel channel) {
+    public void uninjectChannel(final @Nonnull Channel channel) {
         try {
             if (!this.closed) {
                 this.uninjectedChannels.add(channel);
@@ -415,7 +416,7 @@ public abstract class TinyProtocol {
      * @param player - the player.
      * @return TRUE if it is, FALSE otherwise.
      */
-    public boolean hasInjected(final Player player) {
+    public boolean hasInjected(final @Nonnull Player player) {
         return this.hasInjected(this.getChannel(player));
     }
 
@@ -425,7 +426,7 @@ public abstract class TinyProtocol {
      * @param channel - the channel.
      * @return TRUE if it is, FALSE otherwise.
      */
-    public boolean hasInjected(final Channel channel) {
+    public boolean hasInjected(final @Nonnull Channel channel) {
         return channel.pipeline().get(this.handlerName) != null;
     }
 
@@ -446,7 +447,7 @@ public abstract class TinyProtocol {
     /**
      * Gets the Packet as a PacketContainer.
      */
-    public PacketContainer getContainer(Object packet) {
+    public @Nonnull PacketContainer getContainer(final @Nonnull Object packet) {
         return new PacketContainer(packet);
     }
 
@@ -464,7 +465,7 @@ public abstract class TinyProtocol {
          * @param msg - the client packet being sent.
          */
         @Override
-        public void channelRead(final ChannelHandlerContext ctx, Object msg) throws Exception {
+        public void channelRead(final @Nonnull ChannelHandlerContext ctx, @Nonnull Object msg) throws Exception {
             final Channel channel = ctx.channel();
             handleLoginStart(channel, msg);
             try {
@@ -485,7 +486,7 @@ public abstract class TinyProtocol {
          * @param promise - the channel promise.
          */
         @Override
-        public void write(final ChannelHandlerContext ctx, Object msg, final ChannelPromise promise) throws Exception {
+        public void write(final @Nonnull ChannelHandlerContext ctx, @Nonnull Object msg, final @Nonnull ChannelPromise promise) throws Exception {
             try {
                 msg = onPacketOutAsync(player, ctx.channel(), msg);
             } catch (Exception e) {
@@ -503,7 +504,7 @@ public abstract class TinyProtocol {
          * @param channel - the channel the packet was called on.
          * @param packet  - the packet object.
          */
-        private void handleLoginStart(final Channel channel, final Object packet) {
+        private void handleLoginStart(final @Nonnull Channel channel, final @Nonnull Object packet) {
             if (PACKET_LOGIN_IN_START.isInstance(packet)) {
                 GameProfile profile;
                 if (ServerUtils.hasSpecificUpdate("1_19")) {

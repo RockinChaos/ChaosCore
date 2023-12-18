@@ -29,6 +29,7 @@ import me.RockinChaos.core.utils.sql.SQL;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 @SuppressWarnings("unused")
@@ -47,7 +48,7 @@ public class Core {
      * @param prefix         - The visual display prefix for the plugin.
      * @param updatesAllowed - If checking for updates is enabled.
      */
-    public Core(final JavaPlugin plugin, final File pluginFile, final String prefix, final boolean updatesAllowed) {
+    public Core(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final @Nonnull String prefix, final boolean updatesAllowed) {
         core = this;
         this.plugin = plugin;
         this.pluginFile = pluginFile;
@@ -60,7 +61,7 @@ public class Core {
      *
      * @return The ChaosCore instance.
      */
-    public static Core getCore() {
+    public static @Nonnull Core getCore() {
         return core;
     }
 
@@ -71,7 +72,14 @@ public class Core {
      * @return If ChaosCore is enabled.
      */
     public boolean isEnabled() {
-        return ServerUtils.hasSpecificUpdate("1_8");
+        final boolean isSupported = ServerUtils.hasSpecificUpdate("1_8");
+        if (!isSupported) {
+            ServerUtils.logSevere("detected incompatible server version.");
+            ServerUtils.logSevere("only Minecraft 1.8 and above is supported.");
+            ServerUtils.logSevere("disabling...");
+            getPlugin().getPluginLoader().disablePlugin(getPlugin());
+        }
+        return isSupported;
     }
 
     /**
@@ -79,7 +87,7 @@ public class Core {
      *
      * @return The Java Plugin.
      */
-    public JavaPlugin getPlugin() {
+    public @Nonnull JavaPlugin getPlugin() {
         return this.plugin;
     }
 
@@ -97,7 +105,7 @@ public class Core {
      *
      * @return The cached SQL.
      */
-    public SQL getSQL() {
+    public @Nonnull SQL getSQL() {
         return SQL.getSQL();
     }
 
@@ -106,7 +114,7 @@ public class Core {
      *
      * @return The cached DataHandler.
      */
-    public CoreData getData() {
+    public @Nonnull CoreData getData() {
         return CoreData.getData();
     }
 
@@ -115,7 +123,7 @@ public class Core {
      *
      * @return The cached LanguageAPI.
      */
-    public LanguageAPI getLang() {
+    public @Nonnull LanguageAPI getLang() {
         return LanguageAPI.getLang();
     }
 
@@ -124,7 +132,7 @@ public class Core {
      *
      * @return The cached LogHandler.
      */
-    public LogHandler getFilter() {
+    public @Nonnull LogHandler getFilter() {
         return LogHandler.getFilter();
     }
 
@@ -133,7 +141,7 @@ public class Core {
      *
      * @return The cached BungeeAPI.
      */
-    public BungeeAPI getBungee() {
+    public @Nonnull BungeeAPI getBungee() {
         return BungeeAPI.getBungee();
     }
 
@@ -142,7 +150,7 @@ public class Core {
      *
      * @return The cached ChanceAPI.
      */
-    public ChanceAPI getChances() {
+    public @Nonnull ChanceAPI getChances() {
         return ChanceAPI.getChances();
     }
 
@@ -151,7 +159,7 @@ public class Core {
      *
      * @return The cached DependAPI.
      */
-    public DependAPI getDependencies() {
+    public @Nonnull DependAPI getDependencies() {
         return DependAPI.getDepends();
     }
 
@@ -160,7 +168,7 @@ public class Core {
      *
      * @return The cached ConfigHandler.
      */
-    public ConfigHandler getConfiguration() {
+    public @Nonnull ConfigHandler getConfiguration() {
         return ConfigHandler.getConfig();
     }
 
@@ -169,7 +177,7 @@ public class Core {
      *
      * @return The cached specified config file as a FileConfiguration.
      */
-    public FileConfiguration getConfig(final String configFile) {
+    public @Nonnull FileConfiguration getConfig(final @Nonnull String configFile) {
         return ConfigHandler.getConfig().getFile(configFile);
     }
 
@@ -178,7 +186,7 @@ public class Core {
      *
      * @return The cached UpdateHandler.
      */
-    public UpdateHandler getUpdater() {
+    public @Nonnull UpdateHandler getUpdater() {
         return UpdateHandler.getUpdater(this.plugin, this.pluginFile, this.updatesAllowed);
     }
 }

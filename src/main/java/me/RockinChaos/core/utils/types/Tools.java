@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum Tools {
     STEEL,
@@ -33,7 +35,11 @@ public enum Tools {
     ENCHANTED_BOOK,
     LEAD,
     NAME_TAG,
-    BOAT;
+    BOAT,
+    HORN,
+    BUCKET,
+    SPYGLASS,
+    BRUSH;
 
     /**
      * Checks if the Material is a Tools type.
@@ -41,7 +47,7 @@ public enum Tools {
      * @param material - The Material being checked.
      * @return If the Material is a Tools type.
      */
-    public static boolean isTools(final Material material) {
+    public static boolean isTools(final @Nonnull Material material) {
         if (material.isBlock()) {
             return false;
         }

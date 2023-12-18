@@ -19,6 +19,7 @@ package me.RockinChaos.core.utils.protocol.packet;
 
 import me.RockinChaos.core.utils.ServerUtils;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
@@ -33,7 +34,7 @@ public class PacketContainer {
      *
      * @param packet - The packet being deciphered.
      */
-    public PacketContainer(final Object packet) {
+    public PacketContainer(final @Nonnull Object packet) {
         this.packet = packet;
         int fieldNumber = 0;
         try {
@@ -52,7 +53,7 @@ public class PacketContainer {
      *
      * @return The HashMap of the Fields for the Packet Object.
      */
-    public HashMap<Integer, PacketObject> getStrings() {
+    public @Nonnull HashMap<Integer, PacketObject> getStrings() {
         return this.dataFields;
     }
 
@@ -62,7 +63,7 @@ public class PacketContainer {
      * @param readable - The line to be read.
      * @return The found PacketObject of the Data Field.
      */
-    public PacketObject read(final int readable) {
+    public @Nonnull PacketObject read(final int readable) {
         return this.dataFields.get(readable);
     }
 }

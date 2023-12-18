@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.api;
 
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -40,7 +42,7 @@ public class ChanceAPI {
      *
      * @return The Chances instance.
      */
-    public static ChanceAPI getChances() {
+    public static @Nonnull ChanceAPI getChances() {
         if (chance == null) {
             chance = new ChanceAPI();
         }
@@ -70,10 +72,10 @@ public class ChanceAPI {
     /**
      * Adds an Object and its Chance to the pool of Objects to be randomly selected.
      *
-     * @param element - The Object to be selected.
-     * @param percentile  - The Integer chance the Object has to be selected.
+     * @param element    - The Object to be selected.
+     * @param percentile - The Integer chance the Object has to be selected.
      */
-    public void addChance(final Object element, final int percentile) {
+    public void addChance(final @Nonnull Object element, final int percentile) {
         boolean hasChance = false;
         for (Chance chance : this.chances) {
             if (chance.getElement().equals(element)) {
@@ -92,7 +94,7 @@ public class ChanceAPI {
      *
      * @return The randomly selected Object.
      */
-    public Object getRandomElement() {
+    public @Nullable Object getRandomElement() {
         final int index = this.random.nextInt(this.sum);
         final List<Chance> chanceList = this.chances;
         for (Chance chanceFound : chanceList) {
@@ -117,7 +119,7 @@ public class ChanceAPI {
      *
      * @return The probabilityMaps and their Probabilities as a HashMap.
      */
-    public Map<Object, Integer> getItems() {
+    public @Nonnull Map<Object, Integer> getItems() {
         return this.probabilityItems;
     }
 
@@ -127,7 +129,7 @@ public class ChanceAPI {
      * @param probabilityMap - The probabilityMap to be selected.
      * @param i              - The chance the probabilityMap has to be selected.
      */
-    public void putItem(final Object probabilityMap, final int i) {
+    public void putItem(final @Nonnull Object probabilityMap, final int i) {
         this.probabilityItems.put(probabilityMap, i);
     }
 
@@ -137,7 +139,7 @@ public class ChanceAPI {
      * @param player - The Player to have its Probability Item chosen.
      * @return The randomly selected probability.
      */
-    public Object getRandom(final Player player) {
+    public @Nullable Object getRandom(final @Nonnull Player player) {
         this.newChance();
         if (!this.probabilityItems.isEmpty()) {
             for (Object probabilityMap : this.probabilityItems.keySet()) {
@@ -165,7 +167,7 @@ public class ChanceAPI {
          * @param lowerLimit - The lowest probability.
          * @param upperLimit - The highest probability.
          */
-        private Chance(final Object element, final int lowerLimit, final int upperLimit) {
+        private Chance(final @Nonnull Object element, final int lowerLimit, final int upperLimit) {
             this.element = element;
             this.upperLimit = upperLimit;
             this.lowerLimit = lowerLimit;
@@ -194,7 +196,7 @@ public class ChanceAPI {
          *
          * @return The Object to be chosen.
          */
-        public Object getElement() {
+        public @Nonnull Object getElement() {
             return this.element;
         }
 
@@ -204,8 +206,8 @@ public class ChanceAPI {
          * @return The newly formatted Map Element as a String instance.
          */
         @Override
-        public String toString() {
-            return "[" + this.lowerLimit + "|" + this.upperLimit + "]: " + this.element.toString();
+        public @Nonnull String toString() {
+            return "[" + this.lowerLimit + "|" + this.upperLimit + "]: " + this.element;
         }
     }
 }

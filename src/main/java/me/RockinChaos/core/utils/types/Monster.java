@@ -17,8 +17,9 @@
  */
 package me.RockinChaos.core.utils.types;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+
+import javax.annotation.Nonnull;
 
 @SuppressWarnings("unused")
 public enum Monster {
@@ -76,25 +77,9 @@ public enum Monster {
      * Attempts to get the Mob Spawn Egg DataValue.
      *
      * @param mob - The mob to be fetched.
-     * @return The id of the Entity.
-     */
-    public static int getId(final Entity mob) {
-        for (Monster tag : Monster.values()) {
-            final String mobName = mob.getType().name().toUpperCase();
-            if (tag.name().replace("_", " ").equalsIgnoreCase(mobName)) {
-                return tag.mobId;
-            }
-        }
-        return 0;
-    }
-
-    /**
-     * Attempts to get the Mob Spawn Egg DataValue.
-     *
-     * @param mob - The mob to be fetched.
      * @return The id of the EntityType.
      */
-    public static int getId(final EntityType mob) {
+    public static int getId(final @Nonnull EntityType mob) {
         for (Monster tag : Monster.values()) {
             final String mobName = mob.name().toUpperCase();
             if (tag.name().replace("_", " ").equalsIgnoreCase(mobName)) {

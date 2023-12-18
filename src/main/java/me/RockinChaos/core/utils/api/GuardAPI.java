@@ -29,6 +29,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -175,7 +177,7 @@ public class GuardAPI {
      * @param world - The world to get the regions from.
      * @return The List of Regions for the specified world.
      */
-    public Map<String, ProtectedRegion> getRegions(final World world) {
+    public @Nonnull Map<String, ProtectedRegion> getRegions(final @Nonnull World world) {
         return Objects.requireNonNull(this.getRegionManager(world)).getRegions();
     }
 
@@ -185,7 +187,7 @@ public class GuardAPI {
      * @param location - The Location to have exiting regions fetched.
      * @return regionSet The applicable regions at the Location.
      */
-    public String getRegionAtLocation(final Location location) {
+    public @Nonnull String getRegionAtLocation(final @Nonnull Location location) {
         ApplicableRegionSet set = null;
         StringBuilder regionSet = new StringBuilder();
         try {
@@ -212,8 +214,8 @@ public class GuardAPI {
      * @param location - The exact location of the player.
      * @return ApplicableRegionSet The WorldGuard RegionSet.
      */
-    private ApplicableRegionSet getRegionSet(final Location location) {
-        RegionManager regionManager = this.getRegionManager(location.getWorld());
+    private @Nullable ApplicableRegionSet getRegionSet(final @Nonnull Location location) {
+        RegionManager regionManager = this.getRegionManager(Objects.requireNonNull(location.getWorld()));
         if (regionManager == null) {
             return null;
         }
@@ -234,7 +236,7 @@ public class GuardAPI {
      * @param world - The world that the player is currently in.
      * @return The WorldGuard RegionManager for the specified world.
      */
-    private RegionManager getRegionManager(final World world) {
+    private @Nullable RegionManager getRegionManager(final @Nonnull World world) {
         if (this.regionContainer == null || this.getRegionContainer == null) {
             return null;
         }
@@ -260,7 +262,7 @@ public class GuardAPI {
      * @param checkRegion - The region that the player entered or exited.
      * @return If the region is defined.
      */
-    private boolean isLocaleRegion(final String checkRegion) {
+    private boolean isLocaleRegion(final @Nonnull String checkRegion) {
         for (final String region : this.localeRegions) {
             if (region.equalsIgnoreCase(checkRegion) || region.equalsIgnoreCase("UNDEFINED")) {
                 return true;
@@ -274,7 +276,7 @@ public class GuardAPI {
      *
      * @param region - The region that the String has defined.
      */
-    public void addLocaleRegion(final String region) {
+    public void addLocaleRegion(final @Nonnull String region) {
         if (!this.isLocaleRegion(region)) {
             this.localeRegions.add(region);
         }

@@ -25,6 +25,7 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.InventoryView;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Called when a player tries to clone an item.
@@ -43,7 +44,7 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      * @param slot      - The slot being interacted.
      * @param clickType - The click action.
      */
-    public PlayerCloneItemEvent(final Player who, final int slot, final ClickType clickType) {
+    public PlayerCloneItemEvent(final @Nonnull Player who, final int slot, final @Nullable ClickType clickType) {
         super(who);
         this.slot = slot;
         this.clickType = clickType;
@@ -55,7 +56,7 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The HandlerList for the event.
      */
-    public static HandlerList getHandlerList() {
+    public static @Nonnull HandlerList getHandlerList() {
         return handlers;
     }
 
@@ -96,8 +97,8 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The ClickType the cloning action triggered.
      */
-    public ClickType getClick() {
-        return this.clickType;
+    public @Nonnull ClickType getClick() {
+        return (this.clickType == null ? ClickType.UNKNOWN : this.clickType);
     }
 
     /**
@@ -105,7 +106,7 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The InventoryView which the cloning took place.
      */
-    public InventoryView getView() {
+    public @Nonnull InventoryView getView() {
         return player.getOpenInventory();
     }
 
@@ -114,7 +115,7 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The action to take with the item clone.
      */
-    public Result useClone() {
+    public @Nonnull Result useClone() {
         return this.useClone;
     }
 
@@ -123,7 +124,7 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      *
      * @param useClone the action to take with the item clone.
      */
-    public void useClone(final Result useClone) {
+    public void useClone(final @Nonnull Result useClone) {
         this.useClone = useClone;
     }
 

@@ -17,18 +17,27 @@
  */
 package me.RockinChaos.core.utils.types;
 
+import me.RockinChaos.core.utils.ServerUtils;
 import org.bukkit.enchantments.Enchantment;
+
+import javax.annotation.Nonnull;
 
 @SuppressWarnings("unused")
 public enum ToolEnchants {
-    DIG_SPEED,
-    SILK_TOUCH,
-    DURABILITY,
-    LOOT_BONUS_BLOCKS,
-    LUCK,
-    LURE,
-    MENDING,
-    VANISHING_CURSE;
+    DIG_SPEED("EFFICIENCY"),
+    SILK_TOUCH("SILK_TOUCH"),
+    DURABILITY("UNBREAKING"),
+    LOOT_BONUS_BLOCKS("FORTUNE"),
+    LUCK("LUCK_OF_THE_SEA"),
+    LURE("LURE"),
+    MENDING("MENDING"),
+    VANISHING_CURSE("VANISHING_CURSE");
+
+    final String key;
+
+    ToolEnchants(final String key) {
+        this.key = key;
+    }
 
     /**
      * Checks if the Enchantment is a Tool Enchant type.
@@ -36,12 +45,20 @@ public enum ToolEnchants {
      * @param enchant - The Enchantment being checked.
      * @return If the Enchantment is a Tool Enchant type.
      */
-    public static boolean isEnchant(final Enchantment enchant) {
+    public static boolean isEnchant(final @Nonnull Enchantment enchant) {
         for (ToolEnchants ench : ToolEnchants.values()) {
-            if (enchant.toString().split(", ")[1].replace("]", "").equalsIgnoreCase(ench.name())) {
+            if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+                if (enchant.toString().split(":")[1].replace("]", "").equalsIgnoreCase(ench.key())) {
+                    return true;
+                }
+            } else if (enchant.toString().split(", ")[1].replace("]", "").equalsIgnoreCase(ench.name())) {
                 return true;
             }
         }
         return false;
+    }
+
+    public String key() {
+        return this.key;
     }
 }

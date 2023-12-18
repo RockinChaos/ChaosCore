@@ -30,6 +30,7 @@ import org.bukkit.plugin.AuthorNagException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 
+import javax.annotation.Nonnull;
 import java.util.logging.Level;
 
 @SuppressWarnings("unused")
@@ -55,8 +56,7 @@ public class ProtocolManager {
              */
             @Override
             public Object onPacketInAsync(final Player player, final Channel channel, final Object packet) {
-                final String packetName = (packet != null ? packet.getClass().getSimpleName() : null);
-                if (manageEvents(player, packetName, packet)) {
+                if (packet != null && manageEvents(player, packet.getClass().getSimpleName(), packet)) {
                     return null;
                 }
                 return super.onPacketInAsync(player, channel, packet);
@@ -83,39 +83,37 @@ public class ProtocolManager {
      * @param packetName - the packet name.
      * @param packet     - the packet object.
      */
-    public static boolean manageEvents(final Player player, final String packetName, final Object packet) {
+    public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull Object packet) {
         try {
-            if (packetName != null) {
-                if (packetName.equalsIgnoreCase("PacketPlayInPickItem")) {
-                    final PlayerPickItemEvent PickItem = new PlayerPickItemEvent(player, player.getInventory());
-                    callEvent(PickItem);
-                    return PickItem.isCancelled();
-                } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
-                    final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, player.getOpenInventory().getTopInventory());
-                    callEvent(AutoCraft);
-                    return AutoCraft.isCancelled();
-                } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow")) {
-                    final InventoryCloseEvent CloseInventory = new InventoryCloseEvent(player.getOpenInventory());
-                    callEvent(CloseInventory);
-                    return CloseInventory.isCancelled();
-                } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload")) {
-                    final PacketContainer container = protocol.getContainer(packet);
-                    if (container.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && player.getOpenInventory().getType().name().equalsIgnoreCase("ANVIL")){
-                        final Object UnbufferedPayload = container.read(1).getData();
-                        final String renameText = (String) UnbufferedPayload.getClass().getMethod(ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
-                        final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(player.getOpenInventory(), renameText);
-                        callEvent(PrepareAnvil);
-                        return PrepareAnvil.isCancelled();
-                    }
-                } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick")) {
-                    final PacketContainer container = protocol.getContainer(packet);
-                    if (container.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
-                        final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) container.read(3).getData() : (int) container.read(1).getData());
-                        if (slot >= 0) {
-                            final PlayerCloneItemEvent CloneItem = new PlayerCloneItemEvent(player, slot, ClickType.MIDDLE);
-                            callEvent(CloneItem);
-                            return CloneItem.isCancelled();
-                        }
+            if (packetName.equalsIgnoreCase("PacketPlayInPickItem")) {
+                final PlayerPickItemEvent PickItem = new PlayerPickItemEvent(player, player.getInventory());
+                callEvent(PickItem);
+                return PickItem.isCancelled();
+            } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
+                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, player.getOpenInventory().getTopInventory());
+                callEvent(AutoCraft);
+                return AutoCraft.isCancelled();
+            } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow")) {
+                final InventoryCloseEvent CloseInventory = new InventoryCloseEvent(player.getOpenInventory());
+                callEvent(CloseInventory);
+                return CloseInventory.isCancelled();
+            } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload")) {
+                final PacketContainer container = protocol.getContainer(packet);
+                if (container.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && player.getOpenInventory().getType().name().equalsIgnoreCase("ANVIL")) {
+                    final Object UnbufferedPayload = container.read(1).getData();
+                    final String renameText = (String) UnbufferedPayload.getClass().getMethod(ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
+                    final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(player.getOpenInventory(), renameText);
+                    callEvent(PrepareAnvil);
+                    return PrepareAnvil.isCancelled();
+                }
+            } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick")) {
+                final PacketContainer container = protocol.getContainer(packet);
+                if (container.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
+                    final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) container.read(3).getData() : (int) container.read(1).getData());
+                    if (slot >= 0) {
+                        final PlayerCloneItemEvent CloneItem = new PlayerCloneItemEvent(player, slot, ClickType.MIDDLE);
+                        callEvent(CloneItem);
+                        return CloneItem.isCancelled();
                     }
                 }
             }
@@ -130,7 +128,7 @@ public class ProtocolManager {
      *
      * @param event - The event to be triggered.
      */
-    public static void callEvent(final Event event) {
+    public static void callEvent(final @Nonnull Event event) {
         final HandlerList handlers = event.getHandlers();
         final RegisteredListener[] listeners = handlers.getRegisteredListeners();
         for (final RegisteredListener registration : listeners) {

@@ -18,7 +18,6 @@
 package me.RockinChaos.core.utils.interfaces;
 
 import me.RockinChaos.core.Core;
-import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
@@ -37,6 +36,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -197,7 +197,7 @@ public class Query {
         String renameText = this.container.getRenameText();
         this.container.sendPacketOpenWindow(this.player, title);
         if (preserveRenameText) {
-            this.container.setRenameText(renameText == null ? "" : renameText);
+            this.container.setRenameText(renameText);
         }
     }
 
@@ -642,7 +642,7 @@ public class Query {
          * Returns an {@link Response} object for when the container is to display text to the user.
          *
          * @param text The text that is to be displayed to the user.
-         * @return A list containing the {@link ResponseAction} for legacy compat.
+         * @return A list containing the {@link ResponseAction} for legacy format.
          * @deprecated Since 1.6.2, use {@link ResponseAction#replaceInputText(String)}.
          */
         @Deprecated
@@ -654,7 +654,7 @@ public class Query {
          * Returns an {@link Response} object for when the GUI should open the provided inventory.
          *
          * @param inventory The inventory to open.
-         * @return A list containing the {@link ResponseAction} for legacy compat.
+         * @return A list containing the {@link ResponseAction} for legacy format.
          * @deprecated Since 1.6.2, use {@link ResponseAction#openInventory(Inventory)}.
          */
         @Deprecated
@@ -715,7 +715,7 @@ public class Query {
          * @param outputItem The item that would have been outputted, when the items would have been combined.
          * @param player     The player that clicked the output slot.
          */
-        public StateSnapshot(final ItemStack leftItem, final ItemStack rightItem, final ItemStack outputItem, final Player player) {
+        public StateSnapshot(final @Nonnull ItemStack leftItem, final @Nonnull ItemStack rightItem, final @Nonnull ItemStack outputItem, final @Nonnull Player player) {
             this.leftItem = leftItem;
             this.rightItem = rightItem;
             this.outputItem = outputItem;
@@ -728,12 +728,16 @@ public class Query {
          * @param query The instance to take the snapshot of.
          * @return The snapshot.
          */
-        private static StateSnapshot fromQuery(final Query query) {
+        private static @Nonnull StateSnapshot fromQuery(final @Nonnull Query query) {
             final Inventory inventory = query.getInventory();
+            final ItemStack inputLeft = inventory.getItem(Slot.INPUT_LEFT);
+            final ItemStack inputRight = inventory.getItem(Slot.INPUT_RIGHT);
+            final ItemStack output = inventory.getItem(Slot.OUTPUT);
+
             return new StateSnapshot(
-                    ItemHandler.itemNotNull(inventory.getItem(Slot.INPUT_LEFT)).clone(),
-                    ItemHandler.itemNotNull(inventory.getItem(Slot.INPUT_RIGHT)).clone(),
-                    ItemHandler.itemNotNull(inventory.getItem(Slot.OUTPUT)).clone(),
+                    (inputLeft != null ? inputLeft.clone() : new ItemStack(Material.AIR)),
+                    (inputRight != null ? inputRight.clone() : new ItemStack(Material.AIR)),
+                    (output != null ? output.clone() : new ItemStack(Material.AIR)),
                     query.player);
         }
 
@@ -742,7 +746,7 @@ public class Query {
          *
          * @return The leftItem.
          */
-        public ItemStack getLeftItem() {
+        public @Nonnull ItemStack getLeftItem() {
             return this.leftItem;
         }
 
@@ -751,7 +755,7 @@ public class Query {
          *
          * @return The rightItem.
          */
-        public ItemStack getRightItem() {
+        public @Nonnull ItemStack getRightItem() {
             return this.rightItem;
         }
 
@@ -760,7 +764,7 @@ public class Query {
          *
          * @return The outputItem.
          */
-        public ItemStack getOutputItem() {
+        public @Nonnull ItemStack getOutputItem() {
             return this.outputItem;
         }
 
@@ -769,7 +773,7 @@ public class Query {
          *
          * @return The player.
          */
-        public Player getPlayer() {
+        public @Nonnull Player getPlayer() {
             return this.player;
         }
 
@@ -778,7 +782,7 @@ public class Query {
          *
          * @return The text of the rename field.
          */
-        public String getText() {
+        public @Nonnull String getText() {
             String displayName = "";
             final ItemStack stackFetch = this.leftItem;
             if (stackFetch.hasItemMeta()) {
@@ -807,12 +811,14 @@ public class Query {
         public final void onPrepareAnvil(final PrepareAnvilEvent event) {
             if (event.getInventory().equals(inventory)) {
                 final String renameText = event.getInventory().getRenameText();
-                container.handleTyping(renameText);
-                {
-                    event.setResult(container.getResult((Player)event.getView().getPlayer(), renameText));
+                if (renameText != null) {
+                    container.handleTyping(renameText);
                     {
-                        container.removeCost(event.getInventory());
-                        container.setAction(false);
+                        event.setResult(container.getResult((Player) event.getView().getPlayer(), renameText));
+                        {
+                            container.removeCost(event.getInventory());
+                            container.setAction(false);
+                        }
                     }
                 }
             }
@@ -822,7 +828,6 @@ public class Query {
     /**
      * Simply holds the listener(s) for the typing actions inside the anvil.
      * This uses packets so the use is limited to server versions below 1.9.
-     *
      */
     private class PrepareAnvil_LEGACY implements Listener {
 

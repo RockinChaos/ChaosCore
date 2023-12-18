@@ -27,11 +27,11 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Called when a player attempts type inside an anvil inventory.
  * Only intended for Legacy use i.e. versions below 1.9 that do not have the native PrepareAnvilEvent.
- *
  */
 @SuppressWarnings("unused")
 public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
@@ -48,7 +48,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @param transaction - The InventoryView of the anvil inventory.
      */
-    public PrepareAnvilEvent(final InventoryView transaction, final String textEntry) {
+    public PrepareAnvilEvent(final @Nonnull InventoryView transaction, final @Nonnull String textEntry) {
         super(transaction);
         this.textEntry = textEntry;
     }
@@ -91,7 +91,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @return Player who is involved in this event
      */
-    public final Player getPlayer() {
+    public final @Nonnull Player getPlayer() {
         this.saveContents();
         return (Player) this.transaction.getPlayer();
     }
@@ -102,7 +102,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      * @param isTop - If the top inventory should be returned.
      * @return The Previous Contents of the top or bottom inventory.
      */
-    public ItemStack[] getPreviousContents(final boolean isTop) {
+    public @Nonnull ItemStack[] getPreviousContents(final boolean isTop) {
         return (isTop ? this.topContents : this.bottomContents);
     }
 
@@ -111,7 +111,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @return Contents of the top inventory.
      */
-    public ItemStack[] getTopContents() {
+    public @Nonnull ItemStack[] getTopContents() {
         return this.transaction.getTopInventory().getContents();
     }
 
@@ -120,7 +120,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @return Contents of the bottom inventory.
      */
-    public ItemStack[] getBottomContents() {
+    public @Nonnull ItemStack[] getBottomContents() {
         return this.transaction.getBottomInventory().getContents();
     }
 
@@ -129,7 +129,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @return The instance of the top inventory.
      */
-    public Inventory getTopInventory() {
+    public @Nonnull Inventory getTopInventory() {
         return this.transaction.getTopInventory();
     }
 
@@ -139,7 +139,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      * @param slot The slot to get the item from.
      * @return The item inside the specified anvil inventory slot.
      */
-    public ItemStack getItem(final int slot) {
+    public @Nullable ItemStack getItem(final int slot) {
         return this.transaction.getTopInventory().getItem(slot);
     }
 
@@ -148,7 +148,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @return The text inside the anvil rename field.
      */
-    public String getRenameText() {
+    public @Nonnull String getRenameText() {
         return this.textEntry;
     }
 
@@ -157,7 +157,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @param stack - The ItemStack to be removed.
      */
-    public void removeItem(final ItemStack stack, final int slot) {
+    public void removeItem(final @Nonnull ItemStack stack, final int slot) {
         stack.setAmount(0);
         stack.setType(Material.AIR);
         try {
@@ -199,7 +199,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @return the action to take with the PrepareAnvilEvent.
      */
-    public Result prepareAnvil() {
+    public @Nonnull Result prepareAnvil() {
         return prepareAnvil;
     }
 
@@ -208,7 +208,7 @@ public class PrepareAnvilEvent extends InventoryEvent implements Cancellable {
      *
      * @param prepareAnvil the action to take with the PrepareAnvilEvent.
      */
-    public void prepareAnvil(final Result prepareAnvil) {
+    public void prepareAnvil(final @Nonnull Result prepareAnvil) {
         this.prepareAnvil = prepareAnvil;
     }
 

@@ -26,6 +26,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.logging.log4j.message.Message;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -40,7 +41,7 @@ public class LogHandler extends AbstractFilter {
      *
      * @return The LogHandler instance.
      */
-    public static LogHandler getFilter() {
+    public static @Nonnull LogHandler getFilter() {
         if (filter == null) {
             filter = new LogHandler();
             ((LoggerContext) LogManager.getContext(false)).getConfiguration().getLoggerConfig(LogManager.ROOT_LOGGER_NAME).addFilter(filter);
@@ -54,7 +55,7 @@ public class LogHandler extends AbstractFilter {
      *
      * @param message - The message being checked for hiddenExecutors.
      */
-    private Result handle(final String message) {
+    private @Nonnull Result handle(final String message) {
         if (message == null) {
             return Result.NEUTRAL;
         }
@@ -74,7 +75,7 @@ public class LogHandler extends AbstractFilter {
      * @param event - The logger handling the message.
      */
     @Override
-    public Result filter(final LogEvent event) {
+    public @Nonnull Result filter(final @Nonnull LogEvent event) {
         return this.handle(event.getMessage().getFormattedMessage());
     }
 
@@ -89,7 +90,7 @@ public class LogHandler extends AbstractFilter {
      * @return The result of the filter.
      */
     @Override
-    public Result filter(final Logger logger, final Level level, final Marker marker, final Message msg, final Throwable t) {
+    public @Nonnull Result filter(final @Nonnull Logger logger, final @Nonnull Level level, final @Nonnull Marker marker, final Message msg, final Throwable t) {
         return this.handle(msg.getFormattedMessage());
     }
 
@@ -104,7 +105,7 @@ public class LogHandler extends AbstractFilter {
      * @return The result of the filter.
      */
     @Override
-    public Result filter(final Logger logger, final Level level, final Marker marker, final Object msg, final Throwable t) {
+    public @Nonnull Result filter(final @Nonnull Logger logger, final @Nonnull Level level, final @Nonnull Marker marker, final Object msg, final Throwable t) {
         return this.handle(msg.toString());
     }
 
@@ -119,7 +120,7 @@ public class LogHandler extends AbstractFilter {
      * @return The result of the filter.
      */
     @Override
-    public Result filter(final Logger logger, final Level level, final Marker marker, final String msg, final Object... params) {
+    public @Nonnull Result filter(final @Nonnull Logger logger, final @Nonnull Level level, final @Nonnull Marker marker, final String msg, final Object... params) {
         return this.handle(msg);
     }
 
@@ -129,7 +130,7 @@ public class LogHandler extends AbstractFilter {
      * @param log     - The log identifier.
      * @param logList - The executor to be hidden.
      */
-    public void addHidden(final String log, final ArrayList<String> logList) {
+    public void addHidden(final @Nonnull String log, final @Nonnull ArrayList<String> logList) {
         this.hiddenExecutors.put(log, logList);
     }
 
@@ -138,7 +139,7 @@ public class LogHandler extends AbstractFilter {
      *
      * @return The current hiddenExecutors HashMap.
      */
-    public HashMap<String, ArrayList<String>> getHidden() {
+    public @Nonnull HashMap<String, ArrayList<String>> getHidden() {
         return this.hiddenExecutors;
     }
 

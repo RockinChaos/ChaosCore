@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
  */
 @SuppressWarnings("unused")
 public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
-
     private static final HandlerList handlers = new HandlerList();
     protected ItemStack[] topContents;
     protected ItemStack[] bottomContents;
@@ -43,7 +42,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @param transaction - The InventoryView of the closed window.
      */
-    public InventoryCloseEvent(final InventoryView transaction) {
+    public InventoryCloseEvent(final @Nonnull InventoryView transaction) {
         super(transaction);
     }
 
@@ -85,7 +84,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @return Player who is involved in this event
      */
-    public final Player getPlayer() {
+    public final @Nonnull Player getPlayer() {
         this.saveContents();
         return (Player) this.transaction.getPlayer();
     }
@@ -96,7 +95,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      * @param isTop - If the top inventory should be returned.
      * @return The Previous Contents of the top or bottom inventory.
      */
-    public ItemStack[] getPreviousContents(final boolean isTop) {
+    public @Nonnull ItemStack[] getPreviousContents(final boolean isTop) {
         return (isTop ? this.topContents : this.bottomContents);
     }
 
@@ -105,7 +104,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @return Contents of the top inventory.
      */
-    public ItemStack[] getTopContents() {
+    public @Nonnull ItemStack[] getTopContents() {
         return this.transaction.getTopInventory().getContents();
     }
 
@@ -114,7 +113,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @return Contents of the bottom inventory.
      */
-    public ItemStack[] getBottomContents() {
+    public @Nonnull ItemStack[] getBottomContents() {
         return this.transaction.getBottomInventory().getContents();
     }
 
@@ -123,7 +122,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @param stack - The ItemStack to be removed.
      */
-    public void removeItem(final ItemStack stack, final int slot) {
+    public void removeItem(final @Nonnull ItemStack stack, final int slot) {
         stack.setAmount(0);
         stack.setType(Material.AIR);
         try {
@@ -156,7 +155,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @return the action to take with the InventoryCloseEvent.
      */
-    public Result inventoryClose() {
+    public @Nonnull Result inventoryClose() {
         return inventoryClose;
     }
 
@@ -165,7 +164,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @param inventoryClose the action to take with the InventoryCloseEvent.
      */
-    public void inventoryClose(final Result inventoryClose) {
+    public void inventoryClose(final @Nonnull Result inventoryClose) {
         this.inventoryClose = inventoryClose;
     }
 

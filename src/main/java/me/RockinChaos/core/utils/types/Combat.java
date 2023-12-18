@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum Combat {
     BOW,
@@ -41,7 +43,7 @@ public enum Combat {
      * @param material - The Material being checked.
      * @return If the Material is a Combat type.
      */
-    public static boolean isCombat(final Material material) {
+    public static boolean isCombat(final @Nonnull Material material) {
         if (material.isBlock()) {
             return false;
         }

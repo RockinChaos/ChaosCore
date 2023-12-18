@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum Miscellaneous {
     BEACON,
@@ -83,7 +85,7 @@ public enum Miscellaneous {
      * @param material - The Material being checked.
      * @return If the Material is a Miscellaneous type.
      */
-    public static boolean isMiscellaneous(final Material material) {
+    public static boolean isMiscellaneous(final @Nonnull Material material) {
         for (Miscellaneous tag : Miscellaneous.values()) {
             final String[] mats = material.name().split("_");
             if (mats[0].equalsIgnoreCase(MUSIC.name()) || (!material.name().equalsIgnoreCase("ENCHANTED_BOOK") && (tag.name().equalsIgnoreCase((tag.name().contains("_") ? material.name() : (mats.length > 1 ? mats[(mats.length - 1)] : mats[0])))))) {

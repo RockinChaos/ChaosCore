@@ -22,6 +22,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class Page {
      *
      * @param event - InventoryClickEvent
      */
-    public void handleClick(final InventoryClickEvent event) {
+    public void handleClick(final @Nonnull InventoryClickEvent event) {
         if (event.getRawSlot() > event.getInventory().getSize()) {
             return;
         }
@@ -64,7 +65,7 @@ public class Page {
      * @param event - AsyncPlayerChatEvent
      * @param slot  - The slot that relates to the button that was clicked for the page.
      */
-    public void handleChat(final AsyncPlayerChatEvent event, int slot) {
+    public void handleChat(final @Nonnull AsyncPlayerChatEvent event, int slot) {
         Button button = this.buttons.get(slot);
         button.onChat(event);
     }
@@ -74,9 +75,9 @@ public class Page {
      * Handles the typing event for the inventory page.
      *
      * @param player - the player involved in the typing event.
-     * @param slot  - The slot that relates to the button that was clicked for the page.
+     * @param slot   - The slot that relates to the button that was clicked for the page.
      */
-    public void handleTyping(final Player player, int slot) {
+    public void handleTyping(final @Nonnull Player player, int slot) {
         Button button = this.buttons.get(slot);
         button.onTyping(player);
     }
@@ -85,9 +86,9 @@ public class Page {
      * Attempts to close the active player query.
      *
      * @param player - the player involved in the typing event.
-     * @param slot  - The slot that relates to the button that was clicked for the page.
+     * @param slot   - The slot that relates to the button that was clicked for the page.
      */
-    public void closeQuery(final Player player, int slot) {
+    public void closeQuery(final @Nonnull Player player, int slot) {
         Button button = this.buttons.get(slot);
         button.closeQuery();
     }
@@ -98,7 +99,7 @@ public class Page {
      * @param button - The button to be added.
      * @return The button was successfully added.
      */
-    public boolean addButton(final Button button) {
+    public boolean addButton(final @Nonnull Button button) {
         if (!this.hasSpace()) {
             return false;
         }
@@ -112,7 +113,7 @@ public class Page {
      * @param button - The button to be removed.
      * @return The button was successfully removed.
      */
-    public boolean removeButton(final Button button) {
+    public boolean removeButton(final @Nonnull Button button) {
         return this.buttons.remove(button);
     }
 
@@ -121,7 +122,7 @@ public class Page {
      *
      * @param inventory - The inventory to have the page rendered.
      */
-    public void render(final Inventory inventory) {
+    public void render(final @Nonnull Inventory inventory) {
         for (int i = 0; i < this.buttons.size(); i++) {
             Button button = this.buttons.get(i);
             inventory.setItem(i, button.getItemStack());

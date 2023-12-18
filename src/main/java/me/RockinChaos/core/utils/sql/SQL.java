@@ -21,6 +21,8 @@ import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -45,7 +47,7 @@ public class SQL {
      *
      * @return The SQL instance.
      */
-    public static SQL getSQL() {
+    public static @Nonnull SQL getSQL() {
         if (data == null) {
             data = new SQL();
         }
@@ -66,7 +68,7 @@ public class SQL {
         SchedulerUtils.runSingleAsync(() -> {
             for (String table : Core.getCore().getData().getDatabaseData().keySet()) {
                 synchronized ("CC_SQL") {
-                    if (Database.getDatabase() != null && Database.getDatabase().tableExists(Core.getCore().getData().getTablePrefix() + table)) {
+                    if (Database.getDatabase().tableExists(Core.getCore().getData().getTablePrefix() + table)) {
                         Database.getDatabase().executeStatement("DROP TABLE IF EXISTS " + Core.getCore().getData().getTablePrefix() + table);
                     }
                 }
@@ -85,35 +87,33 @@ public class SQL {
      *
      * @param object - The Object data being saved.
      */
-    public void saveData(final Object object) {
-        if (object != null) {
-            try {
-                final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
-                final String tableHeaders = (String) object.getClass().getMethod("getTableHeaders").invoke(object);
-                final String tableInserts = (String) object.getClass().getMethod("getInsertValues").invoke(object);
-                if (Core.getCore().getPlugin().isEnabled()) {
-                    SchedulerUtils.runSingleAsync(() -> {
-                        synchronized ("CC_SQL") {
-                            Database.getDatabase().executeStatement("INSERT INTO " + Core.getCore().getData().getTablePrefix() + tableName + " (" + tableHeaders + ") VALUES (" + tableInserts + ")");
-                        }
-                    });
-                } else {
+    public void saveData(final @Nonnull Object object) {
+        try {
+            final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
+            final String tableHeaders = (String) object.getClass().getMethod("getTableHeaders").invoke(object);
+            final String tableInserts = (String) object.getClass().getMethod("getInsertValues").invoke(object);
+            if (Core.getCore().getPlugin().isEnabled()) {
+                SchedulerUtils.runSingleAsync(() -> {
                     synchronized ("CC_SQL") {
                         Database.getDatabase().executeStatement("INSERT INTO " + Core.getCore().getData().getTablePrefix() + tableName + " (" + tableHeaders + ") VALUES (" + tableInserts + ")");
                     }
+                });
+            } else {
+                synchronized ("CC_SQL") {
+                    Database.getDatabase().executeStatement("INSERT INTO " + Core.getCore().getData().getTablePrefix() + tableName + " (" + tableHeaders + ") VALUES (" + tableInserts + ")");
                 }
-                if (this.databaseData.get(tableName) != null) {
-                    final List<Object> h1 = this.databaseData.get(tableName);
-                    h1.add(object);
-                    this.databaseData.put(tableName, h1);
-                } else {
-                    final List<Object> h1 = new ArrayList<>();
-                    h1.add(object);
-                    this.databaseData.put(tableName, h1);
-                }
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
             }
+            if (this.databaseData.get(tableName) != null) {
+                final List<Object> h1 = this.databaseData.get(tableName);
+                h1.add(object);
+                this.databaseData.put(tableName, h1);
+            } else {
+                final List<Object> h1 = new ArrayList<>();
+                h1.add(object);
+                this.databaseData.put(tableName, h1);
+            }
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
     }
 
@@ -122,39 +122,37 @@ public class SQL {
      *
      * @param object - The Object being accessed.
      */
-    public void removeData(final Object object) {
-        if (object != null) {
-            try {
-                final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
-                if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
-                    final Iterator<Object> dataSet = this.databaseData.get(tableName).iterator();
-                    while (dataSet.hasNext()) {
-                        final Object dataObject = dataSet.next();
-                        final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
-                        final String tableRemoval = (String) dataObject.getClass().getMethod("getTableRemoval").invoke(dataObject);
-                        final String tableRemovals = (String) dataObject.getClass().getMethod("getRemovalValues").invoke(dataObject);
-                        if (tableName.equals(dataSetName)) {
-                            final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
-                            if (equalsDate) {
-                                if (Core.getCore().getPlugin().isEnabled()) {
-                                    SchedulerUtils.runSingleAsync(() -> {
-                                        synchronized ("CC_SQL") {
-                                            Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")");
-                                        }
-                                    });
-                                } else {
+    public void removeData(final @Nonnull Object object) {
+        try {
+            final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
+            if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
+                final Iterator<Object> dataSet = this.databaseData.get(tableName).iterator();
+                while (dataSet.hasNext()) {
+                    final Object dataObject = dataSet.next();
+                    final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
+                    final String tableRemoval = (String) dataObject.getClass().getMethod("getTableRemoval").invoke(dataObject);
+                    final String tableRemovals = (String) dataObject.getClass().getMethod("getRemovalValues").invoke(dataObject);
+                    if (tableName.equals(dataSetName)) {
+                        final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
+                        if (equalsDate) {
+                            if (Core.getCore().getPlugin().isEnabled()) {
+                                SchedulerUtils.runSingleAsync(() -> {
                                     synchronized ("CC_SQL") {
                                         Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")");
                                     }
+                                });
+                            } else {
+                                synchronized ("CC_SQL") {
+                                    Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")");
                                 }
-                                dataSet.remove();
                             }
+                            dataSet.remove();
                         }
                     }
                 }
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
             }
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
     }
 
@@ -164,22 +162,20 @@ public class SQL {
      * @param object - The Object being accessed.
      * @return The found table data.
      */
-    public Object getData(final Object object) {
-        if (object != null) {
-            try {
-                final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
-                if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
-                    for (Object dataObject : this.databaseData.get(tableName)) {
-                        final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
-                        final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
-                        if (dataSetName.equals(tableName) && equalsDate) {
-                            return dataObject;
-                        }
+    public @Nullable Object getData(final @Nonnull Object object) {
+        try {
+            final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
+            if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
+                for (Object dataObject : this.databaseData.get(tableName)) {
+                    final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
+                    final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
+                    if (dataSetName.equals(tableName) && equalsDate) {
+                        return dataObject;
                     }
                 }
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
             }
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
         return null;
     }
@@ -190,24 +186,22 @@ public class SQL {
      * @param object - The Object being accessed.
      * @return The found table data list.
      */
-    public List<Object> getDataList(final Object object) {
+    public @Nonnull List<Object> getDataList(final @Nonnull Object object) {
         final List<Object> dataList = new ArrayList<>();
-        if (object != null) {
-            try {
-                final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
-                if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
-                    for (Object dataObject : this.databaseData.get(tableName)) {
-                        final Boolean isTemporary = (Boolean) object.getClass().getMethod("isTemporary").invoke(object);
-                        final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
-                        final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
-                        if (dataSetName.equals(tableName) && (isTemporary || equalsDate)) {
-                            dataList.add(dataObject);
-                        }
+        try {
+            final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
+            if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
+                for (Object dataObject : this.databaseData.get(tableName)) {
+                    final Boolean isTemporary = (Boolean) object.getClass().getMethod("isTemporary").invoke(object);
+                    final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
+                    final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
+                    if (dataSetName.equals(tableName) && (isTemporary || equalsDate)) {
+                        dataList.add(dataObject);
                     }
                 }
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
             }
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
         return dataList;
     }
@@ -218,20 +212,18 @@ public class SQL {
      * @param object - The Object being accessed.
      * @return If the data is equal.
      */
-    public boolean hasDataSet(final Object object) {
-        if (object != null) {
-            try {
-                final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
-                for (Object dataObject : this.databaseData.get(tableName)) {
-                    final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
-                    final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
-                    if (dataSetName.equals(tableName) && equalsDate) {
-                        return true;
-                    }
+    public boolean hasDataSet(final @Nonnull Object object) {
+        try {
+            final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
+            for (Object dataObject : this.databaseData.get(tableName)) {
+                final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
+                final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
+                if (dataSetName.equals(tableName) && equalsDate) {
+                    return true;
                 }
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
             }
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
         return false;
     }
@@ -240,10 +232,7 @@ public class SQL {
      * Loads all the database data into memory.
      */
     private void loadData() {
-        final Map<String, List<Object>> databaseData = Core.getCore().getData().getDatabaseData();
-        if (databaseData != null) {
-            this.databaseData = databaseData;
-        }
+        this.databaseData = Core.getCore().getData().getDatabaseData();
     }
 
     /**

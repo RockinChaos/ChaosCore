@@ -26,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -50,7 +51,7 @@ public class UpdateHandler {
     /**
      * Initializes the UpdateHandler and Checks for Updates upon initialization.
      */
-    public UpdateHandler(final JavaPlugin plugin, final File pluginFile, final boolean updatesAllowed) {
+    public UpdateHandler(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final boolean updatesAllowed) {
         this.NAME = plugin.getName();
         this.jarRef = pluginFile;
         this.checkUpdates(plugin.getServer().getConsoleSender(), true);
@@ -70,7 +71,7 @@ public class UpdateHandler {
      * @param updatesAllowed - If checking for updates should be allowed to nag.
      * @return The UpdateHandler instance.
      */
-    public static UpdateHandler getUpdater(final JavaPlugin plugin, final File pluginFile, final boolean updatesAllowed) {
+    public static @Nonnull UpdateHandler getUpdater(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final boolean updatesAllowed) {
         if (updater == null) {
             updater = new UpdateHandler(plugin, pluginFile, updatesAllowed);
         }
@@ -83,7 +84,7 @@ public class UpdateHandler {
      *
      * @param sender - The executor of the update checking.
      */
-    public void forceUpdates(final CommandSender sender) {
+    public void forceUpdates(final @Nonnull CommandSender sender) {
         if (this.updateNeeded(sender, false)) {
             ServerUtils.messageSender(sender, "&aAn update has been found!");
             ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.localeVersion + " &ato the new " + "&ev" + this.latestVersion);
@@ -133,7 +134,7 @@ public class UpdateHandler {
      * @param sender  - The executor of the update checking.
      * @param onStart - If it is checking for updates on start.
      */
-    public void checkUpdates(final CommandSender sender, final boolean onStart) {
+    public void checkUpdates(final @Nonnull CommandSender sender, final boolean onStart) {
         if (this.updateNeeded(sender, onStart) && this.updatesAllowed) {
             if (this.betaVersion) {
                 ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-SNAPSHOT");
@@ -165,7 +166,7 @@ public class UpdateHandler {
      * @param onStart - If it is checking for updates on start.
      * @return If an update is needed.
      */
-    private boolean updateNeeded(final CommandSender sender, final boolean onStart) {
+    private boolean updateNeeded(final @Nonnull CommandSender sender, final boolean onStart) {
         if (this.updatesAllowed) {
             if (!onStart) {
                 ServerUtils.messageSender(sender, "&aChecking for updates...");
@@ -239,7 +240,7 @@ public class UpdateHandler {
      *
      * @return The exact server version.
      */
-    public String getVersion() {
+    public @Nonnull String getVersion() {
         return this.versionExact;
     }
 
@@ -248,7 +249,7 @@ public class UpdateHandler {
      *
      * @return The plugins jar file.
      */
-    public File getJarReference() {
+    public @Nonnull File getJarReference() {
         return this.jarRef;
     }
 }

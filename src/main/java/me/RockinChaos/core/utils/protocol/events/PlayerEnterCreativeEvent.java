@@ -24,6 +24,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Called when a player tries to pick block using the middle mouse button.
@@ -43,13 +44,13 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
      * @param who    - The Sender triggering the event.
      * @param altWho - The other Player being referenced.
      */
-    public PlayerEnterCreativeEvent(final CommandSender who, final Player altWho, final boolean refresh, final boolean restore, final boolean silent) {
+    public PlayerEnterCreativeEvent(final @Nonnull CommandSender who, final @Nullable Player altWho, final boolean refresh, final boolean restore, final boolean silent) {
         super((altWho != null ? altWho : (Player) who));
         this.who = who;
         this.refresh = refresh;
         this.restore = restore;
         this.silent = silent;
-        this.result = who == null ? Result.DENY : Result.ALLOW;
+        this.result = Result.ALLOW;
     }
 
     /**
@@ -57,7 +58,7 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
      *
      * @return The HandlerList for the event.
      */
-    public static HandlerList getHandlerList() {
+    public static @Nonnull HandlerList getHandlerList() {
         return handlers;
     }
 
@@ -90,7 +91,7 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
      *
      * @return The action to take with the pick block action.
      */
-    public Result returnResult() {
+    public @Nonnull Result returnResult() {
         return this.result;
     }
 
@@ -99,7 +100,7 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
      *
      * @param setCreative - the action to take with the creative mode action.
      */
-    public void getResult(final Result setCreative) {
+    public void getResult(final @Nonnull Result setCreative) {
         this.result = setCreative;
     }
 
@@ -108,7 +109,7 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
      *
      * @return The Sender.
      */
-    public CommandSender getSender() {
+    public @Nonnull CommandSender getSender() {
         return this.who;
     }
 

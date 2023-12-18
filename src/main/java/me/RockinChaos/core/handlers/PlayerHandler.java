@@ -38,6 +38,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -55,7 +57,7 @@ public class PlayerHandler {
      *
      * @param player - The player to have their inventory closed.
      */
-    public static void safeInventoryClose(final Player player) {
+    public static void safeInventoryClose(final @Nonnull Player player) {
         player.openInventory(Bukkit.createInventory(player.getInventory().getHolder(), 9));
         player.closeInventory();
     }
@@ -66,7 +68,7 @@ public class PlayerHandler {
      * @param who    - The Player being referenced.
      * @param altWho - The other Player being referenced (if any).
      */
-    public static void setMode(final CommandSender who, final Player altWho, final GameMode gamemode, final boolean silent, final boolean doSave) {
+    public static void setMode(final @Nonnull CommandSender who, final @Nullable Player altWho, final @Nonnull GameMode gamemode, final boolean silent, final boolean doSave) {
         Bukkit.getPluginManager().callEvent(new PlayerExitCreativeEvent(who, altWho, gamemode, silent, doSave));
     }
 
@@ -75,9 +77,10 @@ public class PlayerHandler {
      *
      * @param who    - The Player being referenced.
      * @param altWho - The other Player being referenced (if any).
+     * @param silent - If the event should be called quietly.
      */
-    public static void setCreative(final CommandSender who, final Player altWho) {
-        Bukkit.getPluginManager().callEvent(new PlayerEnterCreativeEvent(who, altWho, false, false, false));
+    public static void setCreative(final @Nonnull CommandSender who, final @Nullable Player altWho, final boolean silent) {
+        Bukkit.getPluginManager().callEvent(new PlayerEnterCreativeEvent(who, altWho, false, false, silent));
     }
 
     /**
@@ -85,7 +88,7 @@ public class PlayerHandler {
      *
      * @param who - The Player being referenced.
      */
-    public static void refreshCreative(final CommandSender who) {
+    public static void refreshCreative(final @Nonnull CommandSender who) {
         Bukkit.getPluginManager().callEvent(new PlayerEnterCreativeEvent(who, null, true, false, true));
     }
 
@@ -95,16 +98,18 @@ public class PlayerHandler {
      * @param entity - The entity being checked.
      * @return If the entity is a real Player.
      */
-    public static boolean isPlayer(final Entity entity) {
+    public static boolean isPlayer(final @Nonnull Entity entity) {
         try {
             if (Core.getCore().getDependencies().citizensEnabled() && net.citizensnpcs.api.CitizensAPI.getNPCRegistry().isNPC(entity)) {
                 return false;
             } else if (!(entity instanceof Player)) {
                 return false;
-            } else if (PlayerHandler.getPlayerID((Player) entity) == null || PlayerHandler.getPlayerID((Player) entity).isEmpty()) {
-                return false;
-            } else if (Objects.requireNonNull(((Player) entity).getAddress()).getHostString() == null) {
-                return false;
+            } else {
+                if (PlayerHandler.getPlayerID((Player) entity).isEmpty()) {
+                    return false;
+                } else if (Objects.requireNonNull(((Player) entity).getAddress()).getHostString() == null) {
+                    return false;
+                }
             }
         } catch (Exception e) {
             return false;
@@ -117,7 +122,7 @@ public class PlayerHandler {
      *
      * @param player - The Player being referenced.
      */
-    public static void clearItems(final Player player) {
+    public static void clearItems(final @Nonnull Player player) {
         final PlayerInventory inventory = player.getInventory();
         final Inventory craftView = player.getOpenInventory().getTopInventory();
         inventory.setHelmet(new ItemStack(Material.AIR));
@@ -137,7 +142,7 @@ public class PlayerHandler {
      * @param view - The InventoryView to be checked.
      * @return If the currently open inventory is a player crafting inventory.
      */
-    public static boolean isCraftingInv(final InventoryView view) {
+    public static boolean isCraftingInv(final @Nonnull InventoryView view) {
         return (!view.getType().name().equalsIgnoreCase("HOPPER") && !view.getType().name().equalsIgnoreCase("BREWING") && view.getTopInventory().getSize() == PLAYER_CRAFT_INV_SIZE);
     }
 
@@ -147,7 +152,7 @@ public class PlayerHandler {
      * @param player - The player to be checked.
      * @return If the player is currently in creative mode.
      */
-    public static boolean isCreativeMode(final Player player) {
+    public static boolean isCreativeMode(final @Nonnull Player player) {
         return player.getGameMode() == GameMode.CREATIVE;
     }
 
@@ -157,7 +162,7 @@ public class PlayerHandler {
      * @param player - The player to be checked.
      * @return If the player is currently in adventure mode.
      */
-    public static boolean isAdventureMode(final Player player) {
+    public static boolean isAdventureMode(final @Nonnull Player player) {
         return player.getGameMode() == GameMode.ADVENTURE;
     }
 
@@ -167,7 +172,7 @@ public class PlayerHandler {
      * @param player - The player to be checked.
      * @return If the player is currently in adventure mode.
      */
-    public static boolean isSurvivalMode(final Player player) {
+    public static boolean isSurvivalMode(final @Nonnull Player player) {
         return player.getGameMode() == GameMode.SURVIVAL;
     }
 
@@ -178,8 +183,8 @@ public class PlayerHandler {
      * @param action - The action being checked.
      * @return If the player is currently interacting with an open menu.
      */
-    public static boolean isMenuClick(final InventoryView view, final Action action) {
-        return isCraftingInv(view) || (action != Action.LEFT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK);
+    public static boolean isMenuClick(final @Nonnull InventoryView view, final @Nonnull Action action) {
+        return !isCraftingInv(view) && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
     }
 
     /**
@@ -188,7 +193,7 @@ public class PlayerHandler {
      * @param player - the Player to get the crafting contents of.
      * @return The ItemStack list of crafting slot contents.
      */
-    public static ItemStack[] getTopContents(final Player player) {
+    public static @Nonnull ItemStack[] getTopContents(final @Nonnull Player player) {
         ItemStack[] tempContents = player.getOpenInventory().getTopInventory().getContents();
         ItemStack[] contents = new ItemStack[5];
         for (int i = 0; i <= 4; i++) {
@@ -202,7 +207,7 @@ public class PlayerHandler {
      *
      * @param player - The player to have their slot set.
      */
-    public static void setHotbarSlot(final Player player, int slot) {
+    public static void setHotbarSlot(final @Nonnull Player player, int slot) {
         if (slot <= 8 && slot >= 0) {
             player.getInventory().setHeldItemSlot(slot);
         }
@@ -217,7 +222,7 @@ public class PlayerHandler {
      * @param player - The player to be checked.
      * @return The current ItemStack in the players hand.
      */
-    public static ItemStack getHandItem(final Player player) {
+    public static @Nonnull ItemStack getHandItem(final @Nonnull Player player) {
         if (ServerUtils.hasSpecificUpdate("1_9") && player.getInventory().getItemInMainHand().getType() != Material.AIR) {
             return player.getInventory().getItemInMainHand();
         } else if (ServerUtils.hasSpecificUpdate("1_9") && player.getInventory().getItemInOffHand().getType() != Material.AIR) {
@@ -225,7 +230,7 @@ public class PlayerHandler {
         } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
-        return null;
+        return new ItemStack(Material.AIR);
     }
 
     /**
@@ -237,7 +242,7 @@ public class PlayerHandler {
      * @param type   - The hand type to get.
      * @return The current ItemStack in the players hand.
      */
-    public static ItemStack getPerfectHandItem(final Player player, final String type) {
+    public static @Nonnull ItemStack getPerfectHandItem(final @Nonnull Player player, final @Nullable String type) {
         if (ServerUtils.hasSpecificUpdate("1_9") && type != null && type.equalsIgnoreCase("HAND")) {
             return player.getInventory().getItemInMainHand();
         } else if (ServerUtils.hasSpecificUpdate("1_9") && type != null && type.equalsIgnoreCase("OFF_HAND")) {
@@ -245,7 +250,7 @@ public class PlayerHandler {
         } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
-        return null;
+        return new ItemStack(Material.AIR);
     }
 
     /**
@@ -256,13 +261,13 @@ public class PlayerHandler {
      * @param player - The player to be checked.
      * @return The current ItemStack in the players hand.
      */
-    public static ItemStack getMainHandItem(final Player player) {
+    public static @Nonnull ItemStack getMainHandItem(final @Nonnull Player player) {
         if (ServerUtils.hasSpecificUpdate("1_9")) {
             return player.getInventory().getItemInMainHand();
         } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
-        return null;
+        return new ItemStack(Material.AIR);
     }
 
     /**
@@ -273,13 +278,13 @@ public class PlayerHandler {
      * @param player - The player to be checked.
      * @return The current ItemStack in the players hand.
      */
-    public static ItemStack getOffHandItem(final Player player) {
+    public static @Nonnull ItemStack getOffHandItem(final @Nonnull Player player) {
         if (ServerUtils.hasSpecificUpdate("1_9")) {
             return player.getInventory().getItemInOffHand();
         } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
-        return null;
+        return new ItemStack(Material.AIR);
     }
 
     /**
@@ -290,7 +295,7 @@ public class PlayerHandler {
      * @param player - The player to have the item set.
      * @param item   - The ItemStack to be set.
      */
-    public static void setMainHandItem(final Player player, final ItemStack item) {
+    public static void setMainHandItem(final @Nonnull Player player, final @Nonnull ItemStack item) {
         if (ServerUtils.hasSpecificUpdate("1_9")) {
             player.getInventory().setItemInMainHand(item);
         } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
@@ -306,7 +311,7 @@ public class PlayerHandler {
      * @param player - The player to have the item set.
      * @param item   - The ItemStack to be set.
      */
-    public static void setOffHandItem(final Player player, final ItemStack item) {
+    public static void setOffHandItem(final @Nonnull Player player, final @Nonnull ItemStack item) {
         if (ServerUtils.hasSpecificUpdate("1_9")) {
             player.getInventory().setItemInOffHand(item);
         } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
@@ -323,7 +328,7 @@ public class PlayerHandler {
      *
      * @param player - The player to have their levels set.
      */
-    public static void updateExperienceLevels(final Player player) {
+    public static void updateExperienceLevels(final @Nonnull Player player) {
         SchedulerUtils.runLater(1L, () -> {
             player.setExp(player.getExp());
             player.setLevel(player.getLevel());
@@ -335,7 +340,7 @@ public class PlayerHandler {
      *
      * @param player - The player to have their inventory updated.
      */
-    public static void updateInventory(final Player player) {
+    public static void updateInventory(final @Nonnull Player player) {
         updateInventory(player, null, 0L);
     }
 
@@ -345,7 +350,7 @@ public class PlayerHandler {
      * @param player - The player to have their inventory updated.
      * @param delay  - The ticks to wait before updating the inventory.
      */
-    public static void updateInventory(final Player player, final long delay) {
+    public static void updateInventory(final @Nonnull Player player, final long delay) {
         updateInventory(player, null, delay);
     }
 
@@ -359,7 +364,7 @@ public class PlayerHandler {
      * @param item   - The item expected to be updated.
      * @param delay  - The ticks to wait before updating the inventory.
      */
-    public static void updateInventory(final Player player, final ItemStack item, final long delay) {
+    public static void updateInventory(final @Nonnull Player player, final @Nullable ItemStack item, final long delay) {
         SchedulerUtils.runAsyncLater(delay, () -> {
             try {
                 /*
@@ -375,8 +380,7 @@ public class PlayerHandler {
                     Updates Offhand Slot.
                  */
                 if (ServerUtils.hasSpecificUpdate("1_9")) {
-                    final ItemStack offHand = getOffHandItem(player);
-                    if (item == null || (offHand != null && offHand.clone().isSimilar(item))) {
+                    if (item == null || (getOffHandItem(player).clone().isSimilar(item))) {
                         ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45, 0);
                     }
                 }
@@ -412,8 +416,8 @@ public class PlayerHandler {
      * @param item - The item to have its skull owner fetched.
      * @return The ItemStacks current skull owner.
      */
-    public static String getSkullOwner(final ItemStack item) {
-        if ( item != null && item.hasItemMeta()) {
+    public static @Nonnull String getSkullOwner(final @Nonnull ItemStack item) {
+        if (item.hasItemMeta()) {
             final ItemMeta itemMeta = item.getItemMeta();
             if (ServerUtils.hasSpecificUpdate("1_12") && itemMeta != null && ItemHandler.isSkull(item.getType())
                     && ((SkullMeta) itemMeta).hasOwner() && ItemHandler.usesOwningPlayer()) {
@@ -437,13 +441,13 @@ public class PlayerHandler {
      * @param playerName - The player name to be transformed.
      * @return The fetched Player instance.
      */
-    public static Player getPlayerString(final String playerName) {
+    public static @Nullable Player getPlayerString(final @Nonnull String playerName) {
         Player args = null;
         try {
             args = Bukkit.getPlayer(UUID.fromString(playerName));
         } catch (Exception ignored) {
         }
-        if (playerName != null && Core.getCore().getDependencies().nickAPIEnabled()) {
+        if (Core.getCore().getDependencies().nickAPIEnabled()) {
             if (xyz.haoshoku.nick.api.NickAPI.isNicked(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName))) {
                 return xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName);
             } else {
@@ -461,21 +465,20 @@ public class PlayerHandler {
      * @param player - The player to have their String Name fetched.
      * @return The String Name of the player.
      */
-    public static String getPlayerName(final Player player) {
+    public static @Nonnull String getPlayerName(final @Nonnull Player player) {
         try {
-            if (player != null && Core.getCore().getDependencies().nickAPIEnabled()) {
+            if (Core.getCore().getDependencies().nickAPIEnabled()) {
                 if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
                     return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
                 } else {
                     return player.getName();
                 }
-            } else if (player != null) {
+            } else {
                 return player.getName();
             }
         } catch (Exception e) {
             return player.getName();
         }
-        return "";
     }
 
     /**
@@ -485,23 +488,23 @@ public class PlayerHandler {
      * @param player - The player to have their UUID fetched.
      * @return The UUID of the player or if not found, their String name.
      */
-    public static String getPlayerID(final Player player) {
+    public static @Nonnull String getPlayerID(final @Nullable Player player) {
+        if (player == null) {
+            return "";
+        }
         try {
-            if (player != null) {
-                if (Core.getCore().getDependencies().nickAPIEnabled()) {
-                    if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
-                        return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
-                    } else {
-                        return player.getName();
-                    }
+            if (Core.getCore().getDependencies().nickAPIEnabled()) {
+                if (xyz.haoshoku.nick.api.NickAPI.isNicked(player)) {
+                    return xyz.haoshoku.nick.api.NickAPI.getOriginalName(player);
                 } else {
-                    return player.getUniqueId().toString();
+                    return player.getName();
                 }
+            } else {
+                return player.getUniqueId().toString();
             }
         } catch (Exception e) {
             return player.getName();
         }
-        return "";
     }
 
     /**
@@ -511,12 +514,15 @@ public class PlayerHandler {
      * @param player - The OfflinePlayer instance to have their UUID fetched.
      * @return The UUID of the player or if not found, their String name.
      */
-    public static String getOfflinePlayerID(final OfflinePlayer player) {
-        if (player != null) {
-            final String playerName = player.getName();
+    public static @Nonnull String getOfflinePlayerID(final @Nullable OfflinePlayer player) {
+        if (player == null) {
+            return "";
+        }
+        final String playerName = player.getName();
+        if (playerName != null) {
             try {
                 if (Core.getCore().getDependencies().nickAPIEnabled()) {
-                    if (playerName != null && xyz.haoshoku.nick.api.NickAPI.isNickedName(playerName)) {
+                    if (xyz.haoshoku.nick.api.NickAPI.isNickedName(playerName)) {
                         return xyz.haoshoku.nick.api.NickAPI.getOriginalName(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName));
                     } else {
                         return playerName;
@@ -536,7 +542,7 @@ public class PlayerHandler {
      *
      * @param player - The player having their crafting items saved.
      */
-    public static void quickCraftSave(final Player player) {
+    public static void quickCraftSave(final @Nonnull Player player) {
         if (PlayerHandler.isCraftingInv(player.getOpenInventory())) {
             ItemStack[] contents = new ItemStack[5];
             for (int i = 0; i <= 4; i++) {
@@ -552,7 +558,7 @@ public class PlayerHandler {
      * @param player - The Player being referenced.
      * @param item   - The item to be dropped.
      */
-    public static void dropItem(final Player player, final ItemStack item) {
+    public static void dropItem(final @Nonnull Player player, final @Nonnull ItemStack item) {
         Location location = player.getLocation();
         location.setY(location.getY() + 1);
         Item dropped = player.getWorld().dropItem(location, item);
@@ -564,7 +570,7 @@ public class PlayerHandler {
      *
      * @return The HashMap of players and their crafting contents.
      */
-    public static HashMap<String, ItemStack[]> getCraftItems() {
+    public static @Nonnull HashMap<String, ItemStack[]> getCraftItems() {
         return craftingItems;
     }
 
@@ -574,7 +580,7 @@ public class PlayerHandler {
      * @param player - The player being referenced.
      * @param items  - THe items to be added.
      */
-    public static void addCraftItems(final Player player, final ItemStack[] items) {
+    public static void addCraftItems(final @Nonnull Player player, final @Nonnull ItemStack[] items) {
         craftingItems.put(PlayerHandler.getPlayerID(player), items);
     }
 
@@ -583,7 +589,7 @@ public class PlayerHandler {
      *
      * @return The HashMap of players and their prior to creative crafting contents.
      */
-    public static HashMap<String, ItemStack[]> getCreativeCraftItems() {
+    public static @Nonnull HashMap<String, ItemStack[]> getCreativeCraftItems() {
         return creativeCraftingItems;
     }
 
@@ -593,7 +599,7 @@ public class PlayerHandler {
      * @param player - The player being referenced.
      * @param items  - THe items to be added.
      */
-    public static void addCreativeCraftItems(final Player player, final ItemStack[] items) {
+    public static void addCreativeCraftItems(final @Nonnull Player player, final @Nonnull ItemStack[] items) {
         creativeCraftingItems.put(PlayerHandler.getPlayerID(player), items);
     }
 
@@ -602,7 +608,7 @@ public class PlayerHandler {
      *
      * @param player - The player being referenced.
      */
-    public static void removeCreativeCraftItems(final Player player) {
+    public static void removeCreativeCraftItems(final @Nonnull Player player) {
         creativeCraftingItems.remove(PlayerHandler.getPlayerID(player));
     }
 
@@ -611,7 +617,7 @@ public class PlayerHandler {
      *
      * @return The HashMap of players and their prior to opened inventory crafting contents.
      */
-    public static HashMap<String, ItemStack[]> getOpenCraftItems() {
+    public static @Nonnull HashMap<String, ItemStack[]> getOpenCraftItems() {
         return craftingOpenItems;
     }
 
@@ -621,7 +627,7 @@ public class PlayerHandler {
      * @param player - The player being referenced.
      * @param items  - THe items to be added.
      */
-    public static void addOpenCraftItems(final Player player, final ItemStack[] items) {
+    public static void addOpenCraftItems(final @Nonnull Player player, final @Nonnull ItemStack[] items) {
         craftingOpenItems.put(PlayerHandler.getPlayerID(player), items);
     }
 
@@ -630,7 +636,7 @@ public class PlayerHandler {
      *
      * @param player - The player being referenced.
      */
-    public static void removeOpenCraftItems(final Player player) {
+    public static void removeOpenCraftItems(final @Nonnull Player player) {
         craftingOpenItems.remove(PlayerHandler.getPlayerID(player));
     }
 
@@ -689,7 +695,7 @@ public class PlayerHandler {
      * @param range  - How far the block is allowed to be.
      * @return If the targeted block (if any).
      */
-    public static Block getTargetBlock(final Player player, final int range) {
+    public static @Nullable Block getTargetBlock(final @Nonnull Player player, final int range) {
         Block block = null;
         try {
             Set<Material> ignore = new HashSet<>();
@@ -718,7 +724,7 @@ public class PlayerHandler {
      * @param range  - The distance to check for Nearby Players.
      * @return The String name of the Nearby Player.
      */
-    public static String getNearbyPlayer(final Player player, final int range) {
+    public static @Nonnull String getNearbyPlayer(final @Nonnull Player player, final int range) {
         ArrayList<Location> sight = new ArrayList<>();
         ArrayList<Entity> entities = (ArrayList<Entity>) player.getNearbyEntities(range, range, range);
         Location origin = player.getEyeLocation();
@@ -738,7 +744,7 @@ public class PlayerHandler {
                 }
             }
         }
-        return (Core.getCore().getLang().getLangMessage("placeholders.PLAYER_INTERACT") != null ? Core.getCore().getLang().getLangMessage("placeholders.PLAYER_INTERACT") : "INVALID");
+        return (!Core.getCore().getLang().getLangMessage("placeholders.PLAYER_INTERACT").isEmpty() ? Core.getCore().getLang().getLangMessage("placeholders.PLAYER_INTERACT") : "INVALID");
     }
 
     /**
@@ -746,7 +752,7 @@ public class PlayerHandler {
      *
      * @param input - The methods to be executed.
      */
-    public static void forOnlinePlayers(final Consumer<Player> input) {
+    public static void forOnlinePlayers(final @Nonnull Consumer<Player> input) {
         try {
 		  /* New method for getting the current online players.
 			 This is for MC 1.12+
@@ -763,6 +769,36 @@ public class PlayerHandler {
 			*/
             else {
                 for (Player player : ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]))) {
+                    input.accept(player);
+                }
+            }
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+        }
+    }
+
+    /**
+     * Executes an input of methods for the currently offline players.
+     *
+     * @param input - The methods to be executed.
+     */
+    public static void forOfflinePlayers(final @Nonnull Consumer<OfflinePlayer> input) {
+        try {
+		  /* New method for getting the current offline players.
+			 This is for MC 1.12+
+			*/
+            if (Bukkit.class.getMethod("getOfflinePlayers").getReturnType() == Collection.class) {
+                for (Object objPlayer : ((Collection<?>) Bukkit.class.getMethod("getOfflinePlayers").invoke(null, new Object[0]))) {
+                    input.accept(((OfflinePlayer) objPlayer));
+                }
+            }
+		  /* New old for getting the current offline players.
+			 This is for MC versions below 1.12.
+
+			 @deprecated Legacy version of getting offline players.
+			*/
+            else {
+                for (OfflinePlayer player : ((OfflinePlayer[]) Bukkit.class.getMethod("getOfflinePlayers").invoke(null, new Object[0]))) {
                     input.accept(player);
                 }
             }

@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.lang.reflect.Method;
@@ -59,7 +60,7 @@ public class MetricsAPI {
      *                  href="https://bstats.org/what-is-my-plugin-id">What is my plugin id?</a>
      */
     @SuppressWarnings("deprecation") // Header deprecated as of 1.18
-    public MetricsAPI(final JavaPlugin plugin, final int serviceId) {
+    public MetricsAPI(final @Nonnull JavaPlugin plugin, final int serviceId) {
         this.plugin = plugin;
         File bStatsFolder = new File(plugin.getDataFolder().getParentFile(), "bStats");
         File configFile = new File(bStatsFolder, "config.yml");
@@ -111,7 +112,7 @@ public class MetricsAPI {
      *
      * @param chart - The chart to add.
      */
-    public void addCustomChart(final CustomChart chart) {
+    public void addCustomChart(final @Nonnull CustomChart chart) {
         this.metricsBase.addCustomChart(chart);
     }
 
@@ -120,7 +121,7 @@ public class MetricsAPI {
      *
      * @param builder - The JsonObjectBuilder.
      */
-    private void appendPlatformData(final JsonObjectBuilder builder) {
+    private void appendPlatformData(final @Nonnull JsonObjectBuilder builder) {
         builder.appendField("playerAmount", this.getPlayerAmount());
         builder.appendField("onlineMode", Bukkit.getOnlineMode() ? 1 : 0);
         builder.appendField("bukkitVersion", Bukkit.getVersion());
@@ -137,7 +138,7 @@ public class MetricsAPI {
      *
      * @param builder - The JsonObjectBuilder.
      */
-    private void appendServiceData(final JsonObjectBuilder builder) {
+    private void appendServiceData(final @Nonnull JsonObjectBuilder builder) {
         builder.appendField("pluginVersion", this.plugin.getDescription().getVersion());
     }
 

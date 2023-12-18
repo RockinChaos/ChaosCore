@@ -29,6 +29,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -43,7 +44,7 @@ public class LanguageAPI {
      *
      * @return The Language instance.
      */
-    public static LanguageAPI getLang() {
+    public static @Nonnull LanguageAPI getLang() {
         if (lang == null) {
             lang = new LanguageAPI();
             lang.langFile();
@@ -57,7 +58,7 @@ public class LanguageAPI {
      * @param sender      - The sender receiving the Message.
      * @param langMessage - The Message being sent.
      */
-    public void dispatchMessage(final CommandSender sender, String langMessage) {
+    public void dispatchMessage(final @Nonnull CommandSender sender, @Nonnull String langMessage) {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
@@ -77,29 +78,25 @@ public class LanguageAPI {
      * @param hoverMessage - The Hoverable Message being attached to langMessage.
      * @param clickMessage - The Clicked Message being attached to langMessage.
      */
-    public void dispatchMessage(final CommandSender sender, String langMessage, String hoverMessage, String clickMessage, final ClickAction action) {
+    public void dispatchMessage(final @Nonnull CommandSender sender, @Nonnull String langMessage, @Nonnull String hoverMessage, @Nonnull String clickMessage, final @Nonnull ClickAction action) {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
         }
         langMessage = StringUtils.translateLayout(langMessage, player);
-        hoverMessage = (hoverMessage != null ? StringUtils.translateLayout(hoverMessage, player) : null);
-        clickMessage = (clickMessage != null ? StringUtils.translateLayout(clickMessage, player) : null);
+        hoverMessage = StringUtils.translateLayout(hoverMessage, player);
+        clickMessage = StringUtils.translateLayout(clickMessage, player);
         if (sender instanceof ConsoleCommandSender) {
             langMessage = ChatColor.stripColor(langMessage);
             sender.sendMessage(langMessage);
         } else if (ServerUtils.hasPreciseUpdate("1_8_8")) {
             TextSection textComponent = ChatComponent.of(langMessage);
-            if (hoverMessage != null) {
-                TextSection.HoverEvent hoverEvent = new TextSection.HoverEvent(ChatComponent.of(hoverMessage));
-                textComponent.hoverEvent(hoverEvent);
-            }
-            if (clickMessage != null) {
-                ClickEvent clickEvent = new ClickEvent();
-                clickEvent.action(action);
-                clickEvent.click(clickMessage);
-                textComponent.clickEvent(clickEvent);
-            }
+            TextSection.HoverEvent hoverEvent = new TextSection.HoverEvent(ChatComponent.of(hoverMessage));
+            textComponent.hoverEvent(hoverEvent);
+            ClickEvent clickEvent = new ClickEvent();
+            clickEvent.action(action);
+            clickEvent.click(clickMessage);
+            textComponent.clickEvent(clickEvent);
             ChatComponent.sendTo(textComponent, player);
         } else {
             sender.sendMessage(langMessage);
@@ -113,7 +110,7 @@ public class LanguageAPI {
      * @param sender       - The Sender who will receive the Message.
      * @param placeHolder  - Placeholders to be placed into the Language Message.
      */
-    public void sendLangMessage(final String nodeLocation, final CommandSender sender, final String... placeHolder) {
+    public void sendLangMessage(final @Nonnull String nodeLocation, final @Nonnull CommandSender sender, final @Nonnull String... placeHolder) {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
@@ -142,9 +139,9 @@ public class LanguageAPI {
      *
      * @param nodeLocation - The String location of the Language Message.
      */
-    public String getLangMessage(final String nodeLocation) {
+    public @Nonnull String getLangMessage(final @Nonnull String nodeLocation) {
         String message = Core.getCore().getConfig(this.langType.nodeLocation()).getString(nodeLocation);
-        return (message != null && message.isEmpty() ? null : message);
+        return (message != null && !message.isEmpty() ? message : "");
     }
 
     /**
@@ -152,8 +149,8 @@ public class LanguageAPI {
      *
      * @param placeHolder - Placeholders to be placed into the Language Message.
      */
-    private String[] initializeRows(final String... placeHolder) {
-        if (placeHolder == null || placeHolder.length != this.newString().length) {
+    private @Nonnull String[] initializeRows(final @Nonnull String... placeHolder) {
+        if (placeHolder.length != this.newString().length) {
             String[] langHolder = this.newString();
             Arrays.fill(langHolder, "&lnull");
             return langHolder;
@@ -173,7 +170,7 @@ public class LanguageAPI {
      * @param langMessage - The Message being sent.
      * @param langHolder  - Placeholders to be placed into the Language Message.
      */
-    private String translateLangHolders(final String langMessage, final String... langHolder) {
+    private @Nonnull String translateLangHolders(final @Nonnull String langMessage, final @Nonnull String... langHolder) {
         return langMessage
                 .replace("%world%", langHolder[0])
                 .replace("%target_player%", langHolder[1])
@@ -192,6 +189,8 @@ public class LanguageAPI {
                 .replace("%input%", langHolder[16])
                 .replace("%item_slot%", langHolder[17])
                 .replace("%item_permission%", langHolder[18])
+                .replace("%gamemode%", langHolder[19])
+                .replace("%hotbar%", langHolder[20])
                 .replace("%prefix%", this.langPrefix);
 
     }
@@ -202,7 +201,7 @@ public class LanguageAPI {
      * @param nodeLocation - The String location of the Language Message.
      * @return If the Language Message is a Console Message.
      */
-    private boolean isConsoleMessage(final String nodeLocation) {
+    private boolean isConsoleMessage(final @Nonnull String nodeLocation) {
         return nodeLocation.equalsIgnoreCase("Commands.Updates.checking")
                 || nodeLocation.equalsIgnoreCase("Commands.Updates.forcing");
     }
@@ -212,8 +211,8 @@ public class LanguageAPI {
      *
      * @return The new String Array.
      */
-    public String[] newString() {
-        return new String[20];
+    public @Nonnull String[] newString() {
+        return new String[21];
     }
 
     /**
@@ -221,7 +220,7 @@ public class LanguageAPI {
      *
      * @return The Language.
      */
-    public String getLanguage() {
+    public @Nonnull String getLanguage() {
         return this.langType.name().substring(0, 1).toUpperCase() + this.langType.name().substring(1).toLowerCase();
     }
 
@@ -230,7 +229,7 @@ public class LanguageAPI {
      *
      * @param lang - The Language to be set.
      */
-    public void setLanguage(final String lang) {
+    public void setLanguage(final @Nonnull String lang) {
         if (lang.equalsIgnoreCase("tw")) {
             this.langType = Lang.TWCHINESE;
         } else if (lang.equalsIgnoreCase("cn")) {
@@ -257,7 +256,7 @@ public class LanguageAPI {
      *
      * @return The Language File name.
      */
-    public String getFile() {
+    public @Nonnull String getFile() {
         return this.langType.nodeLocation();
     }
 
@@ -265,7 +264,8 @@ public class LanguageAPI {
      * Sets the Language Prefix
      */
     public void setPrefix() {
-        this.langPrefix = StringUtils.colorFormat(Core.getCore().getConfig(this.langType.nodeLocation()).getString("Prefix"));
+        final String prefix = Core.getCore().getConfig(this.langType.nodeLocation()).getString("Prefix");
+        this.langPrefix = StringUtils.colorFormat(prefix == null ? "" : prefix);
     }
 
     /**

@@ -17,6 +17,7 @@
  */
 package me.RockinChaos.core.handlers;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.RockinChaos.core.Core;
@@ -41,11 +42,13 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionType;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.lang.reflect.Field;
 import java.util.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ItemHandler {
 
     private static final Map<String, GameProfile> gameProfiles = new HashMap<>();
@@ -57,8 +60,8 @@ public class ItemHandler {
      * @param lores - The list of lores to be added to the item.
      * @return The ItemStack with its newly added lores.
      */
-    public static ItemStack addLore(final ItemStack item, final String... lores) {
-        if (item != null && item.getType() != Material.AIR) {
+    public static @Nonnull ItemStack addLore(final @Nonnull ItemStack item, final @Nonnull String... lores) {
+        if (item.getType() != Material.AIR) {
             ItemMeta meta = item.getItemMeta();
             List<String> newLore = new ArrayList<>();
             if (meta != null) {
@@ -84,7 +87,7 @@ public class ItemHandler {
      * @param item2 - The ItemStack being checked.
      * @return If the ItemStack is similar.
      */
-    public static boolean isSimilar(final ItemStack item1, final ItemStack item2) {
+    public static boolean isSimilar(@Nullable final ItemStack item1, @Nullable final ItemStack item2) {
         return item1 != null && item2 != null && item1.getType() != Material.AIR && item2.getType() != Material.AIR && item1.getType() == item2.getType() && item1.hasItemMeta() && item2.hasItemMeta()
                 && Objects.requireNonNull(item1.getItemMeta()).hasDisplayName() && Objects.requireNonNull(item2.getItemMeta()).hasDisplayName() && item1.getItemMeta().getDisplayName().equalsIgnoreCase(item2.getItemMeta().getDisplayName());
     }
@@ -95,13 +98,23 @@ public class ItemHandler {
      * @param item - The ItemStack to have its Material name fetched.
      * @return A friendly String version of the Material name with normal case and no underlines.
      */
-    public static String getMaterialName(final ItemStack item) {
+    public static @Nonnull String getMaterialName(final @Nonnull ItemStack item) {
+        final String name = item.getType().name().toLowerCase().replace('_', ' ');
         try {
-            return WordUtils.capitalizeFully(item.getType().name().toLowerCase().replace('_', ' '));
+            return WordUtils.capitalizeFully(name);
         } catch (NullPointerException e) {
             ServerUtils.sendDebugTrace(e);
         }
-        return null;
+        return name;
+    }
+
+    /**
+     * Gets a list of all registered Enchantments on the server.
+     *
+     * @return The list of all available Enchantments.
+     */
+    public static @Nonnull List<Enchantment> getEnchants() {
+        return (ServerUtils.hasPreciseUpdate("1_20_3") ? ImmutableList.copyOf(Registry.ENCHANTMENT.iterator()) : LegacyAPI.getEnchants());
     }
 
     /**
@@ -110,7 +123,7 @@ public class ItemHandler {
      * @param enchant - The Enchantment to have its String name found.
      * @return The String name of the Bukkit Enchantment.
      */
-    public static String getEnchantName(final Enchantment enchant) {
+    public static @Nonnull String getEnchantName(final @Nonnull Enchantment enchant) {
         if (!ServerUtils.hasSpecificUpdate("1_13")) {
             return LegacyAPI.getEnchantName(enchant);
         } else {
@@ -124,22 +137,18 @@ public class ItemHandler {
      * @param name - Name of the Bukkit Enchantment.
      * @return The proper Bukkit Enchantment instance.
      */
-    public static Enchantment getEnchantByName(final String name) {
-        if (!ServerUtils.hasSpecificUpdate("1_13")) {
-            return LegacyAPI.getEnchant(name);
-        } else {
+    public static @Nullable Enchantment getEnchantByName(final @Nonnull String name) {
+        if (ServerUtils.hasSpecificUpdate("1_13")) {
             try {
                 Enchantment enchantName = LegacyAPI.getEnchantByKey(name);
                 if (enchantName != null) {
                     return enchantName;
-                } else {
-                    return LegacyAPI.getEnchant(name);
                 }
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
             }
         }
-        return null;
+        return LegacyAPI.getEnchant(name);
     }
 
     /**
@@ -148,16 +157,14 @@ public class ItemHandler {
      * @param name - Name of the Trim Material.
      * @return The proper Trim Material instance.
      */
-    public static org.bukkit.inventory.meta.trim.TrimMaterial getTrimMaterial(final String name) {
-        if (ServerUtils.hasSpecificUpdate("1_20")) {
-            try {
-                Field field = org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredField(name);
-                Object value = field.get(name);
-                return (org.bukkit.inventory.meta.trim.TrimMaterial) value;
-            } catch (Exception e) {
-                ServerUtils.logWarn("{ItemHandler} Failed to get the Trim Material " + name + ", check that you are using the proper name.");
-                ServerUtils.sendDebugTrace(e);
-            }
+    public static @Nullable org.bukkit.inventory.meta.trim.TrimMaterial getTrimMaterial(final @Nonnull String name) {
+        try {
+            Field field = org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredField(name);
+            Object value = field.get(name);
+            return (org.bukkit.inventory.meta.trim.TrimMaterial) value;
+        } catch (Exception e) {
+            ServerUtils.logWarn("{ItemHandler} Failed to get the Trim Material " + name + ", check that you are using the proper name.");
+            ServerUtils.sendDebugTrace(e);
         }
         return null;
     }
@@ -167,19 +174,17 @@ public class ItemHandler {
      *
      * @return The full list of available armor trim materials.
      */
-    public static List<org.bukkit.inventory.meta.trim.TrimMaterial> getTrimMaterials() {
-        if (ServerUtils.hasSpecificUpdate("1_20")) {
-            List<org.bukkit.inventory.meta.trim.TrimMaterial> trimMaterials = new ArrayList<>();
-            try {
-                for (Field fieldMaterial : org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredFields()) {
-                    trimMaterials.add((org.bukkit.inventory.meta.trim.TrimMaterial) fieldMaterial.get(fieldMaterial.getName()));
-                }
-                return trimMaterials;
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
+    public static @Nonnull List<org.bukkit.inventory.meta.trim.TrimMaterial> getTrimMaterials() {
+        final List<org.bukkit.inventory.meta.trim.TrimMaterial> trimMaterials = new ArrayList<>();
+        try {
+            for (Field fieldMaterial : org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredFields()) {
+                trimMaterials.add((org.bukkit.inventory.meta.trim.TrimMaterial) fieldMaterial.get(fieldMaterial.getName()));
             }
+            return trimMaterials;
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
-        return null;
+        return trimMaterials;
     }
 
     /**
@@ -188,16 +193,14 @@ public class ItemHandler {
      * @param name - Name of the Trim Pattern.
      * @return The proper Trim Pattern instance.
      */
-    public static org.bukkit.inventory.meta.trim.TrimPattern getTrimPattern(final String name) {
-        if (ServerUtils.hasSpecificUpdate("1_20")) {
-            try {
-                Field field = org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredField(name);
-                Object value = field.get(name);
-                return (org.bukkit.inventory.meta.trim.TrimPattern) value;
-            } catch (Exception e) {
-                ServerUtils.logWarn("{ItemHandler} Failed to get the Trim Pattern " + name + ", check that you are using the proper name.");
-                ServerUtils.sendDebugTrace(e);
-            }
+    public static @Nullable org.bukkit.inventory.meta.trim.TrimPattern getTrimPattern(final @Nonnull String name) {
+        try {
+            Field field = org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredField(name);
+            Object value = field.get(name);
+            return (org.bukkit.inventory.meta.trim.TrimPattern) value;
+        } catch (Exception e) {
+            ServerUtils.logWarn("{ItemHandler} Failed to get the Trim Pattern " + name + ", check that you are using the proper name.");
+            ServerUtils.sendDebugTrace(e);
         }
         return null;
     }
@@ -207,27 +210,25 @@ public class ItemHandler {
      *
      * @return The full list of available armor trim patterns.
      */
-    public static List<org.bukkit.inventory.meta.trim.TrimPattern> getTrimPatterns() {
-        if (ServerUtils.hasSpecificUpdate("1_20")) {
-            final List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
-            try {
-                for (Field fieldPattern : org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredFields()) {
-                    trimPatterns.add((org.bukkit.inventory.meta.trim.TrimPattern) fieldPattern.get(fieldPattern.getName()));
-                }
-                return trimPatterns;
-            } catch (Exception e) {
-                ServerUtils.sendSevereTrace(e);
+    public static @Nonnull List<org.bukkit.inventory.meta.trim.TrimPattern> getTrimPatterns() {
+        final List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
+        try {
+            for (Field fieldPattern : org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredFields()) {
+                trimPatterns.add((org.bukkit.inventory.meta.trim.TrimPattern) fieldPattern.get(fieldPattern.getName()));
             }
+            return trimPatterns;
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
         }
-        return null;
+        return trimPatterns;
     }
 
     /**
      * Sets the ItemStack Armor Trim Pattern
      */
-    public static void setArmorTrim(final ItemStack item, final String material, final String pattern) {
+    public static void setArmorTrim(final @Nonnull ItemStack item, final @Nonnull String material, final @Nonnull String pattern) {
         final ItemMeta itemMeta = item.getItemMeta();
-        if (material != null && pattern != null && itemMeta != null) {
+        if (itemMeta != null) {
             final org.bukkit.inventory.meta.trim.TrimMaterial trimMaterial = getTrimMaterial(material);
             final org.bukkit.inventory.meta.trim.TrimPattern trimPattern = getTrimPattern(pattern);
             if (trimMaterial != null && trimPattern != null) {
@@ -243,7 +244,7 @@ public class ItemHandler {
      * @param item - The ItemStack to have its Durability found.
      * @return The Durability value of the ItemStack.
      */
-    public static short getDurability(final ItemStack item) {
+    public static short getDurability(final @Nonnull ItemStack item) {
         if (!ServerUtils.hasSpecificUpdate("1_13")) {
             return LegacyAPI.getDurability(item);
         } else if (item.getItemMeta() != null) {
@@ -259,7 +260,7 @@ public class ItemHandler {
      * @param durability - The Durability to be set to the ItemStack.
      * @return The ItemStack with its new Durability.
      */
-    public static ItemStack setDurability(final ItemStack item, final int durability) {
+    public static @Nonnull ItemStack setDurability(final @Nonnull ItemStack item, final int durability) {
         if (item.getType().getMaxDurability() != 0 && durability != 0) {
             if (ServerUtils.hasSpecificUpdate("1_13")) {
                 final ItemMeta tempMeta = item.getItemMeta();
@@ -283,7 +284,10 @@ public class ItemHandler {
      * @param amount   - The intended stack size.
      * @return The newly Modified ItemStack.
      */
-    public static ItemStack modifyItem(final ItemStack itemCopy, final boolean allItems, final int amount) {
+    public static @Nonnull ItemStack modifyItem(final @Nullable ItemStack itemCopy, final boolean allItems, final int amount) {
+        if (itemCopy == null) {
+            return new ItemStack(Material.AIR);
+        }
         ItemStack item = new ItemStack(itemCopy);
         if (((item.getAmount() > amount && item.getAmount() != amount) || item.getAmount() < amount) && !allItems) {
             item.setAmount(item.getAmount() - amount);
@@ -297,20 +301,10 @@ public class ItemHandler {
      * Sets the ItemStack Model Data.
      *
      * @param itemMeta - The ItemMeta being modified.
-     * @param data - The model data being set.
+     * @param data     - The model data being set.
      */
-    public static void setData(final ItemMeta itemMeta, final int data) {
+    public static void setData(final @Nonnull ItemMeta itemMeta, final int data) {
         itemMeta.setCustomModelData(data);
-    }
-
-    /**
-     * If the given ItemStack is null, return an air ItemStack, otherwise return the given ItemStack.
-     *
-     * @param stack The ItemStack to check.
-     * @return air or the given ItemStack.
-     */
-    public static ItemStack itemNotNull(ItemStack stack) {
-        return stack == null ? new ItemStack(Material.AIR) : stack;
     }
 
     /**
@@ -323,8 +317,8 @@ public class ItemHandler {
      * @param name     - The custom name to be added to the ItemStack.
      * @param lores    - The custom lore to be added to the ItemStack.
      */
-    public static ItemStack getItem(String material, final int count, final boolean glowing, boolean hideAttributes, String name, final String... lores) {
-        ItemStack tempItem = new ItemStack(Material.AIR);
+    public static @Nonnull ItemStack getItem(@Nonnull String material, final int count, final boolean glowing, boolean hideAttributes, @Nonnull String name, final @Nonnull String... lores) {
+        ItemStack tempItem;
         String refMat = "";
         if (material.equalsIgnoreCase("AIR") || material.equalsIgnoreCase("AIR:0")) {
             material = "GLASS_PANE";
@@ -333,14 +327,9 @@ public class ItemHandler {
             refMat = material;
             material = "POTION";
         }
-        if (getMaterial(material, null) == null) {
-            material = "STONE";
-        }
         if (ServerUtils.hasSpecificUpdate("1_13")) {
             final Material bukkitMaterial = getMaterial(material, null);
-            if (bukkitMaterial != null) {
-                tempItem = new ItemStack(bukkitMaterial, count);
-            }
+            tempItem = new ItemStack(bukkitMaterial, count);
         } else {
             short dataValue = 0;
             if (material.contains(":")) {
@@ -357,11 +346,11 @@ public class ItemHandler {
         if (tempMeta != null) {
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
         }
-        if (name != null && tempMeta != null) {
+        if (tempMeta != null) {
             name = StringUtils.colorFormat(name);
             tempMeta.setDisplayName(name);
         }
-        if (lores != null && lores.length != 0 && tempMeta != null) {
+        if (lores.length != 0 && tempMeta != null) {
             ArrayList<String> loreList = new ArrayList<>();
             for (String loreString : lores) {
                 if (!loreString.isEmpty()) {
@@ -410,7 +399,7 @@ public class ItemHandler {
      * @param checkSlot - The slot being checked.
      * @return The existing ItemStack from the Players Inventory.
      */
-    public static ItemStack getItem(final Player player, final String checkSlot) {
+    public static @Nonnull ItemStack getItem(final @Nonnull Player player, final @Nonnull String checkSlot) {
         int craftSlot = StringUtils.getSlotConversion(checkSlot);
         final EntityEquipment equipment = player.getEquipment();
         ItemStack existingItem = null;
@@ -434,7 +423,7 @@ public class ItemHandler {
         } else if (craftSlot != -1) {
             existingItem = player.getOpenInventory().getTopInventory().getItem(craftSlot);
         }
-        return (existingItem != null && existingItem.getType() != Material.AIR ? existingItem : null);
+        return (existingItem != null && existingItem.getType() != Material.AIR ? existingItem : new ItemStack(Material.AIR));
     }
 
     /**
@@ -444,7 +433,7 @@ public class ItemHandler {
      * @param data     - The data value of the item, usually this is zero.
      * @return The proper Bukkit Material instance.
      */
-    public static Material getMaterial(String material, String data) {
+    public static @Nonnull Material getMaterial(@Nonnull String material, @Nullable String data) {
         try {
             boolean isLegacy = (data != null && Integer.parseInt(data) > 0);
             if (material.contains(":")) {
@@ -468,19 +457,30 @@ public class ItemHandler {
                     dataValue = 0;
                 }
                 if (!StringUtils.isInt(material)) {
-                    return LegacyAPI.getMaterial(Material.getMaterial(material.toUpperCase()), (byte) dataValue);
+                    final Material mat = Material.getMaterial(material.toUpperCase());
+                    if (mat != null) {
+                        return LegacyAPI.getMaterial(mat, (byte) dataValue);
+                    } else {
+                        return Material.AIR;
+                    }
                 } else {
                     return LegacyAPI.getMaterial(Integer.parseInt(material), (byte) dataValue);
                 }
             } else if (!ServerUtils.hasSpecificUpdate("1_13")) {
-                return Material.getMaterial(material.toUpperCase());
+                final Material mat = Material.getMaterial(material.toUpperCase());
+                if (mat != null) {
+                    return mat;
+                }
             } else {
-                return Material.matchMaterial(material.toUpperCase());
+                final Material mat = Material.matchMaterial(material.toUpperCase());
+                if (mat != null) {
+                    return mat;
+                }
             }
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
         }
-        return null;
+        return Material.AIR;
     }
 
     /**
@@ -490,7 +490,7 @@ public class ItemHandler {
      * @param material   - The Material expected.
      * @return If the List contains the Material
      */
-    public static boolean containsMaterial(final Collection<ItemStack> itemStacks, final Material material) {
+    public static boolean containsMaterial(final @Nonnull Collection<ItemStack> itemStacks, final @Nonnull Material material) {
         for (ItemStack item : itemStacks) {
             if (item.getType().equals(material)) {
                 return true;
@@ -502,24 +502,26 @@ public class ItemHandler {
     /**
      * Sets the Skull Texture to the ItemStack.
      *
-     * @param player     - The player being referenced.
+     * @param player       - The player being referenced.
      * @param item         - The ItemStack to have its Skull Texture changed.
      * @param skullTexture - The Skull Texture to be added to the ItemStack.
      */
-    public static ItemStack setSkullTexture(final Player player, final ItemStack item, final String skullTexture) {
-        ItemMeta itemMeta = setSkullTexture(player, item.getItemMeta(), skullTexture);
-        item.setItemMeta(itemMeta);
+    public static @Nonnull ItemStack setSkullTexture(final @Nonnull Player player, final @Nonnull ItemStack item, final @Nonnull String skullTexture) {
+        if (item.getItemMeta() != null) {
+            ItemMeta itemMeta = setSkullTexture(player, item.getItemMeta(), skullTexture);
+            item.setItemMeta(itemMeta);
+        }
         return item;
     }
 
     /**
      * Sets the Skull Texture to the ItemStack.
      *
-     * @param player     - The player being referenced.
+     * @param player       - The player being referenced.
      * @param itemMeta     - The ItemMeta to have its Skull Texture changed.
      * @param skullTexture - The Skull Texture to be added to the ItemStack.
      */
-    public static ItemMeta setSkullTexture(final Player player, final ItemMeta itemMeta, final String skullTexture) {
+    public static @Nonnull ItemMeta setSkullTexture(final @Nonnull Player player, final @Nonnull ItemMeta itemMeta, final @Nonnull String skullTexture) {
         try {
             GameProfile gameProfile;
             if (!gameProfiles.containsKey(skullTexture)) {
@@ -546,7 +548,7 @@ public class ItemHandler {
      * @return The found Skull Texture String value.
      */
     @SuppressWarnings("JavaReflectionMemberAccess")
-    public static String getSkullTexture(final ItemMeta meta) {
+    public static @Nonnull String getSkullTexture(final @Nonnull ItemMeta meta) {
         Class<?> propertyClass = Property.class;
         try {
             final Class<?> cls = ReflectionUtils.getCraftBukkitClass("inventory.CraftMetaSkull");
@@ -582,7 +584,7 @@ public class ItemHandler {
      * @return The found Skull Texture String value.
      */
     @SuppressWarnings("JavaReflectionMemberAccess")
-    public static String getSkullTexture(final Skull skull) {
+    public static @Nonnull String getSkullTexture(final @Nonnull Skull skull) {
         Class<?> propertyClass = Property.class;
         try {
             final Field field = skull.getClass().getDeclaredField("profile");
@@ -612,12 +614,12 @@ public class ItemHandler {
     /**
      * Sets the Skull Owner name to the ItemMeta.
      *
-     * @param meta  - The ItemMeta to have its Skull Owner changed.
+     * @param meta   - The ItemMeta to have its Skull Owner changed.
      * @param player - The Player being referenced.
-     * @param owner - The String name of the Skull Owner to be set.
+     * @param owner  - The String name of the Skull Owner to be set.
      * @return The ItemMeta with the new Skull Owner.
      */
-    public static ItemMeta setSkullOwner(final ItemMeta meta, final Player player, final String owner) {
+    public static @Nonnull ItemMeta setSkullOwner(final @Nonnull ItemMeta meta, final @Nonnull Player player, final @Nonnull String owner) {
         setStoredSkull(meta, player, owner);
         return meta;
     }
@@ -625,11 +627,11 @@ public class ItemHandler {
     /**
      * Sets the locale stored skull owner.
      *
-     * @param meta  - The referenced ItemMeta.
+     * @param meta   - The referenced ItemMeta.
      * @param player - The Player being referenced.
-     * @param owner - The referenced Skull Owner
+     * @param owner  - The referenced Skull Owner
      */
-    public static void setStoredSkull(final ItemMeta meta, final Player player, final String owner) {
+    public static void setStoredSkull(final @Nonnull ItemMeta meta, final @Nonnull Player player, final @Nonnull String owner) {
         if (!owner.isEmpty()) {
             SkullMeta skullMeta = (SkullMeta) meta;
             OfflinePlayer offPlayer = LegacyAPI.getOfflinePlayer(owner);
@@ -641,14 +643,18 @@ public class ItemHandler {
                     try {
                         skullMeta.setOwningPlayer(offPlayer);
                     } catch (Throwable t) {
-                        LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
+                        if (offPlayer.getName() != null) {
+                            LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
+                        }
                     }
                 }
             } else {
                 try {
                     skullMeta.setOwningPlayer(offPlayer);
                 } catch (Throwable t) {
-                    LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
+                    if (offPlayer.getName() != null) {
+                        LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
+                    }
                 }
             }
         }
@@ -663,7 +669,7 @@ public class ItemHandler {
      * @param slot   - The new event slot of the main item.
      * @return The Remaining amount to be set (if any).
      */
-    public static int stackItems(final Player player, final ItemStack item1, final ItemStack item2, final int slot, final boolean topInventory) {
+    public static int stackItems(final @Nonnull Player player, final @Nonnull ItemStack item1, final @Nonnull ItemStack item2, final int slot, final boolean topInventory) {
         int MINECRAFT_STACK_MAX = 64;
         int DESIRED_STACK_SIZE = item1.getAmount() + item2.getAmount();
         int REMAINING_STACK_SIZE = 0;
@@ -692,7 +698,7 @@ public class ItemHandler {
      * @param id - that will receive the items.
      * @return The existing MapView.
      */
-    public static MapView existingView(final int id) {
+    public static @Nonnull MapView existingView(final int id) {
         MapView view = LegacyAPI.getMapView(id);
         if (view == null) {
             view = LegacyAPI.createMapView();
@@ -705,7 +711,7 @@ public class ItemHandler {
      *
      * @param player - The Player to have their crafting items removed.
      */
-    public static void removeCraftItems(final Player player) {
+    public static void removeCraftItems(final @Nonnull Player player) {
         ItemStack[] craftingContents = player.getOpenInventory().getTopInventory().getContents();
         Inventory craftView = player.getOpenInventory().getTopInventory();
         if (PlayerHandler.isCraftingInv(player.getOpenInventory())) {
@@ -723,10 +729,7 @@ public class ItemHandler {
      * @param item   - the item to be returned.
      * @param delay  - the delay to wait before returning the item.
      */
-    public static void returnCraftingItem(final Player player, final int slot, final ItemStack item, long delay) {
-        if (item == null) {
-            return;
-        }
+    public static void returnCraftingItem(final @Nonnull Player player, final int slot, final @Nonnull ItemStack item, long delay) {
         if (slot == 0) {
             delay += 1L;
         }
@@ -748,7 +751,7 @@ public class ItemHandler {
      *
      * @param player - The Player to have its crafting items saved.
      */
-    public static Inventory getCraftInventory(final Player player) {
+    public static @Nullable Inventory getCraftInventory(final @Nonnull Player player) {
         final Inventory inv = Bukkit.createInventory(null, 9);
         boolean notNull = false;
         if (PlayerHandler.getCreativeCraftItems().containsKey(PlayerHandler.getPlayerID(player))) {
@@ -790,7 +793,7 @@ public class ItemHandler {
      *
      * @param player - The Player to have its crafting items restored.
      */
-    public static boolean restoreCraftItems(final Player player, final Inventory inventory) {
+    public static boolean restoreCraftItems(final @Nonnull Player player, @Nullable final Inventory inventory) {
         Inventory craftView = player.getOpenInventory().getTopInventory();
         if (inventory != null && PlayerHandler.isCraftingInv(player.getOpenInventory())) {
             for (int k = 4; k >= 0; k--) {
@@ -813,7 +816,7 @@ public class ItemHandler {
      * @param contents - The ItemStack contents to be copied.
      * @return The copied ItemStack contents.
      */
-    public static ItemStack[] cloneContents(final ItemStack[] contents) {
+    public static @Nonnull ItemStack[] cloneContents(final @Nonnull ItemStack[] contents) {
         int itr = 0;
         for (ItemStack itemStack : contents) {
             if (contents[itr] != null) {
@@ -830,7 +833,7 @@ public class ItemHandler {
      * @param contents - The ItemStack contents to be checked.
      * @return If the contents do not exist.
      */
-    public static boolean isContentsEmpty(final ItemStack[] contents) {
+    public static boolean isContentsEmpty(final @Nonnull ItemStack[] contents) {
         int size = 0;
         for (ItemStack itemStack : contents) {
             if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
@@ -847,7 +850,7 @@ public class ItemHandler {
      * @param inventory - The Inventory to be converted.
      * @return The Base64 String of the Inventory.
      */
-    public static String serializeInventory(final Inventory inventory) {
+    public static @Nonnull String serializeInventory(final @Nonnull Inventory inventory) {
         try {
             java.io.ByteArrayOutputStream str = new java.io.ByteArrayOutputStream();
             org.bukkit.util.io.BukkitObjectOutputStream data = new org.bukkit.util.io.BukkitObjectOutputStream(str);
@@ -870,7 +873,7 @@ public class ItemHandler {
      * @param inventoryData - The Base64 String to be converted to an Inventory.
      * @return The Inventory instance that has been deserialized.
      */
-    public static Inventory deserializeInventory(final String inventoryData) {
+    public static @Nullable Inventory deserializeInventory(final @Nonnull String inventoryData) {
         try {
             java.io.ByteArrayInputStream stream = new java.io.ByteArrayInputStream(Base64.getDecoder().decode(inventoryData));
             org.bukkit.util.io.BukkitObjectInputStream data = new org.bukkit.util.io.BukkitObjectInputStream(stream);
@@ -895,9 +898,9 @@ public class ItemHandler {
      * @param dataList - The list of data expected on the ItemStack.
      * @return The String of NBTData found on the ItemStack.
      */
-    public static String getNBTData(final ItemStack item, final List<String> dataList) {
+    public static @Nullable String getNBTData(final @Nonnull ItemStack item, final @Nonnull List<String> dataList) {
         synchronized ("CC_NBT") {
-            if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
+            if (Core.getCore().getData().dataTagsEnabled() && item.getType() != Material.AIR) {
                 try {
                     final ItemStack itemCopy = item.clone();
                     Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, itemCopy);
@@ -931,12 +934,12 @@ public class ItemHandler {
      * @param dataList - The list of data expected on the ItemStack.
      * @return If the ItemStack has plugin specific NBTData.
      */
-    public static boolean containsNBTData(final ItemStack item, final List<String> dataList) {
-        if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR && getNBTData(item, dataList) != null) {
+    public static boolean containsNBTData(final @Nonnull ItemStack item, final @Nonnull List<String> dataList) {
+        if (Core.getCore().getData().dataTagsEnabled() && item.getType() != Material.AIR && getNBTData(item, dataList) != null) {
             return true;
-        } else if (!Core.getCore().getData().dataTagsEnabled() && item != null) {
+        } else if (!Core.getCore().getData().dataTagsEnabled()) {
             final String colorDecode = StringUtils.colorDecode(item);
-            return colorDecode != null && !colorDecode.isEmpty();
+            return !colorDecode.isEmpty();
         }
         return false;
     }
@@ -947,7 +950,7 @@ public class ItemHandler {
      * @param material - The ItemStack to be checked for a designated slot.
      * @return The proper designated slot name.
      */
-    public static String getDesignatedSlot(final Material material) {
+    public static @Nonnull String getDesignatedSlot(final @Nonnull Material material) {
         String name = material.name().contains("_") ? material.name().split("_")[1] : material.name();
         String hand = (ServerUtils.hasSpecificUpdate("1_13") ? "hand" : "mainhand");
         return (name != null ? (name.equalsIgnoreCase("HELMET") ? "head" : name.equalsIgnoreCase("CHESTPLATE") ? "chest" : name.equalsIgnoreCase("LEGGINGS") ? "legs" : name.equalsIgnoreCase("BOOTS") ? "feet" :
@@ -973,7 +976,7 @@ public class ItemHandler {
      *
      * @return The ItemStack instance.
      */
-    public static ItemStack setGlowing(final ItemStack item) {
+    public static @Nonnull ItemStack setGlowing(final @Nonnull ItemStack item) {
         Enchantment enchant;
         if (item.getType().name().equalsIgnoreCase("ENCHANTED_BOOK")) {
             enchant = getEnchantByName("BINDING_CURSE");
@@ -994,10 +997,11 @@ public class ItemHandler {
      * @param context - The String to have the Delay found.
      * @return The Delay of the String as an Integer.
      */
-    public static int getDelay(final String context) {
+    public static int getDelay(final @Nonnull String context) {
         try {
-            if (StringUtils.returnInteger(context) != null) {
-                return StringUtils.returnInteger(context);
+            final Integer returnInt = StringUtils.returnInteger(context);
+            if (returnInt != null) {
+                return returnInt;
             }
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
@@ -1011,7 +1015,7 @@ public class ItemHandler {
      * @param context - The String to have the Delay found.
      * @return The Delay Format of the String with the proper Integer value.
      */
-    public static String getDelayFormat(final String context) {
+    public static @Nullable String getDelayFormat(final @Nonnull String context) {
         if (StringUtils.containsIgnoreCase(context, "<delay:" + StringUtils.returnInteger(context) + ">")
                 || StringUtils.containsIgnoreCase(context, "delay:" + StringUtils.returnInteger(context))
                 || StringUtils.containsIgnoreCase(context, "<delay: " + StringUtils.returnInteger(context) + ">")
@@ -1027,7 +1031,10 @@ public class ItemHandler {
      * @param context - The String to have the Delay Formatting removed.
      * @return The String with the removed Delay Formatting.
      */
-    public static String cutDelay(final String context) {
+    public static @Nonnull String cutDelay(final @Nullable String context) {
+        if (context == null) {
+            return "";
+        }
         final String delayFormat = getDelayFormat(context);
         if (delayFormat != null) {
             return context.replace(delayFormat, "");
@@ -1041,7 +1048,7 @@ public class ItemHandler {
      * @param context - The String List to have the Delay Formatting removed.
      * @return The String List with the removed Delay Formatting.
      */
-    public static List<String> cutDelay(final List<String> context) {
+    public static @Nonnull List<String> cutDelay(final @Nonnull List<String> context) {
         List<String> newContext = new ArrayList<>();
         for (String minorContext : context) {
             newContext.add(cutDelay(minorContext));
@@ -1055,7 +1062,7 @@ public class ItemHandler {
      * @param formatPage - The page to be formatted.
      * @return If the book page contains a JSONEvent.
      */
-    public static boolean containsJSONEvent(final String formatPage) {
+    public static boolean containsJSONEvent(final @Nonnull String formatPage) {
         return formatPage.contains(JSONEvent.TEXT.matchType) || formatPage.contains(JSONEvent.SHOW_TEXT.matchType) || formatPage.contains(JSONEvent.OPEN_URL.matchType) || formatPage.contains(JSONEvent.RUN_COMMAND.matchType);
     }
 
@@ -1066,7 +1073,7 @@ public class ItemHandler {
      * @param type        - The JSONEvent type.
      * @param inputResult - The input for the JSONEvent.
      */
-    public static void safetyCheckURL(final String itemName, final JSONEvent type, final String inputResult) {
+    public static void safetyCheckURL(final @Nonnull String itemName, final @Nonnull JSONEvent type, final @Nonnull String inputResult) {
         if (type.equals(JSONEvent.OPEN_URL)) {
             if (!StringUtils.containsIgnoreCase(inputResult, "https") && !StringUtils.containsIgnoreCase(inputResult, "http")) {
                 ServerUtils.logSevere("{ItemHandler} The URL Specified for the clickable link in the book " + itemName + " is missing http or https and will not be clickable.");
@@ -1081,7 +1088,7 @@ public class ItemHandler {
      * @param slot - The slot to be checked.
      * @return If the slot is a custom slot.
      */
-    public static boolean isCustomSlot(final String slot) {
+    public static boolean isCustomSlot(final @Nonnull String slot) {
         return slot.equalsIgnoreCase("OFFHAND") || slot.equalsIgnoreCase("ARBITRARY") || isArmor(slot) || isCraftingSlot(slot) || slot.contains("%");
     }
 
@@ -1091,7 +1098,7 @@ public class ItemHandler {
      * @param context - The string to be checked.
      * @return If the string is an armor type.
      */
-    public static boolean isArmor(final String context) {
+    public static boolean isArmor(final @Nonnull String context) {
         return StringUtils.containsIgnoreCase(context, "HELMET") || StringUtils.containsIgnoreCase(context, "CHESTPLATE") || StringUtils.containsIgnoreCase(context, "LEGGINGS") || StringUtils.containsIgnoreCase(context, "BOOTS");
     }
 
@@ -1101,7 +1108,7 @@ public class ItemHandler {
      * @param slot - The slot to be checked.
      * @return If the slot is a crafting slot.
      */
-    public static boolean isCraftingSlot(final String slot) {
+    public static boolean isCraftingSlot(final @Nonnull String slot) {
         return slot.equalsIgnoreCase("CRAFTING[0]") || slot.equalsIgnoreCase("CRAFTING[1]")
                 || slot.equalsIgnoreCase("CRAFTING[2]") || slot.equalsIgnoreCase("CRAFTING[3]") || slot.equalsIgnoreCase("CRAFTING[4]");
     }
@@ -1112,7 +1119,7 @@ public class ItemHandler {
      * @param material - The Material to be checked.
      * @return If the Material is a Skull/Player Head.
      */
-    public static boolean isSkull(final Material material) {
+    public static boolean isSkull(final @Nonnull Material material) {
         return material.toString().equalsIgnoreCase("SKULL_ITEM") || material.toString().equalsIgnoreCase("PLAYER_HEAD");
     }
 
@@ -1122,8 +1129,7 @@ public class ItemHandler {
      * @param item - The ItemStack to be checked.
      * @return If the ItemStack is a Writable Book.
      */
-    public static boolean isBookQuill(final ItemStack item) {
-        if (item == null) return false;
+    public static boolean isBookQuill(final @Nonnull ItemStack item) {
         return item.getType().toString().equalsIgnoreCase("WRITABLE_BOOK") || item.getType().toString().equalsIgnoreCase("BOOK_AND_QUILL");
     }
 
@@ -1140,7 +1146,7 @@ public class ItemHandler {
         public final String action;
         public final String matchType;
 
-        JSONEvent(String Event, String Action, String MatchType) {
+        JSONEvent(@Nonnull String Event, @Nonnull String Action, @Nonnull String MatchType) {
             this.event = Event;
             this.action = Action;
             this.matchType = MatchType;
@@ -1160,11 +1166,11 @@ public class ItemHandler {
         ARBITRARY("Arbitrary");
         private final String name;
 
-        CustomSlot(String name) {
+        CustomSlot(@Nonnull String name) {
             this.name = name;
         }
 
-        public boolean isSlot(String slot) {
+        public boolean isSlot(@Nonnull String slot) {
             return this.name.equalsIgnoreCase(slot);
         }
     }
@@ -1185,7 +1191,7 @@ public class ItemHandler {
         REDSTONE("REDSTONE");
         private final String name;
 
-        TrimMaterial(String name) {
+        TrimMaterial(@Nonnull String name) {
             this.name = name;
         }
 
@@ -1216,7 +1222,7 @@ public class ItemHandler {
         WILD("WILD_ARMOR_TRIM_SMITHING_TEMPLATE");
         private final String name;
 
-        TrimPattern(String name) {
+        TrimPattern(@Nonnull String name) {
             this.name = name;
         }
 

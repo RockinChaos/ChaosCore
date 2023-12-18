@@ -25,6 +25,8 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.SimplePluginManager;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +47,7 @@ public class ServerUtils {
      *
      * @return The specific server version in the format of (x_xx_x).
      */
-    public static String getVersion() {
+    public static @Nonnull String getVersion() {
         return packageSub.split("-")[0].replace(".", "_").replace("R", "").replaceAll("[a-z]", "");
     }
 
@@ -55,7 +57,7 @@ public class ServerUtils {
      * @param versionString - The version to compare against the server version, example: '1_13'.
      * @return If the server version is greater than or equal to the specified version.
      */
-    public static boolean hasSpecificUpdate(final String versionString) {
+    public static boolean hasSpecificUpdate(final @Nonnull String versionString) {
         return Integer.parseInt(serverVersion) >= Integer.parseInt(versionString.replace("_", ""));
     }
 
@@ -65,16 +67,16 @@ public class ServerUtils {
      * @param versionString - The version to compare against the server version, example: '1_13'.
      * @return If the server version is greater than or equal to the specified version.
      */
-    public static boolean hasPreciseUpdate(final String versionString) {
+    public static boolean hasPreciseUpdate(final @Nonnull String versionString) {
         return Integer.parseInt(serverPreciseVersion) >= Integer.parseInt(versionString.replace("_", ""));
     }
 
     /**
      * Sends a low priority log message as the plugin header.
      *
-     * @param message - The unformatted message text to be sent.
+     * @param message - The un-formatted message text to be sent.
      */
-    public static void logInfo(String message) {
+    public static void logInfo(@Nonnull String message) {
         String prefix = "[" + Core.getCore().getPlugin().getName() + "] ";
         message = prefix + message;
         Bukkit.getServer().getLogger().info(message);
@@ -83,9 +85,9 @@ public class ServerUtils {
     /**
      * Sends a warning message as the plugin header.
      *
-     * @param message - The unformatted message text to be sent.
+     * @param message - The un-formatted message text to be sent.
      */
-    public static void logWarn(String message) {
+    public static void logWarn(@Nonnull String message) {
         String prefix = "[" + Core.getCore().getPlugin().getName() + "_WARN] ";
         message = prefix + message;
         Bukkit.getServer().getLogger().warning(message);
@@ -94,9 +96,9 @@ public class ServerUtils {
     /**
      * Sends a developer warning message as the plugin header.
      *
-     * @param message - The unformatted message text to be sent.
+     * @param message - The un-formatted message text to be sent.
      */
-    public static void logDev(String message) {
+    public static void logDev(@Nonnull String message) {
         String prefix = "[" + Core.getCore().getPlugin().getName() + "_DEVELOPER] ";
         message = prefix + message;
         Bukkit.getServer().getLogger().warning(message);
@@ -105,9 +107,9 @@ public class ServerUtils {
     /**
      * Sends a error message as the plugin header.
      *
-     * @param message - The unformatted message text to be sent.
+     * @param message - The un-formatted message text to be sent.
      */
-    public static void logSevere(String message) {
+    public static void logSevere(@Nonnull String message) {
         String prefix = "[" + Core.getCore().getPlugin().getName() + "_ERROR] ";
         if (message.isEmpty()) {
             message = "";
@@ -121,9 +123,9 @@ public class ServerUtils {
     /**
      * Sends a debug message as a loggable warning as the plugin header.
      *
-     * @param message - The unformatted message text to be sent.
+     * @param message - The un-formatted message text to be sent.
      */
-    public static void logDebug(String message) {
+    public static void logDebug(@Nonnull String message) {
         if (Core.getCore().getData().debugEnabled()) {
             String prefix = "[" + Core.getCore().getPlugin().getName() + "_DEBUG] ";
             message = prefix + message;
@@ -172,9 +174,9 @@ public class ServerUtils {
      * Sends a chat message to the specified sender.
      *
      * @param sender  - The entity to have the message sent.
-     * @param message - The unformatted message text to be sent.
+     * @param message - The un-formatted message text to be sent.
      */
-    public static void messageSender(final CommandSender sender, String message) {
+    public static void messageSender(final @Nonnull CommandSender sender, @Nonnull String message) {
         String prefix = Core.getCore().getData().getPluginPrefix() + " ";
         message = prefix + message;
         message = ChatColor.translateAlternateColorCodes('&', message);
@@ -192,7 +194,7 @@ public class ServerUtils {
      *
      * @param player - The Player to have the message sent.
      */
-    public static void sendErrorStatements(final Player player) {
+    public static void sendErrorStatements(final @Nullable Player player) {
         if (player != null && player.isOp() && Core.getCore().getData().ignoreErrors()) {
             SchedulerUtils.runLater(60L, () -> {
                 for (String statement : errorStatements) {
@@ -222,7 +224,7 @@ public class ServerUtils {
      *
      * @param commands - The PluginCommands to be registered.
      */
-    public static void registerCommands(final List<PluginCommand> commands) {
+    public static void registerCommands(final @Nonnull List<PluginCommand> commands) {
         try {
             CommandMap commandMap = null;
             if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
@@ -248,7 +250,7 @@ public class ServerUtils {
      * @param commands - The PluginCommands to be unregistered.
      */
     @SuppressWarnings("unchecked")
-    public static void unregisterCommands(final List<PluginCommand> commands) {
+    public static void unregisterCommands(final @Nonnull List<PluginCommand> commands) {
         Field commandMap = null;
         Field knownCommands = null;
         try {

@@ -21,6 +21,7 @@ import me.RockinChaos.core.Core;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class SchedulerUtils {
      *
      * @param runnable - The task to be performed.
      */
-    public static void run(final Runnable runnable) {
+    public static void run(final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().runTask(Core.getCore().getPlugin(), runnable);
         }
@@ -47,7 +48,7 @@ public class SchedulerUtils {
      * @param runnable - The task to be performed.
      * @param delay    - The ticks to wait before performing the task.
      */
-    public static void runLater(final long delay, final Runnable runnable) {
+    public static void runLater(final long delay, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().runTaskLater(Core.getCore().getPlugin(), runnable, delay);
         }
@@ -55,11 +56,12 @@ public class SchedulerUtils {
 
     /**
      * Runs the repeating task on the main thread.
+     *
      * @param runnable - The task to be performed.
-     * @param delay - The ticks to wait before performing the task.
+     * @param delay    - The ticks to wait before performing the task.
      * @param interval - The interval in which to run the task.
      */
-    public static void runRepeatingTask(final long delay, final long interval, final Runnable runnable) {
+    public static void runRepeatingTask(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getCore().getPlugin(), runnable, interval, delay);
         }
@@ -73,7 +75,7 @@ public class SchedulerUtils {
      * @param interval - The interval in which to run the task.
      * @return The repeating task identifier.
      */
-    public static int runAsyncAtInterval(final long delay, final long interval, final Runnable runnable) {
+    public static int runAsyncAtInterval(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             return Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, interval, delay).getTaskId();
         }
@@ -85,7 +87,7 @@ public class SchedulerUtils {
      *
      * @param runnable - The task to be performed.
      */
-    public static void runAsync(final Runnable runnable) {
+    public static void runAsync(final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().runTaskAsynchronously(Core.getCore().getPlugin(), runnable);
         }
@@ -97,7 +99,7 @@ public class SchedulerUtils {
      * @param runnable - The task to be performed.
      * @param delay    - The ticks to wait before performing the task.
      */
-    public static void runAsyncLater(final long delay, final Runnable runnable) {
+    public static void runAsyncLater(final long delay, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().runTaskLaterAsynchronously(Core.getCore().getPlugin(), runnable, delay);
         }
@@ -110,7 +112,7 @@ public class SchedulerUtils {
      * @param delay    - The ticks to wait before performing the task.
      * @param interval - The interval in which to run the task.
      */
-    public static void runAsyncTimer(final long delay, final long interval, final Runnable runnable) {
+    public static void runAsyncTimer(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, interval, delay);
         }
@@ -121,7 +123,7 @@ public class SchedulerUtils {
      *
      * @param runnable - The task to be performed.
      */
-    public static void runSingleAsync(final Runnable runnable) {
+    public static void runSingleAsync(final @Nonnull Runnable runnable) {
         SINGLE_QUEUE.add(runnable);
         if (!SINGLE_ACTIVE) {
             SINGLE_ACTIVE = true;

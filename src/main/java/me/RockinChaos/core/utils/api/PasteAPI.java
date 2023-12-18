@@ -21,6 +21,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,7 +39,7 @@ public class PasteAPI {
      *
      * @param pasteData - The data to be pasted.
      */
-    public PasteAPI(final String pasteData) {
+    public PasteAPI(final @Nonnull String pasteData) {
         this.pasteData = pasteData;
     }
 
@@ -47,7 +48,7 @@ public class PasteAPI {
      *
      * @return The successful paste connection.
      */
-    private static HttpURLConnection getHttpURLConnection(String postOptions) throws IOException {
+    private static @Nonnull HttpURLConnection getHttpURLConnection(@Nonnull final String postOptions) throws IOException {
         final byte[] postBytes = postOptions.getBytes(StandardCharsets.UTF_8);
         final HttpURLConnection connection = (HttpURLConnection) new URL("https://paste.craftationgaming.com/documents").openConnection();
         connection.setDoOutput(true);
@@ -67,7 +68,7 @@ public class PasteAPI {
      *
      * @return The successful paste URL.
      */
-    public String getPaste() throws IOException, ParseException {
+    public @Nonnull String getPaste() throws IOException, ParseException {
         final HttpURLConnection connection = getHttpURLConnection(this.pasteData);
         final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         final StringBuilder response = new StringBuilder();

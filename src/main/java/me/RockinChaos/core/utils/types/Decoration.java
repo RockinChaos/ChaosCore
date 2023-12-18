@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum Decoration {
     SAPLING,
@@ -121,7 +123,7 @@ public enum Decoration {
      * @param material - The Material being checked.
      * @return If the Material is a Decoration type.
      */
-    public static boolean isDecoration(final Material material) {
+    public static boolean isDecoration(final @Nonnull Material material) {
         for (Decoration tag : Decoration.values()) {
             final String[] mats = material.name().split("_");
             if (tag.name().equalsIgnoreCase((tag.name().contains("_") ? material.name() : (mats.length > 1 ? mats[(mats.length - 1)] : mats[0])))) {

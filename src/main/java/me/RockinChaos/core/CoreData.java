@@ -17,6 +17,8 @@
  */
 package me.RockinChaos.core;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +53,7 @@ public class CoreData {
      *
      * @return The DataHandler instance.
      */
-    public static CoreData getData() {
+    public static @Nonnull CoreData getData() {
         if (data == null) {
             data = new CoreData();
         }
@@ -135,7 +137,7 @@ public class CoreData {
      *
      * @return The Plugin Prefix.
      */
-    public String getPluginPrefix() {
+    public @Nonnull String getPluginPrefix() {
         return this.prefix;
     }
 
@@ -144,7 +146,7 @@ public class CoreData {
      *
      * @param prefix - The visual Prefix to be set.
      */
-    public void setPluginPrefix(final String prefix) {
+    public void setPluginPrefix(final @Nonnull String prefix) {
         this.prefix = prefix;
 
     }
@@ -154,7 +156,7 @@ public class CoreData {
      *
      * @return The runnable for the AlterTables.
      */
-    public Runnable getAlterTables() {
+    public @Nonnull Runnable getAlterTables() {
         return this.runnableAlter;
     }
 
@@ -163,7 +165,7 @@ public class CoreData {
      *
      * @param runnableAlter - The runnable for the AlterTables.
      */
-    public void setAlterTables(final Runnable runnableAlter) {
+    public void setAlterTables(final @Nonnull Runnable runnableAlter) {
         this.runnableAlter = runnableAlter;
 
     }
@@ -173,7 +175,7 @@ public class CoreData {
      *
      * @return The runnable for the CreateTables.
      */
-    public Runnable getCreateTables() {
+    public @Nonnull Runnable getCreateTables() {
         return this.runnableCreate;
     }
 
@@ -182,7 +184,7 @@ public class CoreData {
      *
      * @param runnableCreate - The runnable for the CreateTables.
      */
-    public void setCreateTables(final Runnable runnableCreate) {
+    public void setCreateTables(final @Nonnull Runnable runnableCreate) {
         this.runnableCreate = runnableCreate;
 
     }
@@ -192,7 +194,7 @@ public class CoreData {
      *
      * @return The runnable for the UpdateConfig.
      */
-    public Runnable runUpdateConfig() {
+    public @Nonnull Runnable runUpdateConfig() {
         return this.runnableConfig;
     }
 
@@ -201,7 +203,7 @@ public class CoreData {
      *
      * @return The Config Name for the UpdateConfig.
      */
-    public String getUpdateConfig() {
+    public @Nonnull String getUpdateConfig() {
         return this.updateConfig;
     }
 
@@ -212,7 +214,7 @@ public class CoreData {
      * @param runnableConfig - The runnable for the UpdateConfig.
      * @param updateConfig   - The Config Name for the UpdateConfig.
      */
-    public void setUpdateConfig(final Runnable runnableConfig, final String updateConfig) {
+    public void setUpdateConfig(final @Nonnull Runnable runnableConfig, final @Nonnull String updateConfig) {
         this.runnableConfig = runnableConfig;
         this.updateConfig = updateConfig;
 
@@ -223,7 +225,7 @@ public class CoreData {
      *
      * @return The full dataset for the SQL Database.
      */
-    public Map<String, List<Object>> getDatabaseData() {
+    public @Nonnull Map<String, List<Object>> getDatabaseData() {
         return this.databaseData;
     }
 
@@ -232,7 +234,7 @@ public class CoreData {
      *
      * @param databaseData - The dataset for the SQL Database.
      */
-    public void setDatabaseData(final Map<String, List<Object>> databaseData) {
+    public void setDatabaseData(final @Nonnull Map<String, List<Object>> databaseData) {
         this.databaseData = databaseData;
     }
 
@@ -241,7 +243,7 @@ public class CoreData {
      *
      * @return The Map of available configs.
      */
-    public Map<String, Integer> getConfigs() {
+    public @Nonnull Map<String, Integer> getConfigs() {
         return this.configs;
     }
 
@@ -250,7 +252,7 @@ public class CoreData {
      *
      * @param configs - The Map of available configs.
      */
-    public void setConfig(final Map<String, Integer> configs) {
+    public void setConfig(final @Nonnull Map<String, Integer> configs) {
         this.configs = configs;
 
     }
@@ -260,7 +262,7 @@ public class CoreData {
      *
      * @return The list of Languages for the plugin.
      */
-    public List<String> getLanguages() {
+    public @Nonnull List<String> getLanguages() {
         return this.languages;
     }
 
@@ -269,7 +271,7 @@ public class CoreData {
      *
      * @param languages - The list of Languages for the plugin.
      */
-    public void setLanguages(final List<String> languages) {
+    public void setLanguages(final @Nonnull List<String> languages) {
         this.languages = languages;
     }
 
@@ -278,7 +280,7 @@ public class CoreData {
      *
      * @return The list of Permissions for the plugin.
      */
-    public List<String> getPermissions() {
+    public @Nonnull List<String> getPermissions() {
         return this.permissions;
     }
 
@@ -287,7 +289,7 @@ public class CoreData {
      *
      * @param permissions - The list of Permissions for the plugin.
      */
-    public void setPermissions(final List<String> permissions) {
+    public void setPermissions(final @Nonnull List<String> permissions) {
         this.permissions = permissions;
     }
 
@@ -314,7 +316,7 @@ public class CoreData {
      *
      * @return The database table prefix.
      */
-    public String getTablePrefix() {
+    public @Nonnull String getTablePrefix() {
         return this.tablePrefix;
     }
 
@@ -323,7 +325,7 @@ public class CoreData {
      *
      * @param str - The database table prefix.
      */
-    public void setTablePrefix(final String str) {
+    public void setTablePrefix(final @Nullable String str) {
         this.tablePrefix = str;
     }
 
@@ -332,7 +334,7 @@ public class CoreData {
      *
      * @return The SQL Host for the Database.
      */
-    public String getSQLHost() {
+    public @Nonnull String getSQLHost() {
         return this.sqlHost;
     }
 
@@ -341,7 +343,7 @@ public class CoreData {
      *
      * @param str - The SQL Host for the Database.
      */
-    public void setSQLHost(final String str) {
+    public void setSQLHost(final @Nullable String str) {
         this.sqlHost = str;
     }
 
@@ -350,7 +352,7 @@ public class CoreData {
      *
      * @return The SQL Port for the Database.
      */
-    public String getSQLPort() {
+    public @Nonnull String getSQLPort() {
         return this.sqlPort;
     }
 
@@ -359,7 +361,7 @@ public class CoreData {
      *
      * @param str - The SQL Port for the Database.
      */
-    public void setSQLPort(final String str) {
+    public void setSQLPort(final @Nullable String str) {
         this.sqlPort = str;
     }
 
@@ -368,7 +370,7 @@ public class CoreData {
      *
      * @return The SQL Database for the Database.
      */
-    public String getSQLDatabase() {
+    public @Nonnull String getSQLDatabase() {
         return this.sqlDatabase;
     }
 
@@ -377,7 +379,7 @@ public class CoreData {
      *
      * @param str - The SQL Database for the Database.
      */
-    public void setSQLDatabase(final String str) {
+    public void setSQLDatabase(final @Nullable String str) {
         this.sqlDatabase = str;
     }
 
@@ -386,7 +388,7 @@ public class CoreData {
      *
      * @return The SQL User for the Database.
      */
-    public String getSQLUser() {
+    public @Nonnull String getSQLUser() {
         return this.sqlUser;
     }
 
@@ -395,7 +397,7 @@ public class CoreData {
      *
      * @param str - The SQL User for the Database.
      */
-    public void setSQLUser(final String str) {
+    public void setSQLUser(final @Nullable String str) {
         this.sqlUser = str;
     }
 
@@ -404,7 +406,7 @@ public class CoreData {
      *
      * @return The SQL Pass for the Database.
      */
-    public String getSQLPass() {
+    public @Nonnull String getSQLPass() {
         return this.sqlPass;
     }
 
@@ -413,7 +415,7 @@ public class CoreData {
      *
      * @param str - The SQL Pass for the Database.
      */
-    public void setSQLPass(final String str) {
+    public void setSQLPass(final @Nullable String str) {
         this.sqlPass = str;
     }
 

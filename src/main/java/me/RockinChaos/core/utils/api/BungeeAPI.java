@@ -28,6 +28,7 @@ import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.annotation.Nonnull;
+
 @SuppressWarnings({"unused"})
 public class BungeeAPI implements PluginMessageListener {
 
@@ -55,7 +56,7 @@ public class BungeeAPI implements PluginMessageListener {
      *
      * @return The BungeeAPI instance.
      */
-    public static BungeeAPI getBungee() {
+    public static @Nonnull BungeeAPI getBungee() {
         if (bungee == null) {
             bungee = new BungeeAPI();
         }
@@ -68,7 +69,7 @@ public class BungeeAPI implements PluginMessageListener {
      * @param player - The Player switching servers.
      * @param server - The String name of the server that the Player is connecting to.
      */
-    public void SwitchServers(final Player player, final String server) {
+    public void SwitchServers(final @Nonnull Player player, final @Nonnull String server) {
         final ByteArrayDataOutput out = ByteStreams.newDataOutput();
         try {
             out.writeUTF("Connect");
@@ -85,7 +86,7 @@ public class BungeeAPI implements PluginMessageListener {
      * @param player  - The Player executing the Bungee Command.
      * @param command - The Bungee Command the Player is executing.
      */
-    public void ExecuteCommand(final Player player, final String command) {
+    public void ExecuteCommand(final @Nonnull Player player, final @Nonnull String command) {
         if (StringUtils.containsIgnoreCase(player.getListeningPluginChannels().toString(), "plugin:cloudsync")) {
             final ByteArrayDataOutput out = ByteStreams.newDataOutput();
             try {
@@ -111,7 +112,7 @@ public class BungeeAPI implements PluginMessageListener {
      * @param message - The message being sent to the Player.
      */
     @Override
-    public void onPluginMessageReceived(final String channel, @Nonnull final Player player, @Nonnull final byte[] message) {
+    public void onPluginMessageReceived(final @Nonnull String channel, @Nonnull final Player player, @Nonnull final byte[] message) {
         if (!channel.equals(this.PLUGIN_CHANNEL)) {
             return;
         }

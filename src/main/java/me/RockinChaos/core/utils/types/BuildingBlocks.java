@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum BuildingBlocks {
     SPAWNER,
@@ -42,7 +44,7 @@ public enum BuildingBlocks {
      * @param material - The Material being checked.
      * @return If the Material is a Building Blocks type.
      */
-    public static boolean isBuildingBlocks(final Material material) {
+    public static boolean isBuildingBlocks(final @Nonnull Material material) {
         if (!material.isBlock() || Brewing.isBrewing(material) || Redstone.isRedstone(material) || Decoration.isDecoration(material)) {
             return false;
         }

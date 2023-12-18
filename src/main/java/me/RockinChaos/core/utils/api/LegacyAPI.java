@@ -36,9 +36,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -57,7 +60,7 @@ public class LegacyAPI {
      *
      * @param player - The Player to have their Inventory updated.
      */
-    public static void updateInventory(final Player player) {
+    public static void updateInventory(final @Nonnull Player player) {
         player.updateInventory();
     }
 
@@ -67,7 +70,7 @@ public class LegacyAPI {
      * @param player - The Player to have its ItemStack found.
      * @return The found ItemStack.
      */
-    public static ItemStack getInHandItem(final Player player) {
+    public static @Nonnull ItemStack getInHandItem(final @Nonnull Player player) {
         return player.getInventory().getItemInHand();
     }
 
@@ -77,7 +80,7 @@ public class LegacyAPI {
      * @param player - The Player to have the ItemStack given.
      * @param item   - The ItemStack to be set to the Players Hand.
      */
-    public static void setInHandItem(final Player player, final ItemStack item) {
+    public static void setInHandItem(final @Nonnull Player player, final @Nonnull ItemStack item) {
         player.setItemInHand(item);
     }
 
@@ -89,7 +92,7 @@ public class LegacyAPI {
      * @param dataValue - The Data Value to set to the ItemStack.
      * @return The new ItemStack.
      */
-    public static ItemStack newItemStack(final Material material, final int count, final short dataValue) {
+    public static @Nonnull ItemStack newItemStack(final @Nonnull Material material, final int count, final short dataValue) {
         return new ItemStack(material, count, dataValue);
     }
 
@@ -100,9 +103,9 @@ public class LegacyAPI {
      * @param gamerule - The gamerule to locate.
      * @return The boolean value fo the gamerule.
      */
-    public static boolean getGameRule(final World world, final String gamerule) {
+    public static boolean getGameRule(final @Nonnull World world, final @Nonnull String gamerule) {
         String value = world.getGameRuleValue(gamerule);
-        return (value == null || value.isEmpty() || !Boolean.parseBoolean(value));
+        return value.isEmpty() || !Boolean.parseBoolean(value);
     }
 
     /**
@@ -111,7 +114,7 @@ public class LegacyAPI {
      * @param item - The ItemStack to be crafted.
      * @return The new ShapedRecipe.
      */
-    public static ShapedRecipe newShapedRecipe(final ItemStack item) {
+    public static @Nonnull ShapedRecipe newShapedRecipe(final @Nonnull ItemStack item) {
         return new ShapedRecipe(item);
     }
 
@@ -123,7 +126,7 @@ public class LegacyAPI {
      * @param material     - The material of the ingredient.
      * @param itemData     - The Data Value of the ingredient.
      */
-    public static void setIngredient(final ShapedRecipe shapedRecipe, final char character, final Material material, final byte itemData) {
+    public static void setIngredient(final @Nonnull ShapedRecipe shapedRecipe, final char character, final @Nonnull Material material, final byte itemData) {
         shapedRecipe.setIngredient(character, material, itemData);
     }
 
@@ -134,7 +137,7 @@ public class LegacyAPI {
      * @param dataValue - The Data value to be matched.
      * @return The found Bukkit Material.
      */
-    public static org.bukkit.Material getMaterial(final int typeID, final byte dataValue) {
+    public static @Nonnull org.bukkit.Material getMaterial(final int typeID, final byte dataValue) {
         initializeLegacy();
         return Core.getCore().getPlugin().getServer().getUnsafe().fromLegacy(new org.bukkit.material.MaterialData(findMaterial(typeID), dataValue));
     }
@@ -146,7 +149,10 @@ public class LegacyAPI {
      * @param dataValue - The Data value to be matched.
      * @return The found Bukkit Material.
      */
-    public static org.bukkit.Material getMaterial(final Material material, final byte dataValue) {
+    public static @Nonnull org.bukkit.Material getMaterial(final @Nullable Material material, final byte dataValue) {
+        if (material == null) {
+            return Material.AIR;
+        }
         initializeLegacy();
         return Core.getCore().getPlugin().getServer().getUnsafe().fromLegacy(new org.bukkit.material.MaterialData(material, dataValue));
     }
@@ -157,7 +163,7 @@ public class LegacyAPI {
      * @param typeID - The ID of the Material to be fetched.
      * @return The found Bukkit Material.
      */
-    public static org.bukkit.Material findMaterial(final int typeID) {
+    public static @Nonnull org.bukkit.Material findMaterial(final int typeID) {
         final Material[] foundMaterial = new Material[1];
         EnumSet.allOf(Material.class).forEach(material -> {
             try {
@@ -200,7 +206,7 @@ public class LegacyAPI {
      * @param material - The Material to have its ID fetched.
      * @return The ID of the Material.
      */
-    public static int getMaterialID(final Material material) {
+    public static int getMaterialID(final @Nonnull Material material) {
         return material.getId();
     }
 
@@ -210,7 +216,7 @@ public class LegacyAPI {
      * @param item - The ItemStack to have its durability fetched.
      * @return The Durability of the ItemStack.
      */
-    public static short getDurability(final ItemStack item) {
+    public static short getDurability(final @Nonnull ItemStack item) {
         return item.getDurability();
     }
 
@@ -221,7 +227,7 @@ public class LegacyAPI {
      * @param durability - The Durability to be set to the ItemStack.
      * @return the newly set Durability on the ItemStack.
      */
-    public static ItemStack setDurability(final ItemStack item, final short durability) {
+    public static @Nonnull ItemStack setDurability(final @Nonnull ItemStack item, final short durability) {
         item.setDurability(durability);
         return item;
     }
@@ -232,7 +238,7 @@ public class LegacyAPI {
      * @param enchant - The Enchantment to have its String name fetched.
      * @return The Enchantments String name.
      */
-    public static String getEnchantName(final org.bukkit.enchantments.Enchantment enchant) {
+    public static @Nonnull String getEnchantName(final @Nonnull org.bukkit.enchantments.Enchantment enchant) {
         return enchant.getName();
     }
 
@@ -241,7 +247,7 @@ public class LegacyAPI {
      *
      * @return The full list of registered Enchants.
      */
-    public static List<Enchantment> getEnchants() {
+    public static @Nonnull List<Enchantment> getEnchants() {
         return Arrays.asList(Enchantment.values());
     }
 
@@ -251,7 +257,7 @@ public class LegacyAPI {
      * @param effect - The Effect to have its String name fetched.
      * @return The PotionEffectType instance.
      */
-    public static PotionEffectType getEffectByName(final String effect) {
+    public static @Nullable PotionEffectType getEffectByName(final @Nonnull String effect) {
         if (ServerUtils.hasPreciseUpdate("1_20_3")) {
             final PotionEffectType type = Registry.EFFECT.get(Objects.requireNonNull(NamespacedKey.fromString(effect.toLowerCase())));
             if (type != null) {
@@ -269,7 +275,7 @@ public class LegacyAPI {
      *
      * @return The full list of registered Effects.
      */
-    public static List<PotionEffectType> getEffects() {
+    public static @Nonnull List<PotionEffectType> getEffects() {
         return Arrays.asList(PotionEffectType.values());
     }
 
@@ -279,7 +285,7 @@ public class LegacyAPI {
      * @param name - The String name of the Enchantment.
      * @return The found Enchantment.
      */
-    public static org.bukkit.enchantments.Enchantment getEnchant(final String name) {
+    public static @Nullable org.bukkit.enchantments.Enchantment getEnchant(final @Nonnull String name) {
         return org.bukkit.enchantments.Enchantment.getByName(name.toUpperCase());
     }
 
@@ -289,19 +295,19 @@ public class LegacyAPI {
      * @param skullMeta - The SkullMeta to have its owner fetched.
      * @return The found Skull Owner.
      */
-    public static String getSkullOwner(final org.bukkit.inventory.meta.SkullMeta skullMeta) {
+    public static @Nullable String getSkullOwner(final @Nonnull org.bukkit.inventory.meta.SkullMeta skullMeta) {
         return skullMeta.getOwner();
     }
 
     /**
      * Sets the owner to the SkullMeta.
      *
-     * @param player - The Player being referenced.
+     * @param player    - The Player being referenced.
      * @param skullMeta - The SkullMeta to have its owner set.
      * @param owner     - The owner to be set to the SkullMeta.
      * @return The newly set SkullMeta.
      */
-    public static org.bukkit.inventory.meta.ItemMeta setSkullOwner(final Player player, final org.bukkit.inventory.meta.SkullMeta skullMeta, final String owner) {
+    public static @Nonnull org.bukkit.inventory.meta.ItemMeta setSkullOwner(final @Nonnull Player player, final @Nonnull org.bukkit.inventory.meta.SkullMeta skullMeta, final @Nonnull String owner) {
         skullMeta.setOwner(owner);
         SchedulerUtils.run(() -> {
             if (!ServerUtils.hasSpecificUpdate("1_13")) {
@@ -331,7 +337,7 @@ public class LegacyAPI {
      * @param current - The Entity to be checked.
      * @return If setTarget exists for the Entity.
      */
-    public static boolean setTargetExists(final Entity current) {
+    public static boolean setTargetExists(final @Nonnull Entity current) {
         try {
             current.getClass().getMethod("setTarget", LivingEntity.class);
             return true;
@@ -346,8 +352,18 @@ public class LegacyAPI {
      * @param player    - The Player to have their max health set.
      * @param maxHealth - The Max Health to be set.
      */
-    public static void setMaxHealth(final Player player, final double maxHealth) {
+    public static void setMaxHealth(final @Nonnull Player player, final double maxHealth) {
         player.setMaxHealth(maxHealth);
+    }
+
+    /**
+     * Sets the Health of the Player.
+     *
+     * @param player - The Player to have their health set.
+     * @param health - The Health to be set.
+     */
+    public static void setHealth(final @Nonnull Player player, final int health) {
+        player.setHealth(health);
     }
 
     /**
@@ -356,7 +372,7 @@ public class LegacyAPI {
      * @param block - The Block being referenced.
      * @return The determined Block Data.
      */
-    public static byte getBlockData(final Block block) {
+    public static byte getBlockData(final @Nonnull Block block) {
         return block.getData();
     }
 
@@ -366,7 +382,7 @@ public class LegacyAPI {
      * @param playerName - The String name of the Bukkit Player.
      * @return The found Player.
      */
-    public static Player getPlayer(final String playerName) {
+    public static @Nullable Player getPlayer(final @Nonnull String playerName) {
         return Bukkit.getPlayer(playerName);
     }
 
@@ -376,7 +392,7 @@ public class LegacyAPI {
      * @param playerName - The String name of the Bukkit OfflinePlayer.
      * @return The found OfflinePlayer.
      */
-    public static OfflinePlayer getOfflinePlayer(final String playerName) {
+    public static @Nonnull OfflinePlayer getOfflinePlayer(final @Nonnull String playerName) {
         return Bukkit.getOfflinePlayer(playerName);
     }
 
@@ -386,7 +402,7 @@ public class LegacyAPI {
      * @param meta  - The MapMeta to have its Map ID set.
      * @param mapId - The Map ID to be set to the item.
      */
-    public static void setMapID(final MapMeta meta, final int mapId) {
+    public static void setMapID(final @Nonnull MapMeta meta, final int mapId) {
         meta.setMapId(mapId);
     }
 
@@ -396,7 +412,7 @@ public class LegacyAPI {
      * @param view - The MapView to have its ID fetched.
      * @return The ID of the MapView.
      */
-    public static short getMapID(final org.bukkit.map.MapView view) {
+    public static short getMapID(final @Nonnull org.bukkit.map.MapView view) {
         try {
             return (short) view.getId();
         } catch (Exception | NoSuchMethodError e) {
@@ -414,7 +430,7 @@ public class LegacyAPI {
      * @param id - The ID of the MapView to be fetched.
      * @return The Fetched MapView.
      */
-    public static org.bukkit.map.MapView getMapView(final int id) {
+    public static @Nullable MapView getMapView(final int id) {
         try {
             return Core.getCore().getPlugin().getServer().getMap((short) id);
         } catch (Exception | NoSuchMethodError e) {
@@ -431,12 +447,8 @@ public class LegacyAPI {
      *
      * @return The new MapView.
      */
-    public static org.bukkit.map.MapView createMapView() {
-        try {
-            return Core.getCore().getPlugin().getServer().createMap(Core.getCore().getPlugin().getServer().getWorlds().get(0));
-        } catch (Exception | NoSuchMethodError e) {
-            return null;
-        }
+    public static @Nonnull MapView createMapView() {
+        return Core.getCore().getPlugin().getServer().createMap(Core.getCore().getPlugin().getServer().getWorlds().get(0));
     }
 
     /**
@@ -447,8 +459,8 @@ public class LegacyAPI {
      * @param attributes       - A list of attributes to be set.
      * @return The new ItemStack with set Attributes.
      */
-    public static ItemStack setAttributes(final ItemStack tempItem, final String attribIdentifier, final Map<String, Double> attributes) {
-        if (!ServerUtils.hasSpecificUpdate("1_13") && attributes != null && !attributes.isEmpty()) {
+    public static @Nonnull ItemStack setAttributes(final @Nonnull ItemStack tempItem, final @Nonnull String attribIdentifier, final @Nonnull Map<String, Double> attributes) {
+        if (!ServerUtils.hasSpecificUpdate("1_13") && !attributes.isEmpty()) {
             try {
                 String slot;
                 if (ItemHandler.getDesignatedSlot(tempItem.getType()).equalsIgnoreCase("noslot")) {
@@ -504,17 +516,12 @@ public class LegacyAPI {
      * @param str - The String to be Color Encoded.
      * @return The Color Encoded String.
      */
-    public static String colorEncode(final String str) {
-        try {
-            StringBuilder hiddenData = new StringBuilder();
-            for (char c : str.toCharArray()) {
-                hiddenData.append("ง").append(c);
-            }
-            return hiddenData.toString();
-        } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
-            return null;
+    public static @Nonnull String colorEncode(final @Nonnull String str) {
+        final StringBuilder hiddenData = new StringBuilder();
+        for (char c : str.toCharArray()) {
+            hiddenData.append("ยง").append(c);
         }
+        return hiddenData.toString();
     }
 
     /**
@@ -524,19 +531,14 @@ public class LegacyAPI {
      * @param str - The String to be Color Decoded.
      * @return The Color Decoded String.
      */
-    public static String colorDecode(final String str) {
-        try {
-            String[] hiddenData = str.split("(?:\\w{2,}|\\d[0-9A-Fa-f])+");
-            StringBuilder returnData = new StringBuilder();
-            String[] d = hiddenData[hiddenData.length - 1].split("ง");
-            for (int i = 1; i < d.length; i++) {
-                returnData.append(d[i]);
-            }
-            return returnData.toString();
-        } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
-            return null;
+    public static @Nonnull String colorDecode(final @Nonnull String str) {
+        final String[] hiddenData = str.split("(?:\\w{2,}|\\d[0-9A-Fa-f])+");
+        final StringBuilder returnData = new StringBuilder();
+        final String[] d = hiddenData[hiddenData.length - 1].split("ยง");
+        for (int i = 1; i < d.length; i++) {
+            returnData.append(d[i]);
         }
+        return returnData.toString();
     }
 
     /**
@@ -555,11 +557,24 @@ public class LegacyAPI {
 
     /**
      * Sets the potion type as a potion data to the PotionMeta.
-     * @param tempMeta - The PotionMeta having the potion data set to.
+     *
+     * @param tempMeta   - The PotionMeta having the potion data set to.
      * @param potionType - The potion type to be set.
      */
-    public static void setPotionData(final PotionMeta tempMeta, final PotionType potionType) {
+    public static void setPotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType) {
         tempMeta.setBasePotionData(new org.bukkit.potion.PotionData(potionType));
+    }
+
+    /**
+     * Sets the potion type as a potion data to the PotionMeta.
+     *
+     * @param tempMeta   - The PotionMeta having the potion data set to.
+     * @param potionType - The potion type to be set.
+     * @param upgraded   - If this is an upgraded potion type.
+     * @param extended   - If this is an extended potion type.
+     */
+    public static void setPotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType, final boolean extended, final boolean upgraded) {
+        tempMeta.setBasePotionData(new org.bukkit.potion.PotionData(potionType, extended, upgraded));
     }
 
     /**
@@ -568,7 +583,7 @@ public class LegacyAPI {
      * @param type - The potion name to be fetched.
      * @return the potion effect type name.
      */
-    public static String getEffectName(final PotionEffectType type) {
+    public static @Nonnull String getEffectName(final @Nonnull PotionEffectType type) {
         return type.getName();
     }
 
@@ -578,7 +593,7 @@ public class LegacyAPI {
      * @param name - The enchantment name to be fetched.
      * @return the Enchantment instance.
      */
-    public static Enchantment getEnchantByKey(final String name) {
+    public static @Nullable Enchantment getEnchantByKey(final @Nonnull String name) {
         if (ServerUtils.hasPreciseUpdate("1_20_3")) {
             final Enchantment enchant = Registry.ENCHANTMENT.get(org.bukkit.NamespacedKey.minecraft(name.toLowerCase()));
             if (enchant != null) {
@@ -597,7 +612,7 @@ public class LegacyAPI {
      * @param item - The ItemStack to have its Data Value fetched.
      * @return The data value as an Integer.
      */
-    public static int getDataValue(final ItemStack item) {
+    public static int getDataValue(final @Nonnull ItemStack item) {
         return Objects.requireNonNull(item.getData()).getData();
     }
 
@@ -607,7 +622,7 @@ public class LegacyAPI {
      * @param material - The Material to have its data value fetched.
      * @return The Data Value.
      */
-    public static int getDataValue(final Material material) {
+    public static int getDataValue(final @Nonnull Material material) {
         if (material == Material.STONE) {
             return 6;
         } else if (StringUtils.containsIgnoreCase(material.toString(), "DIRT")) {

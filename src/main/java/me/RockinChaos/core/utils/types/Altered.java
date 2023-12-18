@@ -20,6 +20,8 @@ package me.RockinChaos.core.utils.types;
 import me.RockinChaos.core.handlers.ItemHandler;
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum Altered {
     BAMBOO_SAPLING("BAMBOO"),
@@ -60,7 +62,7 @@ public enum Altered {
      * @param material - The Material being checked.
      * @return The correct Material if Altered.
      */
-    public static Material getAlter(final Material material) {
+    public static @Nonnull Material getAlter(final @Nonnull Material material) {
         for (Altered tag : Altered.values()) {
             if (tag.name().equalsIgnoreCase(material.name())) {
                 return ItemHandler.getMaterial(tag.fixedType, null);

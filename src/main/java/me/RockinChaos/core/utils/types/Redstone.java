@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.Material;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public enum Redstone {
     DISPENSER,
@@ -36,7 +38,6 @@ public enum Redstone {
     TRIPWIRE_HOOK,
     BUTTON,
     TRAPPED_CHEST,
-    DAYLIGHT_DETECTOR,
     REDSTONE_BLOCK,
     REDSTONE,
     HOPPER,
@@ -46,7 +47,26 @@ public enum Redstone {
     REPEATER,
     COMPARATOR,
     LECTERN,
-    TARGET;
+    TARGET,
+    SENSOR,
+    SHRIEKER,
+    LECTURN,
+    STRING,
+    WHITE_WOOL,
+    AMETHYST_BLOCK,
+    SLIME_BLOCK,
+    HONEY_BLOCK,
+    LIGHTNING_ROD,
+    DETECTOR,
+    BELL,
+    DRIPLEAF,
+    ARMOR_STAND,
+    REDSTONE_ORE,
+    COMPOSTER,
+    CAULDRON,
+    DECORATED_POT,
+    CHISELED_BOOKSHELF,
+    BARREL;
 
     /**
      * Checks if the Material is a Redstone type.
@@ -54,7 +74,7 @@ public enum Redstone {
      * @param material - The Material being checked.
      * @return If the Material is a Redstone type.
      */
-    public static boolean isRedstone(final Material material) {
+    public static boolean isRedstone(final @Nonnull Material material) {
         for (Redstone tag : Redstone.values()) {
             final String[] mats = material.name().split("_");
             if (tag.name().equalsIgnoreCase((tag.name().contains("_") ? material.name() : (mats.length > 1 ? mats[(mats.length - 1)] : mats[0])))) {

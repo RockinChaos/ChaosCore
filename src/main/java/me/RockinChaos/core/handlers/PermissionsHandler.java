@@ -22,6 +22,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public class PermissionsHandler {
 
@@ -32,7 +34,7 @@ public class PermissionsHandler {
      * @param permission - The permission the sender is expected to have.
      * @return If the entity has the proper permission.
      */
-    public static boolean hasPermission(final CommandSender sender, final String permission) {
+    public static boolean hasPermission(final @Nonnull CommandSender sender, final @Nonnull String permission) {
         if (sender.hasPermission(permission) || sender.hasPermission(Core.getCore().getPlugin().getName().toLowerCase() + ".*") || sender.hasPermission(Core.getCore().getPlugin().getName().toLowerCase() + ".all") || isDeveloper(sender) || (sender instanceof ConsoleCommandSender)) {
             return true;
         } else if (!Core.getCore().getConfig("config.yml").getBoolean("Permissions.Commands-OP") && sender.isOp()) {
@@ -53,7 +55,7 @@ public class PermissionsHandler {
      * @param permissionNode - The custom permission node.
      * @return The permission node of the item.
      */
-    public static String customPermissions(final String permissionNode, final String permission) {
+    public static @Nonnull String customPermissions(final String permissionNode, final String permission) {
         if (permissionNode != null) {
             return permissionNode;
         }
@@ -80,7 +82,7 @@ public class PermissionsHandler {
      *
      * @return If the specified permission path is enabled.
      */
-    public static boolean permissionEnabled(final String permission) {
+    public static boolean permissionEnabled(final @Nonnull String permission) {
         return Core.getCore().getConfig("config.yml").getBoolean(permission);
     }
 }

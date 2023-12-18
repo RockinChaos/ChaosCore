@@ -19,6 +19,7 @@ package me.RockinChaos.core.utils.types;
 
 import org.bukkit.potion.PotionType;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +52,7 @@ public enum Potion {
      * @param potionType - The potion to be fetched.
      * @return The id of the PotionType.
      */
-    public static List<Integer> getData(final PotionType potionType) {
+    public static @Nonnull List<Integer> getData(final @Nonnull PotionType potionType) {
         for (Potion tag : Potion.values()) {
             final String potionName = potionType.name().toUpperCase();
             if (tag.name().equalsIgnoreCase(potionName)) {

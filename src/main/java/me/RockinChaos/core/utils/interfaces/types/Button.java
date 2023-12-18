@@ -25,15 +25,16 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class Button {
 
+    private final ItemStack itemStack;
     private int counter = 0;
     private final int ID = this.counter++;
-    private final ItemStack itemStack;
     private Consumer<InventoryClickEvent> clickAction;
     private Consumer<AsyncPlayerChatEvent> chatAction;
     private Consumer<Query.Builder> typingAction;
@@ -45,7 +46,7 @@ public class Button {
      *
      * @param itemStack - The ItemStack the button is to be placed as.
      */
-    public Button(final ItemStack itemStack) {
+    public Button(final @Nonnull ItemStack itemStack) {
         this(itemStack, event -> {
         });
     }
@@ -57,7 +58,7 @@ public class Button {
      * @param itemStack   - The ItemStack the button is to be placed as.
      * @param clickAction - The method to be executed upon clicking the button.
      */
-    public Button(final ItemStack itemStack, final Consumer<InventoryClickEvent> clickAction) {
+    public Button(final @Nonnull ItemStack itemStack, final @Nonnull Consumer<InventoryClickEvent> clickAction) {
         this.itemStack = itemStack;
         this.clickAction = clickAction;
     }
@@ -69,7 +70,7 @@ public class Button {
      * @param clickAction - The method to be executed upon clicking the button.
      * @param chatAction  - The method to be executed upon chatting after clicking the button.
      */
-    public Button(final ItemStack itemStack, final Consumer<InventoryClickEvent> clickAction, final Consumer<AsyncPlayerChatEvent> chatAction) {
+    public Button(final @Nonnull ItemStack itemStack, final @Nonnull Consumer<InventoryClickEvent> clickAction, @Nonnull final Consumer<AsyncPlayerChatEvent> chatAction) {
         this.itemStack = itemStack;
         this.clickAction = clickAction;
         this.chatAction = chatAction;
@@ -78,11 +79,11 @@ public class Button {
     /**
      * Creates a new button instance.
      *
-     * @param itemStack   - The ItemStack the button is to be placed as.
-     * @param clickAction - The method to be executed upon clicking the button.
-     * @param typingAction  - The method to be executed upon typing in an anvil after clicking the button.
+     * @param itemStack    - The ItemStack the button is to be placed as.
+     * @param clickAction  - The method to be executed upon clicking the button.
+     * @param typingAction - The method to be executed upon typing in an anvil after clicking the button.
      */
-    public Button(final ItemStack itemStack, final Consumer<InventoryClickEvent> clickAction, final Consumer<Query.Builder> typingAction, final int placeholder) {
+    public Button(final @Nonnull ItemStack itemStack, final @Nonnull Consumer<InventoryClickEvent> clickAction, final @Nonnull Consumer<Query.Builder> typingAction, final int placeholder) {
         this.itemStack = itemStack;
         this.clickAction = clickAction;
         this.typingAction = typingAction;
@@ -94,7 +95,7 @@ public class Button {
      * @param itemStack   - The ItemStack the button is to be placed as.
      * @param clickAction - The method to be executed upon clicking the button.
      */
-    public Button(final ItemStack itemStack, final boolean tempIdentifier, final Consumer<InventoryClickEvent> clickAction) {
+    public Button(final @Nonnull ItemStack itemStack, final boolean tempIdentifier, final @Nonnull Consumer<InventoryClickEvent> clickAction) {
         this.itemStack = itemStack;
         this.clickAction = clickAction;
     }
@@ -104,7 +105,7 @@ public class Button {
      *
      * @return The buttons ItemStack.
      */
-    public ItemStack getItemStack() {
+    public @Nonnull ItemStack getItemStack() {
         return this.itemStack;
     }
 
@@ -113,7 +114,7 @@ public class Button {
      *
      * @param clickAction - The click action method to be executed.
      */
-    public void setClickAction(final Consumer<InventoryClickEvent> clickAction) {
+    public void setClickAction(final @Nonnull Consumer<InventoryClickEvent> clickAction) {
         this.clickAction = clickAction;
     }
 
@@ -122,7 +123,7 @@ public class Button {
      *
      * @param chatAction - The chat action method to be executed.
      */
-    public void setChatAction(final Consumer<AsyncPlayerChatEvent> chatAction) {
+    public void setChatAction(final @Nonnull Consumer<AsyncPlayerChatEvent> chatAction) {
         this.chatAction = chatAction;
     }
 
@@ -131,7 +132,7 @@ public class Button {
      *
      * @param typingAction - The typing action method to be executed.
      */
-    public void setTypingAction(final Consumer<Query.Builder> typingAction) {
+    public void setTypingAction(final @Nonnull Consumer<Query.Builder> typingAction) {
         this.typingAction = typingAction;
     }
 
@@ -141,7 +142,7 @@ public class Button {
      *
      * @param event - InventoryClickEvent
      */
-    public void onClick(final InventoryClickEvent event) {
+    public void onClick(final @Nonnull InventoryClickEvent event) {
         if (Core.getCore().getPlugin().isEnabled()) {
             SchedulerUtils.run(() -> this.clickAction.accept(event));
         }
@@ -153,7 +154,7 @@ public class Button {
      *
      * @param event - AsyncPlayerChatEvent
      */
-    public void onChat(final AsyncPlayerChatEvent event) {
+    public void onChat(final @Nonnull AsyncPlayerChatEvent event) {
         if (Core.getCore().getPlugin().isEnabled()) {
             SchedulerUtils.run(() -> this.chatAction.accept(event));
         }
@@ -165,7 +166,7 @@ public class Button {
      *
      * @param player - the player involved in the typing event.
      */
-    public void onTyping(final Player player) {
+    public void onTyping(final @Nonnull Player player) {
         if (Core.getCore().getPlugin().isEnabled()) {
             final Query.Builder builder = new Query.Builder().text(" ");
             SchedulerUtils.run(() -> {
@@ -179,7 +180,6 @@ public class Button {
 
     /**
      * Attempts to force close any active queries.
-     *
      */
     public void closeQuery() {
         this.activeQuery.closeInventory();
@@ -209,7 +209,7 @@ public class Button {
      * @param obj - The object being compared.
      */
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(final @Nonnull Object obj) {
         if (this == obj) {
             return true;
         }

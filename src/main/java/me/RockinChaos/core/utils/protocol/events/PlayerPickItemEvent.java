@@ -29,6 +29,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Called when a player tries to pick block using the middle mouse button.
@@ -46,7 +47,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      * @param who       - The Player triggering the event.
      * @param inventory - The inventory being interacted.
      */
-    public PlayerPickItemEvent(final Player who, final Inventory inventory) {
+    public PlayerPickItemEvent(final @Nonnull Player who, final @Nullable Inventory inventory) {
         super(who);
         this.inventory = inventory;
         this.usePickItem = inventory == null ? Result.DENY : Result.ALLOW;
@@ -57,7 +58,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The HandlerList for the event.
      */
-    public static HandlerList getHandlerList() {
+    public static @Nonnull HandlerList getHandlerList() {
         return handlers;
     }
 
@@ -96,11 +97,13 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
     public int getPickSlot() {
         final Inventory inventory = super.getPlayer().getInventory();
         final Block targetBlock = this.getTargetBlock();
-        for (int i = 8; i < 36; i++) {
-            if (this.inventory.getContents()[i] != null && this.inventory.getContents()[i].getType() != Material.AIR && this.inventory.getContents()[i].getType().equals(targetBlock.getType())
-                    && ((inventory.getContents()[i] != null && inventory.getContents()[i].getType() != Material.AIR && !inventory.getContents()[i].getType().equals(targetBlock.getType()))
-                    || (inventory.getContents()[i] == null || inventory.getContents()[i].getType() == Material.AIR))) {
-                return i;
+        if (targetBlock != null) {
+            for (int i = 8; i < 36; i++) {
+                if (this.inventory.getContents()[i] != null && this.inventory.getContents()[i].getType() != Material.AIR && this.inventory.getContents()[i].getType().equals(targetBlock.getType())
+                        && ((inventory.getContents()[i] != null && inventory.getContents()[i].getType() != Material.AIR && !inventory.getContents()[i].getType().equals(targetBlock.getType()))
+                        || (inventory.getContents()[i] == null || inventory.getContents()[i].getType() == Material.AIR))) {
+                    return i;
+                }
             }
         }
         return -1;
@@ -112,7 +115,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The Block being targeted.
      */
-    public Block getTargetBlock() {
+    public @Nullable Block getTargetBlock() {
         this.cloneInventory();
         Block targetBlock = null;
         try {
@@ -127,7 +130,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The ItemStack that is being swapped.
      */
-    public ItemStack getPickHand() {
+    public @Nonnull ItemStack getPickHand() {
         this.cloneInventory();
         return PlayerHandler.getHandItem(super.getPlayer());
     }
@@ -137,7 +140,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return Contents the inventory.
      */
-    public ItemStack[] getContents() {
+    public @Nonnull ItemStack[] getContents() {
         this.cloneInventory();
         return this.inventory.getContents();
     }
@@ -149,7 +152,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The action to take with the pick block action.
      */
-    public Result usePickItem() {
+    public @Nonnull Result usePickItem() {
         return this.usePickItem;
     }
 
@@ -158,7 +161,7 @@ public class PlayerPickItemEvent extends PlayerEvent implements Cancellable {
      *
      * @param usePickItem the action to take with the pick block action.
      */
-    public void usePickItem(final Result usePickItem) {
+    public void usePickItem(final @Nonnull Result usePickItem) {
         this.usePickItem = usePickItem;
     }
 

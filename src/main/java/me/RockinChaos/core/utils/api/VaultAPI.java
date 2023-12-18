@@ -24,6 +24,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public class VaultAPI {
     private static VaultAPI vault;
@@ -44,7 +46,7 @@ public class VaultAPI {
      * @param regen - If the VaultAPI should have a new instance created.
      * @return The VaultAPI instance.
      */
-    public static VaultAPI getVault(final boolean regen) {
+    public static @Nonnull VaultAPI getVault(final boolean regen) {
         if (vault == null || regen) {
             vault = new VaultAPI();
         }
@@ -76,7 +78,7 @@ public class VaultAPI {
      *
      * @return Gets the current economy instance.
      */
-    public Economy getEconomy() {
+    public @Nonnull Economy getEconomy() {
         return this.econ;
     }
 
@@ -95,7 +97,7 @@ public class VaultAPI {
      * @param player - The Player having their balance found.
      * @return The balance of the Player.
      */
-    public double getBalance(final Player player) {
+    public double getBalance(final @Nonnull Player player) {
         return this.econ.getBalance(player);
     }
 
@@ -105,7 +107,7 @@ public class VaultAPI {
      * @param player - The Player being transacted.
      * @param cost   - The cost to be charged to the Player.
      */
-    public void withdrawBalance(final Player player, final int cost) {
+    public void withdrawBalance(final @Nonnull Player player, final int cost) {
         this.econ.withdrawPlayer(player, cost);
     }
 }

@@ -23,6 +23,7 @@ import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.Bukkit;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -46,7 +47,7 @@ public class DependAPI {
      *
      * @return The DependAPI instance.
      */
-    public static DependAPI getDepends() {
+    public static @Nonnull DependAPI getDepends() {
         if (depends == null) {
             depends = new DependAPI();
         }
@@ -58,8 +59,13 @@ public class DependAPI {
      *
      * @return The list of dependencies to be ignored.
      */
-    public String getIgnoreList() {
-        return Core.getCore().getConfig("config.yml").getString("General.ignoreDepend");
+    public @Nonnull String getIgnoreList() {
+        final String ignoreList = Core.getCore().getConfig("config.yml").getString("General.ignoreDepend");
+        if (ignoreList != null) {
+            return ignoreList;
+        } else {
+            return "";
+        }
     }
 
     /**
@@ -195,7 +201,6 @@ public class DependAPI {
     /**
      * Checks the API version of SkinsRestorer to see if its functionally compatible with the current plugin version.
      * Sets all SkinsRestorer API calls.
-     *
      */
     private void initSkins() {
         try {
@@ -247,13 +252,11 @@ public class DependAPI {
      *
      * @param cause - The Throwable reference to fetch the cause message.
      */
-    private void isSkinsProxy(final Throwable cause) {
-        if (cause != null) {
-            if (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode")) {
-                ServerUtils.sendSevereThrowable(cause);
-            } else {
-                this.proxySkins = true;
-            }
+    private void isSkinsProxy(final @Nonnull Throwable cause) {
+        if (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode")) {
+            ServerUtils.sendSevereThrowable(cause);
+        } else {
+            this.proxySkins = true;
         }
     }
 
@@ -263,7 +266,7 @@ public class DependAPI {
      * @param owner - The skull owner to have their skin fetched.
      * @return The found Skin Texture value.
      */
-    public String getSkinValue(final UUID uuid, final String owner) {
+    public String getSkinValue(final @Nonnull UUID uuid, final @Nonnull String owner) {
         try {
             final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
             final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
@@ -327,7 +330,7 @@ public class DependAPI {
      *
      * @return The current GuardAPI instance.
      */
-    public GuardAPI getGuard() {
+    public @Nonnull GuardAPI getGuard() {
         return GuardAPI.getGuard(false);
     }
 
@@ -336,7 +339,7 @@ public class DependAPI {
      *
      * @return The current VaultAPI instance.
      */
-    public VaultAPI getVault() {
+    public @Nonnull VaultAPI getVault() {
         return VaultAPI.getVault(false);
     }
 
@@ -355,8 +358,7 @@ public class DependAPI {
         if (!enabledPlugins.isEmpty()) {
             ServerUtils.logInfo("Hooked into { " + enabledPlugins.substring(0, enabledPlugins.length() - 2) + " }");
         }
-        if (this.getIgnoreList() != null && !this.getIgnoreList().isEmpty() && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "NONE")
-                && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "DISABLED") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "DISABLE")) {
+        if (!this.getIgnoreList().isEmpty() && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "NONE") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "DISABLED") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "DISABLE")) {
             ServerUtils.logInfo("The following plugins will be ignored { " + this.getIgnoreList() + " }");
         }
         if (Bukkit.getServer().getPluginManager().isPluginEnabled("Vault") && !this.getVault().vaultEnabled()) {
@@ -369,7 +371,7 @@ public class DependAPI {
      *
      * @param metrics - The referenced Metrics connection.
      */
-    public void addCustomCharts(final MetricsAPI metrics) {
+    public void addCustomCharts(final @Nonnull MetricsAPI metrics) {
         metrics.addCustomChart(new MetricsAPI.SimplePie("language", () -> Core.getCore().getLang().getLanguage()));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.authMeEnabled() ? "AuthMe" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.nickAPIEnabled() ? "NickAPI" : ""));

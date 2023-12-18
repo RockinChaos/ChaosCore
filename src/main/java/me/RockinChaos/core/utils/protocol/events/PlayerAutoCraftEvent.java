@@ -25,6 +25,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Called when a player tries to auto craft using the recipe book.
@@ -41,7 +42,7 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      * @param who               - The Player triggering the event.
      * @param craftingInventory - The crafting inventory being interacted.
      */
-    public PlayerAutoCraftEvent(final Player who, final Inventory craftingInventory) {
+    public PlayerAutoCraftEvent(final @Nonnull Player who, final @Nullable Inventory craftingInventory) {
         super(who);
         this.craftingInventory = craftingInventory;
         this.useAutoCraft = craftingInventory == null ? Result.DENY : Result.ALLOW;
@@ -52,7 +53,7 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      *
      * @return The HandlerList for the event.
      */
-    public static HandlerList getHandlerList() {
+    public static @Nonnull HandlerList getHandlerList() {
         return handlers;
     }
 
@@ -85,7 +86,7 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      *
      * @return Crafting inventory of the auto  craft pattern.
      */
-    public Inventory getCrafting() {
+    public @Nullable Inventory getCrafting() {
         return this.craftingInventory;
     }
 
@@ -95,8 +96,8 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      *
      * @return Contents the crafting inventory.
      */
-    public ItemStack[] getContents() {
-        return this.craftingInventory.getContents();
+    public @Nullable ItemStack[] getContents() {
+        return (this.craftingInventory == null ? null : this.craftingInventory.getContents());
     }
 
     /**
@@ -107,7 +108,7 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      *
      * @return The action to take with the auto craft pattern.
      */
-    public Result useAutoCraft() {
+    public @Nonnull Result useAutoCraft() {
         return this.useAutoCraft;
     }
 
@@ -116,7 +117,7 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      *
      * @param useAutoCraft the action to take with the auto craft pattern.
      */
-    public void useAutoCraft(final Result useAutoCraft) {
+    public void useAutoCraft(final @Nonnull Result useAutoCraft) {
         this.useAutoCraft = useAutoCraft;
     }
 

@@ -29,8 +29,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredListener;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,7 +55,7 @@ public class StringUtils {
      * @param value     - The value being compared against the condition.
      * @return If the condition has operand against value.
      */
-    public static boolean conditionMet(final String condition, final String operand, final String value) {
+    public static boolean conditionMet(final @Nullable String condition, final @Nullable String operand, final @Nullable String value) {
         if (operand == null) {
             return false;
         }
@@ -62,10 +63,10 @@ public class StringUtils {
             return true;
         } else if (operand.equalsIgnoreCase("NOTEQUAL") && ((condition != null && value != null && !condition.equalsIgnoreCase(value)) || ((condition == null && value != null) || (condition != null && value == null)))) {
             return true;
-        } else if (operand.equalsIgnoreCase("OVER") && condition != null && value != null && isInt(condition) && isInt(value) && Integer.parseInt(condition) > Integer.parseInt(value)) {
+        } else if (operand.equalsIgnoreCase("OVER") && isInt(condition) && isInt(value) && Integer.parseInt(condition) > Integer.parseInt(value)) {
             return true;
         } else
-            return operand.equalsIgnoreCase("UNDER") && condition != null && value != null && isInt(condition) && isInt(value) && Integer.parseInt(condition) < Integer.parseInt(value);
+            return operand.equalsIgnoreCase("UNDER") && isInt(condition) && isInt(value) && Integer.parseInt(condition) < Integer.parseInt(value);
     }
 
     /**
@@ -75,7 +76,7 @@ public class StringUtils {
      * @param string2 - The String that should be inside string1.
      * @return If string1 contains string2.
      */
-    public static boolean containsIgnoreCase(final String string1, final String string2) {
+    public static boolean containsIgnoreCase(final @Nullable String string1, final @Nullable String string2) {
         return string1 != null && string2 != null && string1.toLowerCase().contains(string2.toLowerCase());
     }
 
@@ -87,7 +88,7 @@ public class StringUtils {
      * @param argument - The argument to be split between the string.
      * @return If string1 contains string2.
      */
-    public static boolean splitIgnoreCase(final String string1, final String string2, final String argument) {
+    public static boolean splitIgnoreCase(final @Nullable String string1, final @Nullable String string2, final @Nullable String argument) {
         if (string1 == null || string2 == null || argument == null) {
             return false;
         }
@@ -109,7 +110,7 @@ public class StringUtils {
      * @param str  - The String that should be inside the List.
      * @return If the List contained the String.
      */
-    public static boolean containsValue(final List<?> list, final String str) {
+    public static boolean containsValue(final @Nonnull List<?> list, final @Nonnull String str) {
         boolean bool = false;
         for (Object l : list) {
             if (l.toString().equalsIgnoreCase(str)) {
@@ -126,7 +127,7 @@ public class StringUtils {
      * @param str - The String to be Split.
      * @return The newly formatted String[].
      */
-    public static String[] softSplit(final String str) {
+    public static @Nonnull String[] softSplit(final @Nonnull String str) {
         if (str.split(", ").length < 3) {
             return str.split("` ");
         }
@@ -153,7 +154,7 @@ public class StringUtils {
      * @param str - The String to be Split.
      * @return The split String as a List.
      */
-    public static List<String> split(final String str) {
+    public static @Nonnull List<String> split(final @Nonnull String str) {
         return new ArrayList<>(Arrays.asList(str.split(", ")));
     }
 
@@ -163,7 +164,7 @@ public class StringUtils {
      * @param stringBuilder - The StringBuilder being checked.
      * @return If the StringBuilder is Empty.
      */
-    public static boolean isEmpty(final @NonNull StringBuilder stringBuilder) {
+    public static boolean isEmpty(final @Nonnull StringBuilder stringBuilder) {
         return stringBuilder.toString().isEmpty();
     }
 
@@ -173,7 +174,7 @@ public class StringUtils {
      * @param location - The location to become a String.
      * @return The Location as a String value.
      */
-    public static String locationToString(final Location location) {
+    public static @Nonnull String locationToString(final @Nonnull Location location) {
         return location.getX() + "," + location.getY() + "," + location.getZ() + "," + location.getYaw() + "," + location.getPitch();
     }
 
@@ -185,7 +186,7 @@ public class StringUtils {
      * @param sub2 - The occurrence to be placed.
      * @return The newly replaced String.
      */
-    public static String replaceLast(final String str, final String sub1, final String sub2) {
+    public static @Nonnull String replaceLast(final @Nonnull String str, final @Nonnull String sub1, final @Nonnull String sub2) {
         int pos = str.lastIndexOf(sub1);
         if (pos > -1) {
             return str.substring(0, pos) + sub2 + str.substring(pos + sub1.length());
@@ -202,7 +203,7 @@ public class StringUtils {
      * @param endData   - The String to be Color Encoded.
      * @return The Color Encoded String.
      */
-    public static ItemStack colorEncode(final ItemStack itemStack, final String endData) {
+    public static @Nonnull ItemStack colorEncode(final @Nonnull ItemStack itemStack, final @Nonnull String endData) {
         final ItemMeta itemMeta = itemStack.getItemMeta();
         if (ServerUtils.hasSpecificUpdate("1_14") && itemMeta != null) {
             final org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(Core.getCore().getPlugin(), "Item_Data");
@@ -224,18 +225,23 @@ public class StringUtils {
      * @param itemStack - The ItemStack being Decoded.
      * @return The Color Decoded String.
      */
-    public static String colorDecode(final ItemStack itemStack) {
+    public static @Nonnull String colorDecode(final @Nonnull ItemStack itemStack) {
         final ItemMeta itemMeta = itemStack.getItemMeta();
         if (ServerUtils.hasSpecificUpdate("1_14") && itemMeta != null) {
             final org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(Core.getCore().getPlugin(), "Item_Data");
             final org.bukkit.persistence.PersistentDataContainer container = itemMeta.getPersistentDataContainer();
             if (container.has(key, org.bukkit.persistence.PersistentDataType.STRING)) {
-                return container.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+                final String decoded = container.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+                if (decoded != null) {
+                    return decoded;
+                } else {
+                    return "";
+                }
             }
         } else if (itemMeta != null && itemMeta.hasDisplayName()) {
             return LegacyAPI.colorDecode(itemMeta.getDisplayName());
         }
-        return null;
+        return "";
     }
 
     /**
@@ -244,7 +250,7 @@ public class StringUtils {
      * @param hexString - The HexColor to be converted to Color.
      * @return The Color found from the HexColor.
      */
-    public static Color getColorFromHexColor(final String hexString) {
+    public static @Nonnull Color getColorFromHexColor(final @Nonnull String hexString) {
         int hex = Integer.decode("#" + hexString.replace("#", ""));
         int r = (hex & 0xFF0000) >> 16;
         int g = (hex & 0xFF00) >> 8;
@@ -258,8 +264,11 @@ public class StringUtils {
      * @param str - The String to be checked.
      * @return The number of characters in the String.
      */
-    public static int countCharacters(final String str) {
+    public static int countCharacters(final @Nullable String str) {
         int count = 0;
+        if (str == null) {
+            return count;
+        }
         for (int i = 0; i < str.length(); i++) {
             if (Character.isLetter(str.charAt(i)))
                 count++;
@@ -273,7 +282,10 @@ public class StringUtils {
      * @param str - The String to be checked.
      * @return If the String is an Integer Value.
      */
-    public static boolean isInt(final String str) {
+    public static boolean isInt(final @Nullable String str) {
+        if (str == null) {
+            return false;
+        }
         try {
             Integer.parseInt(str);
         } catch (NumberFormatException e) {
@@ -288,7 +300,10 @@ public class StringUtils {
      * @param str - The String to be checked.
      * @return If the String is a Double Value.
      */
-    public static boolean isDouble(final String str) {
+    public static boolean isDouble(final @Nullable String str) {
+        if (str == null) {
+            return false;
+        }
         try {
             Double.parseDouble(str);
         } catch (NumberFormatException e) {
@@ -303,7 +318,7 @@ public class StringUtils {
      * @param str - The String to be checked.
      * @return The first found Integer.
      */
-    public static Integer returnInteger(final String str) {
+    public static @Nullable Integer returnInteger(final @Nullable String str) {
         if (str == null) {
             return null;
         } else {
@@ -333,9 +348,9 @@ public class StringUtils {
      *
      * @param uuidString - that will receive the items.
      */
-    public static UUID UUIDConversion(String uuidString) {
+    public static @Nullable UUID UUIDConversion(@Nonnull String uuidString) {
         UUID uuid = null;
-        if (uuidString != null && !uuidString.isEmpty()) {
+        if (!uuidString.isEmpty()) {
             uuidString = uuidString.replace("-", "");
             uuid = new UUID(
                     new BigInteger(uuidString.substring(0, 16), 16).longValue(),
@@ -350,7 +365,7 @@ public class StringUtils {
      * @param reader - the BufferedReader to be converted.
      * @return The resulting appended String.
      */
-    public static String toString(final BufferedReader reader) throws IOException {
+    public static @Nonnull String toString(final @Nonnull BufferedReader reader) throws IOException {
         final StringBuilder result = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
@@ -365,7 +380,7 @@ public class StringUtils {
      * @param url - The texture url to have the Texture fetched.
      * @return The Texture Base64 encoded String.
      */
-    public static String toTexture64(String url) {
+    public static @Nonnull String toTexture64(@Nonnull String url) {
         url = ItemHandler.cutDelay(url.replace("url-", ""));
         if (!StringUtils.containsIgnoreCase(url, "minecraft.net") && !StringUtils.containsIgnoreCase(url, "http") && !StringUtils.containsIgnoreCase(url, "https")) {
             url = "https://textures.minecraft.net/texture/" + url;
@@ -391,7 +406,7 @@ public class StringUtils {
      * @param skullTexture - The skullTexture being fetched.
      * @return The Player UUID texture String.
      */
-    public static String toTextureUUID(final Player player, final String configName, final String skullTexture) {
+    public static @Nonnull String toTextureUUID(final @Nonnull Player player, final @Nonnull String configName, final @Nonnull String skullTexture) {
         if (StringUtils.containsIgnoreCase(skullTexture, "uuid")) {
             String https = ("https://sessionserver.mojang.com/session/minecraft/profile/" + StringUtils.translateLayout(skullTexture, player).replace("uuid-", "").replace("uuid", ""));
             try {
@@ -413,14 +428,14 @@ public class StringUtils {
                         }
                     }
                 }
-                return valueResult;
+                return (valueResult != null ? valueResult : skullTexture.replace("uuid-", "").replace("uuid", ""));
             } catch (IOException e) {
                 ServerUtils.logSevere("{StringUtils} Unable to connect to " + https);
                 ServerUtils.logSevere("{StringUtils} " + e.getMessage());
                 ServerUtils.logSevere("{StringUtils} The item " + configName + " will NOT have its skull-texture set!");
             }
         }
-        return (skullTexture == null || skullTexture.isEmpty() ? skullTexture : skullTexture.replace("uuid-", "").replace("uuid", ""));
+        return skullTexture.replace("uuid-", "").replace("uuid", "");
     }
 
     /**
@@ -429,14 +444,8 @@ public class StringUtils {
      * @param str - The String to be encrypted.
      * @return The Base64 encoded String.
      */
-    public static String encrypt(final String str) {
-        try {
-            return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            ServerUtils.logDebug("{StringUtils} Failure to encrypt sensitive text!");
-            ServerUtils.sendDebugTrace(e);
-        }
-        return null;
+    public static @Nonnull String encrypt(final @Nonnull String str) {
+        return Base64.getEncoder().encodeToString(str.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -445,14 +454,8 @@ public class StringUtils {
      * @param str - The String to be decrypted.
      * @return The decrypted String.
      */
-    public static String decrypt(final String str) {
-        try {
-            return new String(Base64.getDecoder().decode(str), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            ServerUtils.logDebug("{StringUtils} Failure to decrypt sensitive text!");
-            ServerUtils.sendDebugTrace(e);
-        }
-        return null;
+    public static @Nonnull String decrypt(final @Nonnull String str) {
+        return new String(Base64.getDecoder().decode(str), StandardCharsets.UTF_8);
     }
 
     /**
@@ -462,7 +465,7 @@ public class StringUtils {
      * @param upper      - The highest number of spaces.
      * @param comparator - A number that should never be used.
      */
-    public static Map<StringBuilder, Integer> getSpacers(final int lower, final int upper, final int comparator) {
+    public static @Nonnull Map<StringBuilder, Integer> getSpacers(final int lower, final int upper, final int comparator) {
         StringBuilder spaces = new StringBuilder();
         int sNum = StringUtils.getRandom(0, 5);
         while (comparator == sNum) {
@@ -491,7 +494,7 @@ public class StringUtils {
      * @param list - The ArrayList to have an entry selected.
      * @return The randomly selected entry.
      */
-    public static Object randomEntry(final ArrayList<?> list) {
+    public static @Nonnull Object randomEntry(final ArrayList<?> list) {
         Random rand = new Random();
         return list.get(rand.nextInt(list.size()));
     }
@@ -503,7 +506,7 @@ public class StringUtils {
      * @param str      - The String to be checked.
      * @return If the String contains the location.
      */
-    public static boolean containsLocation(final String location, final String str) {
+    public static boolean containsLocation(final @Nonnull String location, final @Nonnull String str) {
         if (str.equalsIgnoreCase("ALL") || str.equalsIgnoreCase("GLOBAL")
                 || str.equalsIgnoreCase("ENABLED") || str.equalsIgnoreCase("TRUE")) {
             return true;
@@ -523,7 +526,7 @@ public class StringUtils {
      * @param str - The String to be checked.
      * @return The Crafting Slot Value.
      */
-    public static int getSlotConversion(final String str) {
+    public static int getSlotConversion(final @Nonnull String str) {
         if (str.equalsIgnoreCase("CRAFTING[0]") || str.equalsIgnoreCase("C[0]")
                 || str.equalsIgnoreCase("CRAFTING(0)") || str.equalsIgnoreCase("C(0)")) {
             return 0;
@@ -550,7 +553,7 @@ public class StringUtils {
      * @param integer - If the return value should be a String or Integer value.
      * @return The Armor Slot ID.
      */
-    public static String getArmorSlot(final String slot, final boolean integer) {
+    public static @Nonnull String getArmorSlot(final @Nonnull String slot, final boolean integer) {
         if (!integer) {
             if (slot.equalsIgnoreCase("39")) {
                 return "HELMET";
@@ -581,7 +584,7 @@ public class StringUtils {
      * @param listener - The name of the Listener to be checked.
      * @return If the Listener is Registered.
      */
-    public static boolean isRegistered(final String listener) {
+    public static boolean isRegistered(final @Nonnull String listener) {
         boolean returnValue = false;
         ArrayList<RegisteredListener> rls = HandlerList.getRegisteredListeners(Core.getCore().getPlugin());
         for (RegisteredListener rl : rls) {
@@ -600,7 +603,7 @@ public class StringUtils {
      * @param input - The String to be checked.
      * @return The newly formatted String.
      */
-    public static String nullCheck(String input) {
+    public static @Nonnull String nullCheck(@Nullable String input) {
         if (input == null || input.equalsIgnoreCase("NULL") || input.contains("[]") || input.contains("{}") || input.equals("0&7") || input.equals("-1&a%") || input.isEmpty() || input.equals(" ")) {
             return "NONE";
         }
@@ -619,7 +622,7 @@ public class StringUtils {
      * @param str - The String to have its Color Codes properly Converted to Mojang Hex Colors.
      * @return The translated string.
      */
-    public static String translateHexColorCodes(final String str) {
+    public static @Nonnull String translateHexColorCodes(final @Nonnull String str) {
         final char COLOR_CHAR = ChatColor.COLOR_CHAR;
         Matcher matcher = Pattern.compile("&#([A-Fa-f0-9]{6})").matcher(str);
         StringBuffer buffer = new StringBuffer(str.length() + 4 * 8);
@@ -637,7 +640,7 @@ public class StringUtils {
      * @param str - The String to have its Color Codes properly Converted to String.
      * @return The newly formatted String.
      */
-    public static String restoreColor(final String str) {
+    public static @Nonnull String restoreColor(final @Nonnull String str) {
         return str.replace('§', '&');
     }
 
@@ -648,7 +651,7 @@ public class StringUtils {
      * @param str - The String to have its Color Codes properly Converted to Bukkit Colors.
      * @return The newly formatted String.
      */
-    public static String colorFormat(final String str) {
+    public static @Nonnull String colorFormat(final @Nonnull String str) {
         return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(str));
     }
 
@@ -660,9 +663,9 @@ public class StringUtils {
      * @param placeHolder - The placeholders to be replaced into the String.
      * @return The newly translated String.
      */
-    public static String translateLayout(String str, final Player player, final String... placeHolder) {
+    public static @Nonnull String translateLayout(@Nullable String str, final @Nullable Player player, final @Nonnull String... placeHolder) {
         if (str != null && !str.isEmpty()) {
-            String playerName = PlayerHandler.getPlayerName(player);
+            String playerName = (player == null ? null : PlayerHandler.getPlayerName(player));
             if (playerName == null || playerName.isEmpty()) {
                 playerName = "EXEMPT";
             }
@@ -714,7 +717,7 @@ public class StringUtils {
                     ServerUtils.sendDebugTrace(e);
                 }
                 try {
-                    if (placeHolder != null && placeHolder.length >= 1 && placeHolder[0] != null) {
+                    if (placeHolder.length >= 1 && placeHolder[0] != null) {
                         str = str.replace("%player_hit%", placeHolder[0]);
                     }
                 } catch (Exception e) {
@@ -747,6 +750,6 @@ public class StringUtils {
             }
             return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(str));
         }
-        return str;
+        return (str == null ? "" : str);
     }
 }

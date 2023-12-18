@@ -25,6 +25,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Called when a player tries to pick block using the middle mouse button.
@@ -45,13 +46,13 @@ public class PlayerExitCreativeEvent extends PlayerEvent implements Cancellable 
      * @param altWho   - The other Player being referenced.
      * @param gamemode - The GameMode to be set.
      */
-    public PlayerExitCreativeEvent(final CommandSender who, final Player altWho, final GameMode gamemode, final boolean silent, final boolean doSave) {
+    public PlayerExitCreativeEvent(final @Nonnull CommandSender who, final @Nullable Player altWho, final @Nonnull GameMode gamemode, final boolean silent, final boolean doSave) {
         super((altWho != null ? altWho : (Player) who));
         this.who = who;
         this.gamemode = gamemode;
         this.silent = silent;
         this.doSave = doSave;
-        this.result = who == null ? Result.DENY : Result.ALLOW;
+        this.result = Result.ALLOW;
     }
 
     /**
@@ -59,7 +60,7 @@ public class PlayerExitCreativeEvent extends PlayerEvent implements Cancellable 
      *
      * @return The HandlerList for the event.
      */
-    public static HandlerList getHandlerList() {
+    public static @Nonnull HandlerList getHandlerList() {
         return handlers;
     }
 
@@ -92,7 +93,7 @@ public class PlayerExitCreativeEvent extends PlayerEvent implements Cancellable 
      *
      * @return The action to take with the pick block action.
      */
-    public Result returnResult() {
+    public @Nonnull Result returnResult() {
         return this.result;
     }
 
@@ -101,7 +102,7 @@ public class PlayerExitCreativeEvent extends PlayerEvent implements Cancellable 
      *
      * @param exitCreative - the action to take with the creative mode action.
      */
-    public void getResult(final Result exitCreative) {
+    public void getResult(final @Nonnull Result exitCreative) {
         this.result = exitCreative;
     }
 
@@ -110,7 +111,7 @@ public class PlayerExitCreativeEvent extends PlayerEvent implements Cancellable 
      *
      * @return The Sender.
      */
-    public CommandSender getSender() {
+    public @Nonnull CommandSender getSender() {
         return this.who;
     }
 
@@ -119,7 +120,7 @@ public class PlayerExitCreativeEvent extends PlayerEvent implements Cancellable 
      *
      * @return The Targeted Gamemode.
      */
-    public GameMode getGameMode() {
+    public @Nonnull GameMode getGameMode() {
         return this.gamemode;
     }
 

@@ -23,6 +23,8 @@ import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ public class Database extends Controller {
      *
      * @param databaseName - The name of the database.
      */
-    public Database(String databaseName) {
+    public Database(final @Nonnull String databaseName) {
         this.dataFolder = databaseName;
     }
 
@@ -59,7 +61,7 @@ public class Database extends Controller {
      *
      * @return The Database instance.
      */
-    public static Database getDatabase() {
+    public static @Nonnull Database getDatabase() {
         if (data == null || !data.dataFolder.equalsIgnoreCase("database")) {
             data = new Database("database");
             try {
@@ -78,7 +80,7 @@ public class Database extends Controller {
      * @param baseName - The database being fetched.
      * @return The Database instance.
      */
-    public static Database getDatabase(final String baseName) {
+    public static @Nonnull Database getDatabase(final @Nonnull String baseName) {
         if (data == null || !data.dataFolder.equalsIgnoreCase(baseName)) {
             data = new Database(baseName);
             try {
@@ -96,15 +98,13 @@ public class Database extends Controller {
      *
      * @param statement - the statement to be executed.
      */
-    public void executeStatement(final String statement) {
+    public void executeStatement(final @Nonnull String statement) {
         Connection conn = null;
         Statement ps = null;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                ps.executeUpdate(statement);
-            }
+            ps = conn.createStatement();
+            ps.executeUpdate(statement);
         } catch (Exception e) {
             ServerUtils.logSevere("{SQL} [1] Failed to execute database statement.");
             if (conn != null) {
@@ -128,19 +128,17 @@ public class Database extends Controller {
      * @param row       - the row being queried.
      * @return The result in as an object.
      */
-    public Object queryValue(final String statement, final String row) {
+    public @Nullable Object queryValue(final @Nonnull String statement, final @Nonnull String row) {
         Connection conn = null;
         Statement ps = null;
         ResultSet rs = null;
         Object returnValue = null;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                rs = ps.executeQuery(statement);
-                if (rs.next()) {
-                    returnValue = rs.getObject(row);
-                }
+            ps = conn.createStatement();
+            rs = ps.executeQuery(statement);
+            if (rs.next()) {
+                returnValue = rs.getObject(row);
             }
         } catch (Exception e) {
             ServerUtils.logSevere("{SQL} [2] Failed to execute database statement.");
@@ -166,19 +164,17 @@ public class Database extends Controller {
      * @param row       - the row being queried.
      * @return The result in as a listed object.
      */
-    public List<Object> queryRow(final String statement, final String row) {
+    public @Nonnull List<Object> queryRow(final @Nonnull String statement, final @Nonnull String row) {
         final List<Object> objects = new ArrayList<>();
         Connection conn = null;
         Statement ps = null;
         ResultSet rs = null;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                rs = ps.executeQuery(statement);
-                while (rs.next()) {
-                    objects.add(rs.getObject(row));
-                }
+            ps = conn.createStatement();
+            rs = ps.executeQuery(statement);
+            while (rs.next()) {
+                objects.add(rs.getObject(row));
             }
         } catch (Exception e) {
             ServerUtils.logSevere("{SQL} [3] Failed to execute database statement.");
@@ -204,25 +200,23 @@ public class Database extends Controller {
      * @param rows      - the list of rows being queried.
      * @return The result in as a listed list of strings.
      */
-    public List<HashMap<String, String>> queryTableData(final String statement, final String rows) {
+    public @Nonnull List<HashMap<String, String>> queryTableData(final @Nonnull String statement, final @Nonnull String rows) {
         final List<HashMap<String, String>> existingData = new ArrayList<>();
         Connection conn = null;
         Statement ps = null;
         ResultSet rs = null;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                rs = ps.executeQuery(statement);
-                while (rs.next()) {
-                    final HashMap<String, String> columnData = new HashMap<>();
-                    for (final String singleRow : rows.split(", ")) {
-                        if (this.isClosed(rs) && !this.isClosed(conn)) {
-                            columnData.put(singleRow, rs.getString(singleRow));
-                        }
+            ps = conn.createStatement();
+            rs = ps.executeQuery(statement);
+            while (rs.next()) {
+                final HashMap<String, String> columnData = new HashMap<>();
+                for (final String singleRow : rows.split(", ")) {
+                    if (this.isClosed(rs) && !this.isClosed(conn)) {
+                        columnData.put(singleRow, rs.getString(singleRow));
                     }
-                    existingData.add(columnData);
                 }
+                existingData.add(columnData);
             }
         } catch (Exception e) {
             ServerUtils.logSevere("{SQL} [4] Failed to execute database statement.");
@@ -248,7 +242,7 @@ public class Database extends Controller {
      * @param row       - the list of rows being queried.
      * @return The result in as a HashMap.
      */
-    public Map<String, List<Object>> queryMultipleRows(final String statement, final String... row) {
+    public @Nonnull Map<String, List<Object>> queryMultipleRows(final @Nonnull String statement, final @Nonnull String... row) {
         final List<Object> objects = new ArrayList<>();
         final Map<String, List<Object>> map = new HashMap<>();
         Connection conn = null;
@@ -256,16 +250,14 @@ public class Database extends Controller {
         ResultSet rs = null;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                rs = ps.executeQuery(statement);
-                while (rs.next()) {
-                    for (final String singleRow : row) {
-                        objects.add(rs.getObject(singleRow));
-                    }
-                    for (final String singleRow : row) {
-                        map.put(singleRow, objects);
-                    }
+            ps = conn.createStatement();
+            rs = ps.executeQuery(statement);
+            while (rs.next()) {
+                for (final String singleRow : row) {
+                    objects.add(rs.getObject(singleRow));
+                }
+                for (final String singleRow : row) {
+                    map.put(singleRow, objects);
                 }
             }
         } catch (Exception e) {
@@ -291,18 +283,16 @@ public class Database extends Controller {
      * @param statement - the statement to be executed.
      * @return If the column exists.
      */
-    public boolean columnExists(final String statement) {
+    public boolean columnExists(final @Nonnull String statement) {
         Connection conn = null;
         Statement ps = null;
         ResultSet rs = null;
         boolean columnExists = false;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                rs = ps.executeQuery(statement);
-                columnExists = true;
-            }
+            ps = conn.createStatement();
+            rs = ps.executeQuery(statement);
+            columnExists = true;
         } catch (Exception e) {
             if (!(StringUtils.containsIgnoreCase(e.getMessage(), "no such column") || StringUtils.containsIgnoreCase(e.getMessage(), "Unknown column"))) {
                 ServerUtils.logSevere("{SQL} [6] Failed to execute database statement.");
@@ -328,21 +318,19 @@ public class Database extends Controller {
      * @param tableName - the name of the table.
      * @return If the table exists.
      */
-    public boolean tableExists(final String tableName) {
+    public boolean tableExists(final @Nonnull String tableName) {
         boolean tExists = false;
         Connection conn = null;
         ResultSet rs = null;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                rs = conn.getMetaData().getTables(null, null, tableName, null);
-                while (rs.next()) {
-                    if (this.isClosed(rs) && !this.isClosed(conn)) {
-                        final String tName = rs.getString("TABLE_NAME");
-                        if (tName != null && tName.equals(tableName)) {
-                            tExists = true;
-                            break;
-                        }
+            rs = conn.getMetaData().getTables(null, null, tableName, null);
+            while (rs.next()) {
+                if (this.isClosed(rs) && !this.isClosed(conn)) {
+                    final String tName = rs.getString("TABLE_NAME");
+                    if (tName != null && tName.equals(tableName)) {
+                        tExists = true;
+                        break;
                     }
                 }
             }
@@ -361,17 +349,15 @@ public class Database extends Controller {
      * @param statement - the statement to be executed.
      * @return If the data exists.
      */
-    public boolean dataExists(final String statement) {
+    public boolean dataExists(final @Nonnull String statement) {
         Connection conn = null;
         Statement ps = null;
         ResultSet rs = null;
         boolean dataExists = false;
         try {
             conn = this.getConnection();
-            if (conn != null) {
-                ps = conn.createStatement();
-                rs = ps.executeQuery(statement);
-            }
+            ps = conn.createStatement();
+            rs = ps.executeQuery(statement);
             if (rs != null && !rs.isBeforeFirst()) {
                 ServerUtils.logDebug("{SQL} Result set is empty.");
             } else {
@@ -409,7 +395,7 @@ abstract class Controller {
      *
      * @return The SQL connection.
      */
-    protected Connection getConnection() {
+    protected @Nonnull Connection getConnection() {
         synchronized ("CC_SQL") {
             if (this.isClosed(this.connection) && !this.stopConnection) {
                 if (this.isClosed(this.connection)) {
@@ -470,7 +456,7 @@ abstract class Controller {
      *
      * @return If the Connection isClosed.
      */
-    protected boolean isClosed(final Statement object) {
+    protected boolean isClosed(final @Nullable Statement object) {
         try {
             if (object == null || object.isClosed()) {
                 return true;
@@ -490,9 +476,9 @@ abstract class Controller {
      *
      * @return If the Connection isClosed.
      */
-    protected boolean isClosed(final ResultSet object) {
+    protected boolean isClosed(final @Nonnull ResultSet object) {
         try {
-            if (object == null || object.isClosed()) {
+            if (object.isClosed()) {
                 return false;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
@@ -510,7 +496,7 @@ abstract class Controller {
      *
      * @return If the Connection isClosed.
      */
-    protected boolean isClosed(final Connection object) {
+    protected boolean isClosed(final @Nullable Connection object) {
         try {
             if (object == null || object.isClosed()) {
                 return true;
@@ -533,15 +519,15 @@ abstract class Controller {
      * @param conn  - the Connection being closed.
      * @param force - If the connection should be forced to close.
      */
-    protected void close(final Statement ps, final ResultSet rs, final Connection conn, final boolean force) {
+    protected void close(final @Nullable Statement ps, final @Nullable ResultSet rs, final @Nullable Connection conn, final boolean force) {
         try {
-            if (!this.isClosed(ps)) {
+            if (ps != null && !this.isClosed(ps)) {
                 ps.close();
             }
-            if (this.isClosed(rs)) {
+            if (rs != null && this.isClosed(rs)) {
                 rs.close();
             }
-            if (!this.stopConnection && (!this.isClosed(conn) && (!Core.getCore().getData().sqlEnabled() || force))) {
+            if (!this.stopConnection && (conn != null && !this.isClosed(conn) && (!Core.getCore().getData().sqlEnabled() || force))) {
                 this.closeLater(conn, force);
             }
         } catch (SQLException e) {
@@ -557,7 +543,7 @@ abstract class Controller {
      * @param conn  - the Connection being closed.
      * @param force - If the connection should be forced to close.
      */
-    protected void closeLater(final Connection conn, final boolean force) {
+    protected void closeLater(final @Nonnull Connection conn, final boolean force) {
         this.stopConnection = true;
         if (Core.getCore().getPlugin().isEnabled()) {
             SchedulerUtils.runLater(100L, () -> {

@@ -17,6 +17,8 @@
  */
 package me.RockinChaos.core.utils.protocol.packet;
 
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("unused")
 public class PacketObject {
 
@@ -29,7 +31,7 @@ public class PacketObject {
      * @param field - The field of the Packet.
      * @param data  - The data of the Packet.
      */
-    public PacketObject(final String field, final Object data) {
+    public PacketObject(final @Nonnull String field, final @Nonnull Object data) {
         this.field = field;
         this.data = data;
     }
@@ -39,7 +41,7 @@ public class PacketObject {
      *
      * @return The Packet Field.
      */
-    public String getField() {
+    public @Nonnull String getField() {
         return this.field;
     }
 
@@ -48,7 +50,7 @@ public class PacketObject {
      *
      * @return The Packets Data Object.
      */
-    public Object getData() {
+    public @Nonnull Object getData() {
         return this.data;
     }
 }
