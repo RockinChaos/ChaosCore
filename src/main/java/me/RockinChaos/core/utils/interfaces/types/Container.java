@@ -29,6 +29,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
@@ -56,7 +57,7 @@ public class Container {
      * @param inventoryTitle - The Title (BaseComponent) to set to the Container.
      * @param outItem        - The expected result item of the Container.
      */
-    public Container(final Player player, final Object inventoryTitle, final ItemStack outItem) {
+    public Container(final @Nonnull Player player, final @Nonnull Object inventoryTitle, final @Nonnull ItemStack outItem) {
         try {
             final Class<?> blockPosition = ReflectionUtils.getMinecraftClass("BlockPosition");
             final Class<?> containerAnvil = ReflectionUtils.getMinecraftClass("ContainerAnvil");
@@ -95,8 +96,9 @@ public class Container {
      * @param player The player to get the next container id of.
      * @return The next available NMS container id.
      */
-    private int getRealNextContainerId(final Player player) {
-        return (int) ReflectionUtils.invokeMethod("nextContainerCounter", ReflectionUtils.getEntity(player));
+    private int getRealNextContainerId(final @Nonnull Player player) {
+        final Object entityPlayer = ReflectionUtils.getEntity(player);
+        return entityPlayer == null ? 0 : (int) ReflectionUtils.invokeMethod("nextContainerCounter", entityPlayer);
     }
 
     /**
@@ -104,7 +106,7 @@ public class Container {
      *
      * @param player The player that needs their current inventory closed.
      */
-    public void handleInventoryCloseEvent(final Player player) {
+    public void handleInventoryCloseEvent(final @Nonnull Player player) {
         try {
             ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory").getMethod("handleInventoryCloseEvent", this.humanEntity).invoke(null, ReflectionUtils.getEntity(player));
         } catch (Exception e) {
@@ -118,7 +120,7 @@ public class Container {
      * @param player         The player to send the packet to.
      * @param inventoryTitle The title of the inventory to be opened (only works in Minecraft 1.14 and above).
      */
-    public void sendPacketOpenWindow(final Player player, final Object inventoryTitle) {
+    public void sendPacketOpenWindow(final @Nonnull Player player, final @Nonnull Object inventoryTitle) {
         try {
             Object packets;
             if (ServerUtils.hasSpecificUpdate("1_14")) {
@@ -141,7 +143,7 @@ public class Container {
      *
      * @param player The player to send the packet to.
      */
-    public void sendPacketCloseWindow(final Player player) {
+    public void sendPacketCloseWindow(final @Nonnull Player player) {
         try {
             Object packets = this.playCloseWindow.getConstructor(int.class).newInstance(this.containerId);
             ReflectionUtils.sendPacket(player, packets);
@@ -155,7 +157,7 @@ public class Container {
      *
      * @param player The player to set the active container of.
      */
-    public void setActiveContainerDefault(final Player player) {
+    public void setActiveContainerDefault(final @Nonnull Player player) {
         this.activeContainer.set(ReflectionUtils.getEntity(player), this.defaultContainer.get(ReflectionUtils.getEntity(player)));
     }
 
@@ -164,7 +166,7 @@ public class Container {
      *
      * @param player The player to set the active container of.
      */
-    public void setActiveContainer(final Player player) {
+    public void setActiveContainer(final @Nonnull Player player) {
         this.activeContainer.set(ReflectionUtils.getEntity(player), this.container);
     }
 
@@ -182,7 +184,7 @@ public class Container {
      *
      * @param player The player to have as a listener.
      */
-    public void addActiveContainerSlotListener(final Player player) {
+    public void addActiveContainerSlotListener(final @Nonnull Player player) {
         try {
             final Object entityPlayer = ReflectionUtils.getEntity(player);
             if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
@@ -200,13 +202,13 @@ public class Container {
      *
      * @return The current input field text.
      */
-    public String getRenameText() {
+    public @Nonnull String getRenameText() {
         try {
             return (String) this.mineContainer.getMethod(MinecraftField.RenameText.getField()).invoke(this.container);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
-        return null;
+        return "";
     }
 
     /**
@@ -214,7 +216,7 @@ public class Container {
      *
      * @param text - The text to be set in the input field.
      */
-    public void setRenameText(final String text) {
+    public void setRenameText(final @Nonnull String text) {
         try {
             Object inputLeft = this.mineContainer.getMethod(MinecraftField.GetSlot.getField(), int.class).invoke(this.container, 0);
             boolean inputLeftF = (boolean) inputLeft.getClass().getMethod(MinecraftField.HasItem.getField()).invoke(inputLeft);
@@ -223,7 +225,7 @@ public class Container {
                 if (ServerUtils.hasSpecificUpdate("1_13")) {
                     inputLeftE.getClass().getMethod("a", this.baseComponent).invoke(inputLeftE, ReflectionUtils.literalChatComponent(text));
                 } else {
-                    inputLeftE.getClass().getMethod((ServerUtils.hasSpecificUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE,text);
+                    inputLeftE.getClass().getMethod((ServerUtils.hasSpecificUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE, text);
                 }
             }
         } catch (Exception e) {
@@ -234,16 +236,16 @@ public class Container {
     /**
      * Gets the result item for the Container.
      *
-     * @param player - the player being referenced.
+     * @param player    - the player being referenced.
      * @param entryText - The rename text.
      * @return The newly formatted result item.
      */
-    public ItemStack getResult(final Player player, final String entryText) {
+    public @Nonnull ItemStack getResult(final @Nonnull Player player, final @Nonnull String entryText) {
         final ItemStack item = this.outItem.clone();
         String renameText = entryText;
         try {
             final ItemMeta itemMeta = item.getItemMeta();
-            if (itemMeta != null && renameText != null) {
+            if (itemMeta != null) {
                 boolean isAction = renameText.startsWith("-->") || this.isAction;
                 renameText = renameText.substring((renameText.startsWith("--> ") ? 4 : renameText.startsWith("-->") ? 3 : renameText.startsWith("-> ") ? 3 : renameText.startsWith("->") ? 2 : renameText.startsWith("--") ? 2 : renameText.startsWith("-") ? 1 : 0));
                 if (renameText.isEmpty() && isAction && this.outText != null && !this.outText.isEmpty()) {
@@ -268,19 +270,17 @@ public class Container {
      *
      * @param entryText - The rename text.
      */
-    public void handleTyping(final String entryText) {
+    public void handleTyping(final @Nonnull String entryText) {
         String renameText = entryText;
         try {
-            if (renameText != null) {
-                boolean isAction = renameText.startsWith("-->") || this.isAction;
-                renameText = renameText.substring((renameText.startsWith("-->") ? 3 : renameText.startsWith("--> ") ? 4 : renameText.startsWith("->") ? 2 : renameText.startsWith("-> ") ? 3 : 0));
-                renameText = renameText.trim();
-                if (!renameText.isEmpty() && !this.isAction) {
-                    this.setRenameText(renameText);
-                } else if (isAction) {
-                    if (this.leftText != null && !this.leftText.isEmpty()) {
-                        this.setRenameText("-->" + this.leftText);
-                    }
+            boolean isAction = renameText.startsWith("-->") || this.isAction;
+            renameText = renameText.substring((renameText.startsWith("-->") ? 3 : renameText.startsWith("--> ") ? 4 : renameText.startsWith("->") ? 2 : renameText.startsWith("-> ") ? 3 : 0));
+            renameText = renameText.trim();
+            if (!renameText.isEmpty() && !this.isAction) {
+                this.setRenameText(renameText);
+            } else if (isAction) {
+                if (this.leftText != null && !this.leftText.isEmpty()) {
+                    this.setRenameText("-->" + this.leftText);
                 }
             }
         } catch (Exception e) {
@@ -293,7 +293,7 @@ public class Container {
      *
      * @param inventory - The AnvilInventory instance.
      */
-    public void removeCost(final AnvilInventory inventory) {
+    public void removeCost(final @Nonnull AnvilInventory inventory) {
         if (ServerUtils.hasSpecificUpdate("1_11")) {
             inventory.setRepairCost(0);
         }
@@ -313,7 +313,7 @@ public class Container {
      *
      * @param leftText - The text to be set to the left item/input field.
      */
-    public void setLeftText(final String leftText) {
+    public void setLeftText(final @Nonnull String leftText) {
         this.leftText = leftText;
     }
 
@@ -322,7 +322,7 @@ public class Container {
      *
      * @param outText - The text to be set to the output item.
      */
-    public void setOutText(final String outText) {
+    public void setOutText(final @Nonnull String outText) {
         this.outText = outText;
     }
 
@@ -333,7 +333,7 @@ public class Container {
      *
      * @return The String spacers for the output item.
      */
-    public String getSpacers() {
+    public @Nonnull String getSpacers() {
         Map.Entry<StringBuilder, Integer> rSpaces = StringUtils.getSpacers(0, 5, this.outPreview).entrySet().iterator().next();
         this.outPreview = rSpaces.getValue();
         return "" + rSpaces.getKey();
@@ -344,7 +344,7 @@ public class Container {
      *
      * @return The Inventory (Bukkit) instance of the Minecraft Inventory Container.
      */
-    public Inventory getBukkitInventory() {
+    public @Nonnull Inventory getBukkitInventory() {
         return (Inventory) ReflectionUtils.invokeMethod("getTopInventory", ReflectionUtils.invokeMethod("getBukkitView", this.container));
     }
 }
