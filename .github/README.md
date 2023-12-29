@@ -36,13 +36,22 @@ If you are using ChaosCore' API, you first have to import it into your project.
 
 To import ChaosCore, simply add the following code to your pom.xml
 Replace {VERSION} with the version with the current release or snapshot version.
-This should look like `5.0.6-RELEASE` or `5.0.7-SNAPSHOT` as an example.
+This should look like `1.0.3-RELEASE` or `1.0.2-SNAPSHOT` as an example.
+If you use a release version, be sure to use the releases repository.
+If you use a snapshot version, be sure to use the snapshots repository.
 ```
     <repositories>
-    <!--CraftationGaming Repository-->
+    <!--CraftationGaming Snapshots Repository-->
         <repository>
-            <id>CraftationGaming</id>
-            <url>https://raw.githubusercontent.com/RockinChaos/repository/maven-public/</url>
+          <id>CraftationGaming-snapshots</id>
+          <name>CraftationGaming Repository</name>
+          <url>https://repo.craftationgaming.com/snapshots</url>
+        </repository>
+    <!--CraftationGaming Releases Repository-->
+        <repository>
+          <id>CraftationGaming-releases</id>
+          <name>CraftationGaming Repository</name>
+          <url>https://repo.craftationgaming.com/releases</url>
         </repository>
     </repositories>
     <dependencies>
