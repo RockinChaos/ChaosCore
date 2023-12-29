@@ -180,7 +180,7 @@
         <dependency>
             <groupId>xyz.haoshoku.nick</groupId>
             <artifactId>NickAPI</artifactId>
-            <version>6.5.3</version>
+            <version>6.5.3-RELEASE</version>
             <scope>provided</scope>
         </dependency>
         <!--WorldGuard API-->
