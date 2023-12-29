@@ -175,10 +175,11 @@ public class ServerUtils {
      *
      * @param sender  - The entity to have the message sent.
      * @param message - The un-formatted message text to be sent.
+     * @param prefix - If the plugin prefix should be added to the message.
      */
-    public static void messageSender(final @Nonnull CommandSender sender, @Nonnull String message) {
-        String prefix = Core.getCore().getData().getPluginPrefix() + " ";
-        message = prefix + message;
+    public static void messageSender(final @Nonnull CommandSender sender, @Nonnull String message, boolean prefix) {
+        String pluginPrefix = (prefix  ? Core.getCore().getData().getPluginPrefix() + " " : "");
+        message = pluginPrefix + message;
         message = ChatColor.translateAlternateColorCodes('&', message);
         if (message.contains("blankmessage") || message.isEmpty()) {
             message = "";
