@@ -132,11 +132,11 @@
             <id>CodeMC</id>
             <url>https://repo.codemc.org/repository/maven-public</url>
         </repository>
-        <!--CraftationGaming Repository-->
+        <!--NickAPI Repository-->
         <repository>
-            <id>CraftationGaming-releases</id>
+            <id>CraftationGaming-snapshots</id>
             <name>CraftationGaming Repository</name>
-            <url>https://repo.craftationgaming.com/releases</url>
+            <url>https://repo.craftationgaming.com/snapshots</url>
         </repository>
     </repositories>
 
@@ -180,7 +180,7 @@
         <dependency>
             <groupId>xyz.haoshoku.nick</groupId>
             <artifactId>NickAPI</artifactId>
-            <version>6.5.3-RELEASE</version>
+            <version>6.5.3-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!--WorldGuard API-->
