@@ -85,9 +85,9 @@ public class UpdateHandler {
      * @param sender - The executor of the update checking.
      */
     public void forceUpdates(final @Nonnull CommandSender sender) {
-        if (this.updateNeeded(sender, false)) {
-            ServerUtils.messageSender(sender, "&aAn update has been found!");
-            ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.localeVersion + " &ato the new " + "&ev" + this.latestVersion);
+        if (this.updateNeeded(sender, true)) {
+            ServerUtils.messageSender(sender, "&aAn update has been found!", true);
+            ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.localeVersion + " &ato the new " + "&ev" + this.latestVersion, true);
             try {
                 String uri = this.HOST.replace("repos/", "").replace("api.", "").replace("latest", "download/" + "v" + this.latestVersion + "/" + this.NAME.toLowerCase() + ".jar") + "?_=" + System.currentTimeMillis();
                 HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
@@ -106,25 +106,25 @@ public class UpdateHandler {
                     fetchedSize += bytesRead;
                     final int currentProgress = (int) (((double) fetchedSize / (double) cloudFileSize) * 30);
                     if ((((fetchedSize * 100) / cloudFileSize) % 25) == 0 && currentProgress > 10) {
-                        ServerUtils.messageSender(sender, progressBar.substring(0, currentProgress + 2) + "&c" + progressBar.substring(currentProgress + 2));
+                        ServerUtils.messageSender(sender, progressBar.substring(0, currentProgress + 2) + "&c" + progressBar.substring(currentProgress + 2), true);
                     }
                 }
                 bout.close();
                 in.close();
                 fos.close();
-                ServerUtils.messageSender(sender, "&aSuccessfully updated to v" + this.latestVersion + "!");
-                ServerUtils.messageSender(sender, "&aYou must restart your server for this to take affect.");
+                ServerUtils.messageSender(sender, "&aSuccessfully updated to v" + this.latestVersion + "!", true);
+                ServerUtils.messageSender(sender, "&aYou must restart your server for this to take affect.", true);
             } catch (Exception e) {
-                ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + this.NAME + ".");
-                ServerUtils.messageSender(sender, "&cPlease try again later, if you continue to see this please contact the plugin developer.");
+                ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + this.NAME + ".", true);
+                ServerUtils.messageSender(sender, "&cPlease try again later, if you continue to see this please contact the plugin developer.", true);
                 ServerUtils.sendDebugTrace(e);
             }
         } else {
             if (this.betaVersion) {
-                ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!");
-                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!");
+                ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
+                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);
             }
-            ServerUtils.messageSender(sender, "&aYou are up to date!");
+            ServerUtils.messageSender(sender, "&aYou are up to date!", true);
         }
     }
 
@@ -132,30 +132,30 @@ public class UpdateHandler {
      * Checks to see if an update is required, notifying the console window and online op players.
      *
      * @param sender  - The executor of the update checking.
-     * @param onStart - If it is checking for updates on start.
+     * @param messages - If message should be sent.
      */
-    public void checkUpdates(final @Nonnull CommandSender sender, final boolean onStart) {
-        if (this.updateNeeded(sender, onStart) && this.updatesAllowed) {
+    public void checkUpdates(final @Nonnull CommandSender sender, final boolean messages) {
+        if (this.updateNeeded(sender, messages) && this.updatesAllowed) {
             if (this.betaVersion) {
-                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-SNAPSHOT");
-                ServerUtils.messageSender(sender, "&cThis &bSNAPSHOT &cis outdated and a release version is now available.");
+                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-SNAPSHOT", true);
+                ServerUtils.messageSender(sender, "&cThis &bSNAPSHOT &cis outdated and a release version is now available.", true);
             } else {
-                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-RELEASE");
+                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-RELEASE", true);
             }
-            ServerUtils.messageSender(sender, "&cA new version is available: " + "&av" + this.latestVersion + "-RELEASE");
-            ServerUtils.messageSender(sender, "&aGet it from: https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest");
-            ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade");
+            ServerUtils.messageSender(sender, "&cA new version is available: " + "&av" + this.latestVersion + "-RELEASE", true);
+            ServerUtils.messageSender(sender, "&aGet it from: https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", true);
+            ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             this.sendNotifications();
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
-                ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!");
-                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!");
+                ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
+                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);
             } else if (this.devVersion) {
-                ServerUtils.messageSender(sender, "&aYou are running a DEVELOPER SNAPSHOT!");
-                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!");
-                ServerUtils.messageSender(sender, "&aYou will not receive any updates requiring you to manually update.");
+                ServerUtils.messageSender(sender, "&aYou are running a DEVELOPER SNAPSHOT!", true);
+                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);
+                ServerUtils.messageSender(sender, "&aYou will not receive any updates requiring you to manually update.", true);
             }
-            ServerUtils.messageSender(sender, "&aYou are up to date!");
+            ServerUtils.messageSender(sender, "&aYou are up to date!", true);
         }
     }
 
@@ -163,13 +163,13 @@ public class UpdateHandler {
      * Directly checks to see if the GitHub host has an update available.
      *
      * @param sender  - The executor of the update checking.
-     * @param onStart - If it is checking for updates on start.
+     * @param messages - If message should be sent.
      * @return If an update is needed.
      */
-    private boolean updateNeeded(final @Nonnull CommandSender sender, final boolean onStart) {
+    public boolean updateNeeded(final @Nonnull CommandSender sender, final boolean messages) {
         if (this.updatesAllowed) {
-            if (!onStart) {
-                ServerUtils.messageSender(sender, "&aChecking for updates...");
+            if (messages) {
+                ServerUtils.messageSender(sender, "&aChecking for updates...", true);
             }
             try {
                 URLConnection connection = new URL(this.HOST + "?_=" + System.currentTimeMillis()).openConnection();
@@ -192,13 +192,15 @@ public class UpdateHandler {
             } catch (FileNotFoundException e) {
                 return false;
             } catch (Exception e) {
-                ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, GitHub has detected too many access requests, try again later.");
+                if (messages) {
+                    ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, GitHub has detected too many access requests, try again later.", true);
+                }
                 ServerUtils.sendDebugTrace(e);
                 return false;
             }
-        } else if (!onStart) {
-            ServerUtils.messageSender(sender, "&cUpdate checking is currently disabled in the config.yml");
-            ServerUtils.messageSender(sender, "&cIf you wish to use the auto update feature, you will need to enable it.");
+        } else if (messages) {
+            ServerUtils.messageSender(sender, "&cUpdate checking is currently disabled in the config.yml", true);
+            ServerUtils.messageSender(sender, "&cIf you wish to use the auto update feature, you will need to enable it.", true);
         }
         return false;
     }
@@ -216,8 +218,8 @@ public class UpdateHandler {
                     playersOnline = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
                     for (Object objPlayer : playersOnline) {
                         if (((Player) objPlayer).isOp()) {
-                            ServerUtils.messageSender(((Player) objPlayer), "&eAn update has been found!");
-                            ServerUtils.messageSender(((Player) objPlayer), "&ePlease update to the latest version: v" + this.latestVersion);
+                            ServerUtils.messageSender(((Player) objPlayer), "&eAn update has been found!", true);
+                            ServerUtils.messageSender(((Player) objPlayer), "&ePlease update to the latest version: v" + this.latestVersion, true);
                         }
                     }
                 }
@@ -225,14 +227,23 @@ public class UpdateHandler {
                 playersOnlineOld = ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
                 for (Player objPlayer : playersOnlineOld) {
                     if (objPlayer.isOp()) {
-                        ServerUtils.messageSender(objPlayer, "&eAn update has been found!");
-                        ServerUtils.messageSender(objPlayer, "&ePlease update to the latest version: v" + this.latestVersion);
+                        ServerUtils.messageSender(objPlayer, "&eAn update has been found!", true);
+                        ServerUtils.messageSender(objPlayer, "&ePlease update to the latest version: v" + this.latestVersion, true);
                     }
                 }
             }
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
         }
+    }
+
+    /**
+     * Checks if the plugin version is a development version.
+     *
+     * @return If the plugin version is in development.
+     */
+    public boolean isDevVersion() {
+        return this.betaVersion || this.devVersion;
     }
 
     /**

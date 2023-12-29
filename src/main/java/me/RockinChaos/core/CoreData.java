@@ -20,6 +20,7 @@ package me.RockinChaos.core;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -417,6 +418,16 @@ public class CoreData {
      */
     public void setSQLPass(final @Nullable String str) {
         this.sqlPass = str;
+    }
+
+    /**
+     * Gets the list of official ChaosCore plugins.
+     * These are plugins developed by @RockinChaos.
+     *
+     * @return The ArrayList of official ChaosCore plugins.
+     */
+    public @Nonnull List<String> getOfficialPlugins() {
+        return Arrays.asList("ItemJoin", "FakeCreative");
     }
 
     /**
