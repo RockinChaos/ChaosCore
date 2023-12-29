@@ -22,6 +22,8 @@
         <citizens.version>2.0.27-SNAPSHOT</citizens.version>
         <protocol.version>4.6.0</protocol.version>
 
+        <build.version>${env.BUILD_NUMBER}</build.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <github.global.server>github</github.global.server>
@@ -60,7 +62,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.1</version>
                 <configuration>
-                    <finalName>ChaosCore-${project.version}-b${CI_PIPELINE_IID}</finalName>
+                    <finalName>ChaosCore-${project.version}-b${build.version}</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -267,12 +269,12 @@
 
     <distributionManagement>
         <repository>
-            <id>gitlab-maven</id>
-            <url>${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven</url>
+            <id>CraftationGaming</id>
+            <url>https://repo.craftationgaming.com/releases</url>
         </repository>
         <snapshotRepository>
-            <id>gitlab-maven</id>
-            <url>${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven</url>
+            <id>CraftationGaming</id>
+            <url>https://repo.craftationgaming.com/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
