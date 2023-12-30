@@ -38,7 +38,6 @@ public class Core {
     private static Core core;
     private final JavaPlugin plugin;
     private final File pluginFile;
-    private final boolean updatesAllowed;
 
     /**
      * Creates a new ChaosCore instance.
@@ -46,13 +45,11 @@ public class Core {
      * @param plugin         - The plugin instance creating the Core.
      * @param pluginFile     - The plugin file reference.
      * @param prefix         - The visual display prefix for the plugin.
-     * @param updatesAllowed - If checking for updates is enabled.
      */
-    public Core(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final @Nonnull String prefix, final boolean updatesAllowed) {
+    public Core(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final @Nonnull String prefix) {
         core = this;
         this.plugin = plugin;
         this.pluginFile = pluginFile;
-        this.updatesAllowed = updatesAllowed;
         core.getData().setPluginPrefix(prefix);
     }
 
@@ -187,6 +184,6 @@ public class Core {
      * @return The cached UpdateHandler.
      */
     public @Nonnull UpdateHandler getUpdater() {
-        return UpdateHandler.getUpdater(this.plugin, this.pluginFile, this.updatesAllowed);
+        return UpdateHandler.getUpdater(this.plugin, this.pluginFile, getData().checkForUpdates());
     }
 }

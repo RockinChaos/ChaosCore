@@ -191,6 +191,7 @@ public class LanguageAPI {
                 .replace("%item_permission%", langHolder[18])
                 .replace("%gamemode%", langHolder[19])
                 .replace("%hotbar%", langHolder[20])
+                .replace("%player%", langHolder[21])
                 .replace("%prefix%", this.langPrefix);
 
     }
@@ -212,7 +213,7 @@ public class LanguageAPI {
      * @return The new String Array.
      */
     public @Nonnull String[] newString() {
-        return new String[21];
+        return new String[22];
     }
 
     /**

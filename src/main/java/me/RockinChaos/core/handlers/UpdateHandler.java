@@ -38,15 +38,13 @@ public class UpdateHandler {
     private static UpdateHandler updater;
     private final String NAME;
     private final String HOST;
+    private String latestVersion;
     private final String versionExact;
     private final String localeVersion;
     private final boolean betaVersion;
     private final boolean devVersion;
-
     private final File jarRef;
-
     private final boolean updatesAllowed;
-    private String latestVersion;
 
     /**
      * Initializes the UpdateHandler and Checks for Updates upon initialization.
@@ -54,13 +52,13 @@ public class UpdateHandler {
     public UpdateHandler(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final boolean updatesAllowed) {
         this.NAME = plugin.getName();
         this.jarRef = pluginFile;
-        this.checkUpdates(plugin.getServer().getConsoleSender(), true);
         this.HOST = "https://api.github.com/repos/RockinChaos/" + plugin.getName().toLowerCase() + "/releases/latest";
         this.versionExact = plugin.getDescription().getVersion();
         this.localeVersion = this.versionExact.split("-")[0];
         this.betaVersion = this.versionExact.contains("-SNAPSHOT") || this.versionExact.contains("-EXPERIMENTAL") || this.versionExact.contains("-BETA") || this.versionExact.contains("-ALPHA");
         this.devVersion = this.localeVersion.equals("${project.version}");
         this.updatesAllowed = updatesAllowed;
+        this.checkUpdates(plugin.getServer().getConsoleSender(), true);
     }
 
     /**
@@ -119,7 +117,7 @@ public class UpdateHandler {
                 ServerUtils.messageSender(sender, "&cPlease try again later, if you continue to see this please contact the plugin developer.", true);
                 ServerUtils.sendDebugTrace(e);
             }
-        } else {
+        } else if (this.updatesAllowed) {
             if (this.betaVersion) {
                 ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
                 ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);

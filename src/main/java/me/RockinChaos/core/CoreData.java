@@ -32,6 +32,7 @@ public class CoreData {
     private Map<String, Integer> configs;
     private Runnable runnableConfig;
     private String updateConfig;
+    private boolean updatesAllowed = false;
     private boolean debug = false;
     private boolean ignoreErrors = false;
     private Runnable runnableAlter;
@@ -95,6 +96,24 @@ public class CoreData {
      */
     public void setDataTags(final boolean bool) {
         this.dataTags = bool;
+    }
+
+    /**
+     * Checks if the plugin can check for updates.
+     *
+     * @return If update checking is enabled.
+     */
+    public boolean checkForUpdates() {
+        return this.updatesAllowed;
+    }
+
+    /**
+     * Sets the plugin to check for updates.
+     *
+     * @param bool - If update checking should be enabled.
+     */
+    public void setCheckforUpdates(final boolean bool) {
+        this.updatesAllowed = bool;
     }
 
     /**
