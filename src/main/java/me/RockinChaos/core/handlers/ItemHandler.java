@@ -41,17 +41,20 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionType;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.*;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ItemHandler {
 
-    private static final Map<String, GameProfile> gameProfiles = new HashMap<>();
+    private static final Map<String, Object> gameProfiles = new HashMap<>();
 
     /**
      * Adds a list of lores to the specified ItemStack.
@@ -523,18 +526,38 @@ public class ItemHandler {
      */
     public static @Nonnull ItemMeta setSkullTexture(final @Nonnull Player player, final @Nonnull ItemMeta itemMeta, final @Nonnull String skullTexture) {
         try {
-            GameProfile gameProfile;
-            if (!gameProfiles.containsKey(skullTexture)) {
-                final UUID uuid = UUID.randomUUID();
-                gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
-                gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
-                gameProfiles.put(skullTexture, gameProfile);
+            if (ServerUtils.hasPreciseUpdate("1_18_2")) {
+                PlayerProfile playerProfile;
+                if (!gameProfiles.containsKey(skullTexture)) {
+                    final UUID uuid = UUID.randomUUID();
+                    playerProfile = Bukkit.createPlayerProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
+                    final PlayerTextures textures = playerProfile.getTextures();
+                    final URI textureURI = StringUtils.toTextureURI(skullTexture);
+                    if (textureURI != null) {
+                        textures.setSkin(textureURI.toURL());
+                        playerProfile.setTextures(textures);
+                    } else {
+                        ServerUtils.logSevere("{ItemHandler} The specified skull-texture is INVALID: " + skullTexture + ".");
+                        ServerUtils.logSevere("{ItemHandler} The skull-texture will NOT be set!");
+                    }
+                } else {
+                    playerProfile = (PlayerProfile) gameProfiles.get(skullTexture);
+                }
+                ((SkullMeta) itemMeta).setOwnerProfile(playerProfile);
             } else {
-                gameProfile = gameProfiles.get(skullTexture);
+                GameProfile gameProfile;
+                if (!gameProfiles.containsKey(skullTexture)) {
+                    final UUID uuid = UUID.randomUUID();
+                    gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
+                    gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
+                    gameProfiles.put(skullTexture, gameProfile);
+                } else {
+                    gameProfile = (GameProfile) gameProfiles.get(skullTexture);
+                }
+                final Field declaredField = itemMeta.getClass().getDeclaredField("profile");
+                declaredField.setAccessible(true);
+                declaredField.set(itemMeta, gameProfile);
             }
-            Field declaredField = itemMeta.getClass().getDeclaredField("profile");
-            declaredField.setAccessible(true);
-            declaredField.set(itemMeta, gameProfile);
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
         }
