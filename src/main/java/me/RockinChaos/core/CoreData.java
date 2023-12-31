@@ -31,7 +31,7 @@ public class CoreData {
     private String prefix;
     private Map<String, Integer> configs;
     private Runnable runnableConfig;
-    private String updateConfig;
+    private String updateConfig = "";
     private boolean updatesAllowed = false;
     private boolean debug = false;
     private boolean ignoreErrors = false;
