@@ -399,6 +399,24 @@ public class StringUtils {
     }
 
     /**
+     * Decodes the Texture Base64 to a URI.
+     *
+     * @param texture - The texture to have the Texture URL fetched.
+     * @return The Texture URI decoded.
+     */
+    public static URI toTextureURI(@Nonnull String texture) {
+        try {
+            if (!StringUtils.containsIgnoreCase(texture, "minecraft.net") && !StringUtils.containsIgnoreCase(texture, "http") && !StringUtils.containsIgnoreCase(texture, "https")) {
+                String decoded = new String(Base64.getDecoder().decode(texture));
+                return new URI(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
+            } else {
+                return new URI(texture);
+            }
+        } catch (Exception e) { ServerUtils.sendSevereTrace(e); }
+        return null;
+    }
+
+    /**
      * Encodes the Player UUID as a texture String.
      *
      * @param player       - The Player to be referenced.
