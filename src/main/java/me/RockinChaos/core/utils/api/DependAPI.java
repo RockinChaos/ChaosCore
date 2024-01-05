@@ -234,9 +234,20 @@ public class DependAPI {
                     try {
                         this.skinsRestorer = this.skinsNetty.getMethod("getApi").invoke(null);
                     } catch (Exception e3) {
-                        this.isSkinsProxy(e1.getCause());
-                        this.isSkinsProxy(e2.getCause());
-                        this.isSkinsProxy(e3.getCause());
+                        try {
+                            this.isSkinsProxy(e1.getCause());
+                            this.isSkinsProxy(e2.getCause());
+                            this.isSkinsProxy(e3.getCause());
+                        } catch (NullPointerException e4) {
+                            if (StringUtils.containsIgnoreCase(e4.getMessage(), "Cannot invoke \"java.lang.Throwable.getMessage()\" because \"cause\" is null")) {
+                                ServerUtils.logSevere("{DependAPI} [1] An unknown issue occurred when checking SkinsRestorer for proxy mode.");
+                                ServerUtils.sendSevereTrace(e1);
+                                ServerUtils.sendSevereTrace(e2);
+                                ServerUtils.sendSevereTrace(e3);
+                            } else {
+                                ServerUtils.sendSevereTrace(e4);
+                            }
+                        }
                         if (!this.proxySkins) {
                             ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version detected, disabling SkinsRestorer support.");
                             ServerUtils.logWarn("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
@@ -253,7 +264,7 @@ public class DependAPI {
      * @param cause - The Throwable reference to fetch the cause message.
      */
     private void isSkinsProxy(final @Nonnull Throwable cause) {
-        if (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode")) {
+        if (!this.proxySkins && (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode"))) {
             ServerUtils.sendSevereThrowable(cause);
         } else {
             this.proxySkins = true;
