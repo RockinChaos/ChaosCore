@@ -29,6 +29,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredListener;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -408,7 +410,8 @@ public class StringUtils {
         try {
             if (!StringUtils.containsIgnoreCase(texture, "minecraft.net") && !StringUtils.containsIgnoreCase(texture, "http") && !StringUtils.containsIgnoreCase(texture, "https")) {
                 String decoded = new String(Base64.getDecoder().decode(texture));
-                return new URI(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
+                final JSONObject textureObject = (JSONObject) JSONValue.parseWithException(decoded);
+                return new URI(((JSONObject)((JSONObject)textureObject.get("textures")).get("SKIN")).get("url").toString());
             } else {
                 return new URI(texture);
             }
