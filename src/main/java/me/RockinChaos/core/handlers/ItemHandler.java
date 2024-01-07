@@ -1086,7 +1086,7 @@ public class ItemHandler {
      * @return If the book page contains a JSONEvent.
      */
     public static boolean containsJSONEvent(final @Nonnull String formatPage) {
-        return formatPage.contains(JSONEvent.TEXT.matchType) || formatPage.contains(JSONEvent.SHOW_TEXT.matchType) || formatPage.contains(JSONEvent.OPEN_URL.matchType) || formatPage.contains(JSONEvent.RUN_COMMAND.matchType);
+        return formatPage.contains(JSONEvent.TEXT.matchType) || formatPage.contains(JSONEvent.COLOR.matchType) || formatPage.contains(JSONEvent.SHOW_TEXT.matchType) || formatPage.contains(JSONEvent.OPEN_URL.matchType) || formatPage.contains(JSONEvent.RUN_COMMAND.matchType);
     }
 
     /**
@@ -1161,6 +1161,7 @@ public class ItemHandler {
      */
     public enum JSONEvent {
         TEXT("nullEvent", "text", "<text:"),
+        COLOR("nullEvent", "color", "<color:"),
         SHOW_TEXT("hoverEvent", "show_text", "<show_text:"),
         OPEN_URL("clickEvent", "open_url", "<open_url:"),
         RUN_COMMAND("clickEvent", "run_command", "<run_command:"),
