@@ -662,7 +662,7 @@ public class StringUtils {
      * @return The newly formatted String.
      */
     public static @Nonnull String restoreColor(final @Nonnull String str) {
-        return str.replace('§', '&');
+        return str.replace(ChatColor.COLOR_CHAR, '&');
     }
 
     /**

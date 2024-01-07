@@ -519,7 +519,7 @@ public class LegacyAPI {
     public static @Nonnull String colorEncode(final @Nonnull String str) {
         final StringBuilder hiddenData = new StringBuilder();
         for (char c : str.toCharArray()) {
-            hiddenData.append("§").append(c);
+            hiddenData.append(ChatColor.COLOR_CHAR).append(c);
         }
         return hiddenData.toString();
     }
@@ -534,7 +534,7 @@ public class LegacyAPI {
     public static @Nonnull String colorDecode(final @Nonnull String str) {
         final String[] hiddenData = str.split("(?:\\w{2,}|\\d[0-9A-Fa-f])+");
         final StringBuilder returnData = new StringBuilder();
-        final String[] d = hiddenData[hiddenData.length - 1].split("§");
+        final String[] d = hiddenData[hiddenData.length - 1].split(String.valueOf(ChatColor.COLOR_CHAR));
         for (int i = 1; i < d.length; i++) {
             returnData.append(d[i]);
         }
