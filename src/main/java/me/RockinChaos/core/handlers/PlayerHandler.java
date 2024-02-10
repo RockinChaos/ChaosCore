@@ -129,6 +129,7 @@ public class PlayerHandler {
         inventory.setChestplate(new ItemStack(Material.AIR));
         inventory.setLeggings(new ItemStack(Material.AIR));
         inventory.setBoots(new ItemStack(Material.AIR));
+        player.setItemOnCursor(new ItemStack(Material.AIR));
         if (ServerUtils.hasSpecificUpdate("1_9")) {
             PlayerHandler.setOffHandItem(player, new ItemStack(Material.AIR));
         }
