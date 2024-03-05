@@ -921,9 +921,9 @@ public class ItemHandler {
      * @param dataList - The list of data expected on the ItemStack.
      * @return The String of NBTData found on the ItemStack.
      */
-    public static @Nullable String getNBTData(final @Nonnull ItemStack item, final @Nonnull List<String> dataList) {
+    public static @Nullable String getNBTData(final @Nullable ItemStack item, final @Nonnull List<String> dataList) {
         synchronized ("CC_NBT") {
-            if (Core.getCore().getData().dataTagsEnabled() && item.getType() != Material.AIR) {
+            if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
                 try {
                     final ItemStack itemCopy = item.clone();
                     Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, itemCopy);
