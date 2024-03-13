@@ -625,7 +625,7 @@ public class StringUtils {
      * @return The newly formatted String.
      */
     public static @Nonnull String nullCheck(@Nullable String input) {
-        if (input == null || input.equalsIgnoreCase("NULL") || input.contains("[]") || input.contains("{}") || input.equals("0&7") || input.equals("-1&a%") || input.isEmpty() || input.equals(" ")) {
+        if (input == null || input.equalsIgnoreCase("NULL") || input.equalsIgnoreCase("NULL&7") || input.contains("[]") || input.contains("{}") || input.equals("0&7") || input.equals("-1&a%") || input.isEmpty() || input.equals(" ")) {
             return "NONE";
         }
         if (input.startsWith("[") && input.endsWith("]")) {
