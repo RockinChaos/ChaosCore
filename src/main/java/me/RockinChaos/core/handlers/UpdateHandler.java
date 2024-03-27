@@ -23,6 +23,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -38,11 +39,15 @@ public class UpdateHandler {
     private static UpdateHandler updater;
     private final String NAME;
     private final String HOST;
+    private final String DEV_HOST;
     private String latestVersion;
     private final String versionExact;
     private final String localeVersion;
     private final boolean betaVersion;
     private final boolean devVersion;
+    private final String buildNumber;
+    private String latestBuild;
+    private String artifactPath;
     private final File jarRef;
     private final boolean updatesAllowed;
 
@@ -53,10 +58,12 @@ public class UpdateHandler {
         this.NAME = plugin.getName();
         this.jarRef = pluginFile;
         this.HOST = "https://api.github.com/repos/RockinChaos/" + plugin.getName().toLowerCase() + "/releases/latest";
+        this.DEV_HOST = "https://ci-dev.craftationgaming.com/job/" + plugin.getName() + "/lastSuccessfulBuild";
         this.versionExact = plugin.getDescription().getVersion();
         this.localeVersion = this.versionExact.split("-")[0];
         this.betaVersion = this.versionExact.contains("-SNAPSHOT") || this.versionExact.contains("-EXPERIMENTAL") || this.versionExact.contains("-BETA") || this.versionExact.contains("-ALPHA");
         this.devVersion = this.localeVersion.equals("${project.version}");
+        this.buildNumber = this.versionExact.split("-b")[1];
         this.updatesAllowed = updatesAllowed;
         this.checkUpdates(plugin.getServer().getConsoleSender(), true);
     }
@@ -83,11 +90,21 @@ public class UpdateHandler {
      * @param sender - The executor of the update checking.
      */
     public void forceUpdates(final @Nonnull CommandSender sender) {
-        if (this.updateNeeded(sender, true)) {
+        final Update update = this.updateNeeded(sender, true);
+        if (update.updateNeeded) {
             ServerUtils.messageSender(sender, "&aAn update has been found!", true);
-            ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.localeVersion + " &ato the new " + "&ev" + this.latestVersion, true);
+            String updateSuccess;
+            String uri;
+            if (update == Update.BETA) {
+                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.localeVersion + "-SNAPSHOT-b" + this.latestBuild, true);
+                updateSuccess = this.localeVersion + "-SNAPSHOT-b" + this.latestBuild;
+                uri = this.DEV_HOST + "/artifact/" +  this.artifactPath + "?_=" + System.currentTimeMillis();
+            } else {
+                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.localeVersion + " &ato the new " + "&ev" + this.latestVersion, true);
+                updateSuccess = this.latestVersion;
+                uri = this.HOST.replace("repos/", "").replace("api.", "").replace("latest", "download/" + "v" + this.latestVersion + "/" + this.NAME.toLowerCase() + ".jar") + "?_=" + System.currentTimeMillis();
+            }
             try {
-                String uri = this.HOST.replace("repos/", "").replace("api.", "").replace("latest", "download/" + "v" + this.latestVersion + "/" + this.NAME.toLowerCase() + ".jar") + "?_=" + System.currentTimeMillis();
                 HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
                 httpConnection.setRequestProperty("User-Agent", "Mozilla/5.0...");
                 BufferedInputStream in = new BufferedInputStream(httpConnection.getInputStream());
@@ -95,6 +112,7 @@ public class UpdateHandler {
                 int BYTE_SIZE = 2048;
                 BufferedOutputStream bout = new BufferedOutputStream(fos, BYTE_SIZE);
                 String progressBar = "&a::::::::::::::::::::::::::::::";
+                int currentProgress = -1;
                 byte[] data = new byte[BYTE_SIZE];
                 long cloudFileSize = httpConnection.getContentLength();
                 long fetchedSize = 0;
@@ -102,15 +120,18 @@ public class UpdateHandler {
                 while ((bytesRead = in.read(data, 0, BYTE_SIZE)) >= 0) {
                     bout.write(data, 0, bytesRead);
                     fetchedSize += bytesRead;
-                    final int currentProgress = (int) (((double) fetchedSize / (double) cloudFileSize) * 30);
-                    if ((((fetchedSize * 100) / cloudFileSize) % 25) == 0 && currentProgress > 10) {
-                        ServerUtils.messageSender(sender, progressBar.substring(0, currentProgress + 2) + "&c" + progressBar.substring(currentProgress + 2), true);
+                    final int updateProgress = (int) (((double) fetchedSize / (double) cloudFileSize) * 30);
+                    if ((((fetchedSize * 100) / cloudFileSize) % 25) == 0 && updateProgress > 10) {
+                        if (currentProgress != updateProgress) {
+                            ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), true);
+                        }
+                        currentProgress = updateProgress;
                     }
                 }
                 bout.close();
                 in.close();
                 fos.close();
-                ServerUtils.messageSender(sender, "&aSuccessfully updated to v" + this.latestVersion + "!", true);
+                ServerUtils.messageSender(sender, "&aSuccessfully updated to v" + updateSuccess + "!", true);
                 ServerUtils.messageSender(sender, "&aYou must restart your server for this to take affect.", true);
             } catch (Exception e) {
                 ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + this.NAME + ".", true);
@@ -133,16 +154,24 @@ public class UpdateHandler {
      * @param messages - If message should be sent.
      */
     public void checkUpdates(final @Nonnull CommandSender sender, final boolean messages) {
-        if (this.updateNeeded(sender, messages) && this.updatesAllowed) {
-            if (this.betaVersion) {
-                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-SNAPSHOT", true);
-                ServerUtils.messageSender(sender, "&cThis &bSNAPSHOT &cis outdated and a release version is now available.", true);
+        final Update update = this.updateNeeded(sender, messages);
+        if (update.updateNeeded && this.updatesAllowed) {
+            if (update == Update.BETA) {
+                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.versionExact, true);
+                ServerUtils.messageSender(sender, "&cA new snapshot build is available: " + "&av" + this.localeVersion + "-SNAPSHOT-b" + this.latestBuild, true);
+                ServerUtils.messageSender(sender, "&aGet it from: " + this.DEV_HOST, true);
+                ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             } else {
-                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-RELEASE", true);
+                if (this.betaVersion) {
+                    ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-SNAPSHOT", true);
+                    ServerUtils.messageSender(sender, "&cThis &bSNAPSHOT &cis outdated and a release version is now available.", true);
+                } else {
+                    ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-RELEASE", true);
+                }
+                ServerUtils.messageSender(sender, "&cA new version is available: " + "&av" + this.latestVersion + "-RELEASE", true);
+                ServerUtils.messageSender(sender, "&aGet it from: https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", true);
+                ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             }
-            ServerUtils.messageSender(sender, "&cA new version is available: " + "&av" + this.latestVersion + "-RELEASE", true);
-            ServerUtils.messageSender(sender, "&aGet it from: https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", true);
-            ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             this.sendNotifications();
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
@@ -164,7 +193,7 @@ public class UpdateHandler {
      * @param messages - If message should be sent.
      * @return If an update is needed.
      */
-    public boolean updateNeeded(final @Nonnull CommandSender sender, final boolean messages) {
+    public Update updateNeeded(final @Nonnull CommandSender sender, final boolean messages) {
         if (this.updatesAllowed) {
             if (messages) {
                 ServerUtils.messageSender(sender, "&aChecking for updates...", true);
@@ -181,26 +210,45 @@ public class UpdateHandler {
                     String[] latestSplit = this.latestVersion.split("\\.");
                     String[] localeSplit = this.localeVersion.split("\\.");
                     if (this.devVersion) {
-                        return false;
+                        return Update.DEV;
                     } else if ((Integer.parseInt(latestSplit[0]) > Integer.parseInt(localeSplit[0]) || Integer.parseInt(latestSplit[1]) > Integer.parseInt(localeSplit[1]) || Integer.parseInt(latestSplit[2]) > Integer.parseInt(localeSplit[2]))
                             || (this.betaVersion && (Integer.parseInt(latestSplit[0]) == Integer.parseInt(localeSplit[0]) && Integer.parseInt(latestSplit[1]) == Integer.parseInt(localeSplit[1]) && Integer.parseInt(latestSplit[2]) == Integer.parseInt(localeSplit[2])))) {
-                        return true;
+                        return Update.RELEASE;
+                    } else if (this.betaVersion) {
+                        try {
+                            URLConnection devConnection = new URL(this.DEV_HOST + "/api/json" + "?_=" + System.currentTimeMillis()).openConnection();
+                            BufferedReader devReader = new BufferedReader(new InputStreamReader(devConnection.getInputStream()));
+                            String devJsonString = StringUtils.toString(devReader);
+                            JSONObject devObjectReader = (JSONObject) JSONValue.parseWithException(devJsonString);
+                            String buildVersion = devObjectReader.get("id").toString();
+                            if (StringUtils.isInt(this.buildNumber) && Integer.parseInt(this.buildNumber) < Integer.parseInt(buildVersion)) {
+                                String artifactPath = ((JSONObject)((JSONArray)devObjectReader.get("artifacts")).get(0)).get("relativePath").toString();
+                                this.latestBuild = buildVersion;
+                                this.artifactPath = artifactPath;
+                                reader.close();
+                                return Update.BETA;
+                            }
+                            reader.close();
+                        } catch (Exception e) {
+                            ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, Craftation Labs has detected too many access requests, try again later.", true);
+                            e.printStackTrace();
+                        }
                     }
                 }
             } catch (FileNotFoundException e) {
-                return false;
+                return Update.UP_TO_DATE;
             } catch (Exception e) {
                 if (messages) {
                     ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, GitHub has detected too many access requests, try again later.", true);
                 }
                 ServerUtils.sendDebugTrace(e);
-                return false;
+                return Update.UP_TO_DATE;
             }
         } else if (messages) {
             ServerUtils.messageSender(sender, "&cUpdate checking is currently disabled in the config.yml", true);
             ServerUtils.messageSender(sender, "&cIf you wish to use the auto update feature, you will need to enable it.", true);
         }
-        return false;
+        return Update.UP_TO_DATE;
     }
 
     /**
@@ -260,5 +308,14 @@ public class UpdateHandler {
      */
     public @Nonnull File getJarReference() {
         return this.jarRef;
+    }
+
+    public enum Update {
+        DEV(false),
+        BETA(true),
+        RELEASE(true),
+        UP_TO_DATE(false);
+        public final boolean updateNeeded;
+        Update(boolean bool) { this.updateNeeded = bool; }
     }
 }

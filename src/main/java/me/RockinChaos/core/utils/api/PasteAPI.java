@@ -78,7 +78,7 @@ public class PasteAPI {
         serverData.addProperty("server-brand", Bukkit.getName());
         serverData.addProperty("online-mode", Bukkit.getOnlineMode() ? "YES" : "NO");
         final JsonObject supportStatus = new JsonObject();
-        supportStatus.addProperty("supported", !Core.getCore().getUpdater().updateNeeded(console, false));
+        supportStatus.addProperty("supported", !Core.getCore().getUpdater().updateNeeded(console, false).updateNeeded);
         serverData.add("support-status", supportStatus);
         dump.add("server-data", serverData);
 
