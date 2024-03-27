@@ -761,12 +761,10 @@ public class StringUtils {
             }
             if (Core.getCore().getDependencies().placeHolderEnabled()) {
                 try {
-                    try {
-                        str = PlaceholderAPI.setPlaceholders(player, str);
-                    } catch (NoSuchFieldError e) {
-                        ServerUtils.logWarn("An error has occurred when setting the Placeholder " + e.getMessage() + ", if this issue persists contact the developer of PlaceholderAPI.");
-                    }
-                } catch (Exception ignored) {
+                    str = PlaceholderAPI.setPlaceholders(player, str);
+                } catch (Exception e) {
+                    ServerUtils.logWarn("An error has occurred when setting the Placeholder " + e.getMessage() + ", if this issue persists contact the developer of PlaceholderAPI.");
+                    ServerUtils.sendSevereTrace(e);
                 }
             }
             return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(str));
