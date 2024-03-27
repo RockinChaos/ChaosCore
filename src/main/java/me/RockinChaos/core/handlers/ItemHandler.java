@@ -941,8 +941,12 @@ public class ItemHandler {
                     }
                 } catch (ConcurrentModificationException ignored) {
                 } catch (Exception e) {
-                    ServerUtils.logSevere("{ItemHandler} An error has occurred when getting NBTData to an item, reason: " + e.getCause() + ".");
-                    ServerUtils.sendSevereThrowable(e.getCause());
+                    if (e.getCause() != null) {
+                        ServerUtils.logSevere("{ItemHandler} An error has occurred when getting NBTData to an item, reason: " + e.getCause() + ".");
+                        ServerUtils.sendSevereThrowable(e.getCause());
+                    } else {
+                        ServerUtils.logSevere("{ItemHandler} An error has occurred when getting NBTData to an item, reason: " + e.getMessage() + ".");
+                    }
                     ServerUtils.sendSevereTrace(e);
                 }
             }
