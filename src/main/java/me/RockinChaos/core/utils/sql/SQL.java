@@ -168,8 +168,8 @@ public class SQL {
             if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
                 for (Object dataObject : this.databaseData.get(tableName)) {
                     final String dataSetName = (String) dataObject.getClass().getMethod("getTableName").invoke(dataObject);
-                    final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
-                    if (dataSetName.equals(tableName) && equalsDate) {
+                    final Boolean equalsData = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
+                    if (dataSetName.equals(tableName) && equalsData) {
                         return dataObject;
                     }
                 }
