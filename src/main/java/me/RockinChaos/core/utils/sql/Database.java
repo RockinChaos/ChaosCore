@@ -104,7 +104,7 @@ public class Database extends Controller {
         try {
             conn = this.getConnection();
             ps = conn.createStatement();
-            ps.executeUpdate(statement.replace("'", "''"));
+            ps.executeUpdate(statement);
         } catch (Exception e) {
             ServerUtils.logSevere("{SQL} [1] Failed to execute database statement.");
             if (conn != null) {
@@ -114,7 +114,7 @@ public class Database extends Controller {
                     ServerUtils.logSevere("{SQL} [1] Failed to determine the Database Status.");
                 }
             }
-            ServerUtils.logSevere("{SQL} [1] Statement: " + statement.replace("'", "''"));
+            ServerUtils.logSevere("{SQL} [1] Statement: " + statement);
             ServerUtils.sendSevereTrace(e);
         } finally {
             this.close(ps, null, conn, false);
