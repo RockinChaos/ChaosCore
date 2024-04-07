@@ -937,7 +937,11 @@ public class ItemHandler {
                                 returnData.append(data).append(" ");
                             }
                         }
-                        return returnData.toString().trim();
+                        if (returnData.toString().isEmpty()) {
+                            return null;
+                        } else {
+                            return returnData.toString().trim();
+                        }
                     }
                 } catch (ConcurrentModificationException ignored) {
                 } catch (Exception e) {
