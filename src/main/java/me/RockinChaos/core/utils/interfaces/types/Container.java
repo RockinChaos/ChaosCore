@@ -36,6 +36,7 @@ import java.util.Map;
 public class Container {
 
     private final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
+    private final Class<?> dataComponent = ReflectionUtils.getMinecraftClass("DataComponents");
     private final Class<?> humanEntity = ReflectionUtils.getMinecraftClass("EntityHuman");
     private final Class<?> mineContainer = ReflectionUtils.getMinecraftClass("Container");
     private final FieldAccessor<?> activeContainer = ReflectionUtils.getField(this.humanEntity, MinecraftField.ActiveContainer.getField());
@@ -222,7 +223,9 @@ public class Container {
             boolean inputLeftF = (boolean) inputLeft.getClass().getMethod(MinecraftField.HasItem.getField()).invoke(inputLeft);
             if (inputLeftF) {
                 Object inputLeftE = inputLeft.getClass().getMethod(MinecraftField.GetItem.getField()).invoke(inputLeft);
-                if (ServerUtils.hasSpecificUpdate("1_13")) {
+                if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+                    inputLeftE.getClass().getMethod("b", ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(inputLeftE, dataComponent.getField(MinecraftField.CustomName.getField()).get(null), ReflectionUtils.literalChatComponent(text));
+                } else if (ServerUtils.hasSpecificUpdate("1_13")) {
                     inputLeftE.getClass().getMethod("a", this.baseComponent).invoke(inputLeftE, ReflectionUtils.literalChatComponent(text));
                 } else {
                     inputLeftE.getClass().getMethod((ServerUtils.hasSpecificUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE, text);

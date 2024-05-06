@@ -20,6 +20,8 @@ package me.RockinChaos.core.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +35,7 @@ import java.util.regex.Pattern;
 /**
  * A utility class that simplifies reflection in Bukkit plugins.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "JavaReflectionMemberAccess"})
 public final class ReflectionUtils {
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
@@ -372,6 +374,46 @@ public final class ReflectionUtils {
     }
 
     /**
+     * Sets the potion type as a potion data to the PotionMeta.
+     *
+     * @param tempMeta   - The PotionMeta having the potion data set to.
+     * @param potionType - The potion type to be set.
+     */
+    public static void setBasePotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType) {
+        try {
+            Class<?> potionDataClass = Class.forName("org.bukkit.potion.PotionData");
+            Constructor<?> potionDataConstructor = potionDataClass.getConstructor(Class.forName("org.bukkit.potion.PotionType"));
+            Object potionData = potionDataConstructor.newInstance(potionType);
+            Class<?> itemMetaClass = Class.forName("org.bukkit.inventory.meta.ItemMeta");
+            Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
+            setBasePotionDataMethod.invoke(tempMeta, potionData);
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+        }
+    }
+
+    /**
+     * Sets the potion type as a potion data to the PotionMeta.
+     *
+     * @param tempMeta   - The PotionMeta having the potion data set to.
+     * @param potionType - The potion type to be set.
+     * @param upgraded   - If this is an upgraded potion type.
+     * @param extended   - If this is an extended potion type.
+     */
+    public static void setBasePotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType, final boolean extended, final boolean upgraded) {
+        try {
+            Class<?> potionDataClass = Class.forName("org.bukkit.potion.PotionData");
+            Constructor<?> potionDataConstructor = potionDataClass.getConstructor(Class.forName("org.bukkit.potion.PotionType"), boolean.class, boolean.class);
+            Object potionData = potionDataConstructor.newInstance(potionType, extended, upgraded);
+            Class<?> itemMetaClass = Class.forName("org.bukkit.inventory.meta.ItemMeta");
+            Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
+            setBasePotionDataMethod.invoke(tempMeta, potionData);
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+        }
+    }
+
+    /**
      * Sends a PacketPlayOutSetSlot Packet to the specified player.
      *
      * @param player - The player receiving the packet.
@@ -405,9 +447,15 @@ public final class ReflectionUtils {
         Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
         Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
         Class<?> packetClass = getMinecraftClass("Packet");
-        playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(playerHandle.getClass(), packetClass), packetClass).invoke(playerHandle, packet);
+        playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass).invoke(playerHandle, packet);
     }
 
+    /**
+     * Gets the ChatComponent Object from a String.
+     *
+     * @param content - The String to be converted to a ChatComponent.
+     * @return The completed ChatComponent.
+     */
     public static @Nullable Object literalChatComponent(final @Nonnull String content) {
         try {
             if (ServerUtils.hasSpecificUpdate("1_19")) {
@@ -421,6 +469,12 @@ public final class ReflectionUtils {
         return null;
     }
 
+    /**
+     * Gets the ChatComponent Object from a JSON String.
+     *
+     * @param json - The JSON to be converted to a ChatComponent.
+     * @return The completed ChatComponent.
+     */
     public static @Nullable Object jsonChatComponent(final @Nonnull String json) {
         try {
             return getMinecraftClass("IChatBaseComponent").getMethod("a", String.class).invoke(null, json);
@@ -518,6 +572,8 @@ public final class ReflectionUtils {
     public enum MinecraftMethod {
         add("add", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "add")),
         set("set", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "set")),
+        get("get", "a"),
+        of("of", "a"),
         setInt("setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
         getPage("a", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getPage")),
         getTag("getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
@@ -525,6 +581,12 @@ public final class ReflectionUtils {
         setString("setString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
         getString("getString", (ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString")),
         setDouble("setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
+        build("build", "a"),
+        builder("builder", "a"),
+        copyTag("copyTag", "c"),
+        withReplacedPages("withReplacedPages", "b"),
+        getComponents("getComponents", "a"),
+        applyComponentsAndValidate("applyComponentsAndValidate", "a"),
         sendPacket("sendPacket", (ServerUtils.hasPreciseUpdate("1_20_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
         public final String original;
         public final String remapped;
@@ -534,9 +596,8 @@ public final class ReflectionUtils {
             this.remapped = remapped;
         }
 
-        public @Nonnull String getMethod(final @Nonnull Object objClass, final @Nonnull Class<?>... arguments) {
+        public @Nonnull String getMethod() {
             try {
-                Class<?> canonicalClass = (!(objClass instanceof Class<?>) ? objClass.getClass() : (Class<?>) objClass);
                 return (ReflectionUtils.remapped() ? this.remapped : this.original);
             } catch (Exception e) {
                 return this.original;
@@ -549,19 +610,22 @@ public final class ReflectionUtils {
      */
     public enum MinecraftField {
         PlayerConnection("playerConnection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
-        ActiveContainer("activeContainer", (ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
+        ActiveContainer("activeContainer", (ServerUtils.hasPreciseUpdate("1_20_5") ? "cb" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bU" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bV" : ServerUtils.hasSpecificUpdate("1_18") ? "bW" : "bV")),
-        DefaultContainer("defaultContainer", (ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
+        DefaultContainer("defaultContainer", (ServerUtils.hasPreciseUpdate("1_20_5") ? "ca" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bT" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bU" : ServerUtils.hasSpecificUpdate("1_18") ? "bV" : "bU")),
-        Inventory("inventory", (ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
+        Inventory("inventory", (ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
         At("at", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
         Anvil("ANVIL", ServerUtils.hasPreciseUpdate("1_20_3") ? "i" : "h"),
         AddSlotListener("addSlotListener", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
         RenameText("renameText", "v"),
+        CustomName("CUSTOM_NAME", "g"),
         GetSlot("getSlot", (ServerUtils.hasPreciseUpdate("1_18_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getSlot")),
         HasItem("hasItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "h" : ServerUtils.hasSpecificUpdate("1_18") ? "f" : "hasItem")),
         GetItem("getItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "g" : ServerUtils.hasSpecificUpdate("1_18") ? "e" : "getItem")),
+        CustomData("CUSTOM_DATA", "b"),
+        WrittenBookContent("WRITTEN_BOOK_CONTENT", "J"),
         NetworkManager("networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
         public final String original;
         public final String remapped;
@@ -615,7 +679,14 @@ public final class ReflectionUtils {
         ContainerProperty(".world.inventory"),
         ChatComponentText(".network.chat"),
         World(".world.level"),
-        PlayerInventory(".world.entity.player");
+        PlayerInventory(".world.entity.player"),
+        DataComponents(".core.component"),
+        DataComponentPatch(".core.component"),
+        DataComponentType(".core.component"),
+        DataComponentMap(".core.component"),
+        CustomData(".world.item.component"),
+        BookContent(".world.item.component"),
+        WrittenBookContent(".world.item.component");
         public final String tag;
 
         MinecraftTags(final String tag) {

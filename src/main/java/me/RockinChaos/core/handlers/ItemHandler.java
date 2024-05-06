@@ -22,6 +22,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.ReflectionUtils;
+import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
@@ -35,10 +36,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ArmorMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionType;
 import org.bukkit.profile.PlayerProfile;
@@ -46,6 +44,8 @@ import org.bukkit.profile.PlayerTextures;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -251,7 +251,7 @@ public class ItemHandler {
         if (!ServerUtils.hasSpecificUpdate("1_13")) {
             return LegacyAPI.getDurability(item);
         } else if (item.getItemMeta() != null) {
-            return ((short) ((org.bukkit.inventory.meta.Damageable) item.getItemMeta()).getDamage());
+            return ((short) ((Damageable) item.getItemMeta()).getDamage());
         }
         return 0;
     }
@@ -268,7 +268,7 @@ public class ItemHandler {
             if (ServerUtils.hasSpecificUpdate("1_13")) {
                 final ItemMeta tempMeta = item.getItemMeta();
                 if (tempMeta != null) {
-                    ((org.bukkit.inventory.meta.Damageable) tempMeta).setDamage(durability);
+                    ((Damageable) tempMeta).setDamage(durability);
                     item.setItemMeta(tempMeta);
                     return item;
                 }
@@ -374,8 +374,12 @@ public class ItemHandler {
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DESTROYS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON);
-            tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_POTION_EFFECTS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+            if (!ServerUtils.hasPreciseUpdate("1_20_5")) {
+                tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+            } else {
+                tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+            }
             if (ServerUtils.hasSpecificUpdate("1_20")) {
                 tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ARMOR_TRIM);
             }
@@ -530,7 +534,7 @@ public class ItemHandler {
                 PlayerProfile playerProfile;
                 if (!gameProfiles.containsKey(skullTexture)) {
                     final UUID uuid = UUID.randomUUID();
-                    playerProfile = Bukkit.createPlayerProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
+                    playerProfile = Bukkit.createPlayerProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16));
                     final PlayerTextures textures = playerProfile.getTextures();
                     final URI textureURI = StringUtils.toTextureURI(skullTexture);
                     if (textureURI != null) {
@@ -875,7 +879,7 @@ public class ItemHandler {
      */
     public static @Nonnull String serializeInventory(final @Nonnull Inventory inventory) {
         try {
-            java.io.ByteArrayOutputStream str = new java.io.ByteArrayOutputStream();
+            ByteArrayOutputStream str = new ByteArrayOutputStream();
             org.bukkit.util.io.BukkitObjectOutputStream data = new org.bukkit.util.io.BukkitObjectOutputStream(str);
             data.writeInt(inventory.getSize());
             for (int i = 0; i < inventory.getSize(); i++) {
@@ -898,7 +902,7 @@ public class ItemHandler {
      */
     public static @Nullable Inventory deserializeInventory(final @Nonnull String inventoryData) {
         try {
-            java.io.ByteArrayInputStream stream = new java.io.ByteArrayInputStream(Base64.getDecoder().decode(inventoryData));
+            ByteArrayInputStream stream = new ByteArrayInputStream(Base64.getDecoder().decode(inventoryData));
             org.bukkit.util.io.BukkitObjectInputStream data = new org.bukkit.util.io.BukkitObjectInputStream(stream);
             Inventory inventory = Bukkit.createInventory(null, data.readInt());
             for (int i = 0; i < inventory.getSize(); i++) {
@@ -915,6 +919,46 @@ public class ItemHandler {
     }
 
     /**
+     * Sets the custom NBTData of the ItemStack.
+     *
+     * @param item - The ItemStack to have its custom NBTData set.
+     * @param tag  - The CompoundTag with all the NBTData already set.
+     * @return The Updated ItemStack with the NBT Data.
+     */
+    public static @Nullable ItemStack setNBTData(final @Nullable ItemStack item, final Object tag) {
+        synchronized ("CC_NBT") {
+            if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
+                try {
+                    Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
+                    Object nmsItem = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+                    if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+                        Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
+                        Object customData = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("CustomData"), MinecraftMethod.of.getMethod(), ReflectionUtils.getMinecraftClass("NBTTagCompound")).invoke(new Object[]{null}, tag);
+                        Object builder = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("DataComponentPatch"), MinecraftMethod.builder.getMethod()).invoke(new Object[]{null});
+                        ReflectionUtils.getMethod(builder.getClass(), MinecraftMethod.set.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(builder, customDataType, customData);
+                        Object componentPatch = ReflectionUtils.getMethod(builder.getClass(), MinecraftMethod.build.getMethod()).invoke(builder);
+                        ReflectionUtils.getMethod(nmsItem.getClass(), MinecraftMethod.applyComponentsAndValidate.getMethod(), componentPatch.getClass()).invoke(nmsItem, componentPatch);
+                        return (ItemStack) craftItemStack.getMethod("asCraftMirror", ReflectionUtils.getMinecraftClass("ItemStack")).invoke(null, nmsItem);
+                    } else {
+                        nmsItem.getClass().getMethod(MinecraftMethod.setTag.getMethod(), tag.getClass()).invoke(nmsItem, tag);
+                        return (ItemStack) ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asCraftMirror", nmsItem.getClass()).invoke(null, nmsItem);
+                    }
+                } catch (ConcurrentModificationException ignored) {
+                } catch (Exception e) {
+                    if (e.getCause() != null) {
+                        ServerUtils.logSevere("{ItemHandler} An error has occurred when setting NBTData to an item, reason: " + e.getCause() + ".");
+                        ServerUtils.sendSevereThrowable(e.getCause());
+                    } else {
+                        ServerUtils.logSevere("{ItemHandler} An error has occurred when setting NBTData to an item, reason: " + e.getMessage() + ".");
+                    }
+                    ServerUtils.sendSevereTrace(e);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Gets the custom NBTData of the ItemStack.
      *
      * @param item     - The ItemStack to have its custom NBTData found.
@@ -925,14 +969,24 @@ public class ItemHandler {
         synchronized ("CC_NBT") {
             if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
                 try {
+                    Object tag = null;
+                    Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
                     final ItemStack itemCopy = item.clone();
                     Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, itemCopy);
-                    Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
-                    Object cacheTag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
-                    if (cacheTag != null) {
+                    if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+                        Object componentMap = ReflectionUtils.getMethod(itemClass, MinecraftMethod.getComponents.getMethod()).invoke(nms);
+                        Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
+                        Object customDataOptional = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("DataComponentMap"), MinecraftMethod.get.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType")).invoke(componentMap, customDataType);
+                        if (customDataOptional != null) {
+                            tag = ReflectionUtils.getMethod(customDataOptional.getClass(), MinecraftMethod.copyTag.getMethod()).invoke(customDataOptional);
+                        }
+                    } else {
+                        tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod()).invoke(nms);
+                    }
+                    if (tag != null) {
                         StringBuilder returnData = new StringBuilder();
                         for (String dataString : dataList) {
-                            String data = (String) cacheTag.getClass().getMethod(MinecraftMethod.getString.getMethod(cacheTag, String.class), String.class).invoke(cacheTag, dataString);
+                            String data = (String) tag.getClass().getMethod(MinecraftMethod.getString.getMethod(), String.class).invoke(tag, dataString);
                             if (data != null && !data.isEmpty()) {
                                 returnData.append(data).append(" ");
                             }
