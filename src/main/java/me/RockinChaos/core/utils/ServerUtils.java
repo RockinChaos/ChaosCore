@@ -35,10 +35,10 @@ import java.util.Map;
 @SuppressWarnings({"unused", "CallToPrintStackTrace"})
 public class ServerUtils {
 
-    private static final String packageName = Bukkit.getServer().getClass().getPackage().getName();
-    private static final String packageSub = packageName.substring(packageName.lastIndexOf('.') + 1);
-    private static final String serverVersion = packageSub.replace("_", "").replace("R0", "").replace("R1", "").replace("R2", "").replace("R3", "").replace("R4", "").replace("R5", "").replaceAll("[a-z]", "");
-    private static final String serverPreciseVersion = packageSub.replace("_", "").replace("R", "").replaceAll("[a-z]", "");
+    private static final String packageVersion = Bukkit.getBukkitVersion();
+    private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-')).replace(".", "_");
+    private static final String serverVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
+    private static final String serverPreciseVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
 
