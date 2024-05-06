@@ -32,6 +32,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.MapMeta;
@@ -259,7 +260,11 @@ public class LegacyAPI {
      */
     public static @Nullable PotionEffectType getEffectByName(final @Nonnull String effect) {
         if (ServerUtils.hasPreciseUpdate("1_20_3")) {
-            final PotionEffectType type = Registry.EFFECT.get(Objects.requireNonNull(NamespacedKey.fromString(effect.toLowerCase())));
+            PotionEffectType type = null;
+            try {
+                type = Registry.EFFECT.get(Objects.requireNonNull(NamespacedKey.fromString(effect.toLowerCase())));
+            } catch (NullPointerException ignored) {
+            }
             if (type != null) {
                 return type;
             } else {
@@ -472,7 +477,7 @@ public class LegacyAPI {
                 Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
                 Class<?> baseClass = ReflectionUtils.getMinecraftClass("NBTBase");
                 Object nms = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, tempItem);
-                Object tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod(itemClass)).invoke(nms);
+                Object tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod()).invoke(nms);
                 Object modifiers = ReflectionUtils.getMinecraftClass("NBTTagList").getConstructor().newInstance();
                 if (tag == null) {
                     tag = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
@@ -490,16 +495,16 @@ public class LegacyAPI {
                             name.append(org.apache.commons.lang.StringUtils.capitalize(rename));
                         }
                     }
-                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(attrib, String.class, String.class), String.class, String.class).invoke(attrib, "AttributeName", name.toString());
-                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(attrib, String.class, String.class), String.class, String.class).invoke(attrib, "Name", name.toString());
-                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(attrib, String.class, String.class), String.class, String.class).invoke(attrib, "Slot", slot);
-                    attrib.getClass().getMethod(MinecraftMethod.setDouble.getMethod(attrib, String.class, double.class), String.class, double.class).invoke(attrib, "Amount", value);
-                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(attrib, String.class, int.class), String.class, int.class).invoke(attrib, "Operation", 0);
-                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(attrib, String.class, int.class), String.class, int.class).invoke(attrib, "UUIDLeast", uuid);
-                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(attrib, String.class, int.class), String.class, int.class).invoke(attrib, "UUIDMost", (uuid / 2));
-                    modifiers.getClass().getMethod(MinecraftMethod.add.getMethod(modifiers, baseClass), baseClass).invoke(modifiers, attrib);
+                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "AttributeName", name.toString());
+                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "Name", name.toString());
+                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "Slot", slot);
+                    attrib.getClass().getMethod(MinecraftMethod.setDouble.getMethod(), String.class, double.class).invoke(attrib, "Amount", value);
+                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "Operation", 0);
+                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "UUIDLeast", uuid);
+                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "UUIDMost", (uuid / 2));
+                    modifiers.getClass().getMethod(MinecraftMethod.add.getMethod(), baseClass).invoke(modifiers, attrib);
                 }
-                tag.getClass().getMethod(MinecraftMethod.set.getMethod(tag, String.class, baseClass), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
+                tag.getClass().getMethod(MinecraftMethod.set.getMethod(), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
                 return (ItemStack) craftItemStack.getMethod("asCraftMirror", nms.getClass()).invoke(null, nms);
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
@@ -556,13 +561,24 @@ public class LegacyAPI {
     }
 
     /**
+     * Sets if the arrow item should be consumed on EntityShootBowEvent.
+     *
+     * @param event - EntityShootBowEvent.
+     * @param bool  - If consuming the item should be canceled or not.
+     * @warn Non-Functional as of Spigot/Bukkit 1.20.5.
+     */
+    public static void setConsumeItem(final EntityShootBowEvent event, final boolean bool) {
+        event.setConsumeItem(bool);
+    }
+
+    /**
      * Sets the potion type as a potion data to the PotionMeta.
      *
      * @param tempMeta   - The PotionMeta having the potion data set to.
      * @param potionType - The potion type to be set.
      */
     public static void setPotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType) {
-        tempMeta.setBasePotionData(new org.bukkit.potion.PotionData(potionType));
+        ReflectionUtils.setBasePotionData(tempMeta, potionType);
     }
 
     /**
@@ -574,7 +590,7 @@ public class LegacyAPI {
      * @param extended   - If this is an extended potion type.
      */
     public static void setPotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType, final boolean extended, final boolean upgraded) {
-        tempMeta.setBasePotionData(new org.bukkit.potion.PotionData(potionType, extended, upgraded));
+        ReflectionUtils.setBasePotionData(tempMeta, potionType, extended, upgraded);
     }
 
     /**

@@ -59,7 +59,7 @@ public abstract class ChatComponent {
             final Class<?> chatPacket = ReflectionUtils.getMinecraftClass((ServerUtils.hasSpecificUpdate("1_19") ? "ClientboundSystemChatPacket" : "PacketPlayOutChat"));
             final Class<?> packetClass = ReflectionUtils.getMinecraftClass("Packet");
             final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
-            final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(connection, packetClass), packetClass);
+            final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass);
             if (ServerUtils.hasSpecificUpdate("1_19")) {
                 try {
                     final Constructor<?> packet = chatPacket.getConstructor(baseComponent, int.class);
