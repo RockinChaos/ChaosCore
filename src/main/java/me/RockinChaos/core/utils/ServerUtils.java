@@ -35,7 +35,7 @@ import java.util.Map;
 @SuppressWarnings({"unused", "CallToPrintStackTrace"})
 public class ServerUtils {
 
-    private static final String packageVersion = Bukkit.getBukkitVersion();
+    private static final String packageVersion = Bukkit.getServer().getBukkitVersion();
     private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-')).replace(".", "_");
     private static final String serverVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
     private static final String serverPreciseVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
