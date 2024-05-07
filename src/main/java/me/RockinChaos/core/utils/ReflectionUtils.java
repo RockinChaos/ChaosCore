@@ -41,7 +41,8 @@ public final class ReflectionUtils {
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String MC_PREFIX = "net.minecraft";
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-    private static final boolean MC_REMAPPED = (Integer.parseInt(VERSION.replace("_", "").replace("R0", "").replace("R1", "").replace("R2", "").replace("R3", "").replace("R4", "").replace("R5", "").replaceAll("[a-z]", "")) >= 117);
+    private static final boolean MC_REMAPPED = Integer.parseInt(Bukkit.getServer().getBukkitVersion().substring(0, Bukkit.getServer().getBukkitVersion().indexOf('-')).replace(".", "")) >= 1170;
+    private static final boolean MC_DEOBFUSCATION = isPaperObfuscation();
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
 
     /**
@@ -423,7 +424,7 @@ public final class ReflectionUtils {
     public static void sendPacketPlayOutSetSlot(final @Nonnull Player player, final @Nullable ItemStack item, int index, int windowId) throws Exception {
         Class<?> itemStack = getMinecraftClass("ItemStack");
         Object nms = getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
-        final Class<?> playOutSlot = ReflectionUtils.getMinecraftClass("PacketPlayOutSetSlot");
+        final Class<?> playOutSlot = getMinecraftClass("PacketPlayOutSetSlot");
         Object packet;
         if (MC_REMAPPED) {
             try {
@@ -514,7 +515,7 @@ public final class ReflectionUtils {
             if ("nms".equalsIgnoreCase(variable)) {
                 if (MC_REMAPPED) {
                     try {
-                        String forClass = ReflectionUtils.getMinecraftClass("PlayerConnection").getCanonicalName();
+                        String forClass = getMinecraftClass("PlayerConnection").getCanonicalName();
                         if (forClass != null) {
                             replacement = MC_PREFIX;
                         } else {
@@ -558,47 +559,71 @@ public final class ReflectionUtils {
     }
 
     /**
-     * Checks if the Server is running a remapped version of NBT.
+     * Checks if the server classes are obfuscated.
      *
-     * @return If the Server is remapped.
+     * @return If the server classes are obfuscated.
      */
-    public static boolean remapped() {
-        return MC_REMAPPED;
+    public static boolean isPaperObfuscation() {
+        if (ServerUtils.hasPreciseUpdate("1_20_5"))
+        {
+            try {
+                getField(getMinecraftClass("EntityHuman"), MinecraftField.DefaultContainer.getField());
+                return false;
+            } catch (Exception e) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the Server is running a remapped version of NBT and if its fields/methods are obfuscated.
+     *
+     * @return If the Server is remapped and obfuscated.
+     */
+    public static boolean obfuscated() {
+        return MC_REMAPPED && !MC_DEOBFUSCATION;
     }
 
     /**
      * Searchable methods that no longer require NBT Reflections.
      */
     public enum MinecraftMethod {
-        add("add", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "add")),
-        set("set", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "set")),
-        get("get", "a"),
-        of("of", "a"),
-        setInt("setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
-        getPage("a", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getPage")),
-        getTag("getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
-        setTag("setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
-        setString("setString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
-        getString("getString", (ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString")),
-        setDouble("setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
-        build("build", "a"),
-        builder("builder", "a"),
-        copyTag("copyTag", "c"),
-        withReplacedPages("withReplacedPages", "b"),
-        getComponents("getComponents", "a"),
-        applyComponentsAndValidate("applyComponentsAndValidate", "a"),
-        sendPacket("sendPacket", (ServerUtils.hasPreciseUpdate("1_20_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
+        add("add", "add", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "add")),
+        set("set", "set", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "set")),
+        get("get", "get", "a"),
+        of("of", "of", "a"),
+        setInt("setInt", "setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
+        getPage("a", "a", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getPage")),
+        getTag("getTag", "getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
+        setTag("setTag", "setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
+        setString("setString", "putString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
+        getString("getString", "getString", (ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString")),
+        setDouble("setDouble", "setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
+        build("build", "build", "a"),
+        builder("builder", "builder", "a"),
+        copyTag("copyTag", "copyTag", "c"),
+        At("at", "create", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
+        AddSlotListener("addSlotListener", "initMenu", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
+        PlayerInventory("inventory", "getInventory", (ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
+                ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
+        withReplacedPages("withReplacedPages", "withReplacedPages", "b"),
+        getComponents("getComponents", "getComponents", "a"),
+        applyComponentsAndValidate("applyComponentsAndValidate", "applyComponentsAndValidate", "a"),
+        sendPacket("sendPacket", "sendPacket", (ServerUtils.hasPreciseUpdate("1_20_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
+        public final String legacy;
         public final String original;
         public final String remapped;
 
-        MinecraftMethod(final String original, final String remapped) {
+        MinecraftMethod(final String legacy, final String original, final String remapped) {
+            this.legacy = legacy;
             this.original = original;
             this.remapped = remapped;
         }
 
         public @Nonnull String getMethod() {
             try {
-                return (ReflectionUtils.remapped() ? this.remapped : this.original);
+                return (obfuscated() ? this.remapped : MC_REMAPPED ? this.original : this.legacy);
             } catch (Exception e) {
                 return this.original;
             }
@@ -609,35 +634,34 @@ public final class ReflectionUtils {
      * Searchable tags that no longer require NBT Reflections.
      */
     public enum MinecraftField {
-        PlayerConnection("playerConnection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
-        ActiveContainer("activeContainer", (ServerUtils.hasPreciseUpdate("1_20_5") ? "cb" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
+        PlayerConnection("playerConnection", "connection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
+        ActiveContainer("activeContainer", "containerMenu", (ServerUtils.hasPreciseUpdate("1_20_5") ? "cb" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bU" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bV" : ServerUtils.hasSpecificUpdate("1_18") ? "bW" : "bV")),
-        DefaultContainer("defaultContainer", (ServerUtils.hasPreciseUpdate("1_20_5") ? "ca" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
+        DefaultContainer("defaultContainer", "inventoryMenu", (ServerUtils.hasPreciseUpdate("1_20_5") ? "ca" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bT" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bU" : ServerUtils.hasSpecificUpdate("1_18") ? "bV" : "bU")),
-        Inventory("inventory", (ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
-                ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
-        At("at", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
-        Anvil("ANVIL", ServerUtils.hasPreciseUpdate("1_20_3") ? "i" : "h"),
-        AddSlotListener("addSlotListener", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
-        RenameText("renameText", "v"),
-        CustomName("CUSTOM_NAME", "g"),
-        GetSlot("getSlot", (ServerUtils.hasPreciseUpdate("1_18_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getSlot")),
-        HasItem("hasItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "h" : ServerUtils.hasSpecificUpdate("1_18") ? "f" : "hasItem")),
-        GetItem("getItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "g" : ServerUtils.hasSpecificUpdate("1_18") ? "e" : "getItem")),
-        CustomData("CUSTOM_DATA", "b"),
-        WrittenBookContent("WRITTEN_BOOK_CONTENT", "J"),
-        NetworkManager("networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
+        Anvil("ANVIL", "ANVIL", ServerUtils.hasPreciseUpdate("1_20_3") ? "i" : "h"),
+        RenameText("renameText", "renameText", "v"),
+        CustomName("CUSTOM_NAME", "CUSTOM_NAME", "g"),
+        GetSlot("getSlot", "getSlot", (ServerUtils.hasPreciseUpdate("1_18_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getSlot")),
+        HasItem("hasItem", "hasItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "h" : ServerUtils.hasSpecificUpdate("1_18") ? "f" : "hasItem")),
+        GetItem("getItem", "getItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "g" : ServerUtils.hasSpecificUpdate("1_18") ? "e" : "getItem")),
+        CustomData("CUSTOM_DATA", "CUSTOM_DATA", "b"),
+        WrittenBookContent("WRITTEN_BOOK_CONTENT", "WRITTEN_BOOK_CONTENT", "J"),
+        NetworkManager("networkManager", "networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
+
+        public final String legacy;
         public final String original;
         public final String remapped;
 
-        MinecraftField(final String original, final String remapped) {
+        MinecraftField(final String legacy, final String original, final String remapped) {
+            this.legacy = legacy;
             this.original = original;
             this.remapped = remapped;
         }
 
         public @Nonnull String getField() {
             try {
-                return (ReflectionUtils.remapped() ? this.remapped : this.original);
+                return (obfuscated() ? this.remapped : MC_REMAPPED ? this.original : this.legacy);
             } catch (Exception e) {
                 return this.original;
             }
