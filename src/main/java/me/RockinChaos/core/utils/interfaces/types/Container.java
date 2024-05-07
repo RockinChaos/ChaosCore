@@ -20,6 +20,7 @@ package me.RockinChaos.core.utils.interfaces.types;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ReflectionUtils.FieldAccessor;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
+import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import me.RockinChaos.core.utils.api.LegacyAPI;
@@ -66,15 +67,15 @@ public class Container {
             final Object entityPlayer = ReflectionUtils.getEntity(player);
             Object playerInventory = null;
             if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
-                playerInventory = entityPlayer.getClass().getMethod(MinecraftField.Inventory.getField()).invoke(entityPlayer);
+                playerInventory = entityPlayer.getClass().getMethod(MinecraftMethod.PlayerInventory.getMethod()).invoke(entityPlayer);
             } else if (entityPlayer != null) {
-                playerInventory = entityPlayer.getClass().getField(MinecraftField.Inventory.getField()).get(entityPlayer);
+                playerInventory = entityPlayer.getClass().getField(MinecraftMethod.PlayerInventory.getMethod()).get(entityPlayer);
             }
             this.outItem = outItem;
             this.containerId = this.getRealNextContainerId(player);
             if (ServerUtils.hasSpecificUpdate("1_14")) {
                 final Class<?> containerAccess = ReflectionUtils.getMinecraftClass("ContainerAccess");
-                final ReflectionUtils.MethodInvoker CAM = ReflectionUtils.getMethod(containerAccess, MinecraftField.At.getField(), ReflectionUtils.getMinecraftClass("World"), blockPosition);
+                final ReflectionUtils.MethodInvoker CAM = ReflectionUtils.getMethod(containerAccess, MinecraftMethod.At.getMethod(), ReflectionUtils.getMinecraftClass("World"), blockPosition);
                 final Object accessContainer = CAM.invoke(containerAccess, world, blockPosition.getConstructor(int.class, int.class, int.class).newInstance(0, 0, 0));
                 this.container = containerAnvil.getConstructor(int.class, ReflectionUtils.getMinecraftClass("PlayerInventory"), containerAccess).newInstance(this.containerId, playerInventory, accessContainer);
             } else {
@@ -189,9 +190,9 @@ public class Container {
         try {
             final Object entityPlayer = ReflectionUtils.getEntity(player);
             if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
-                entityPlayer.getClass().getMethod(MinecraftField.AddSlotListener.getField(), this.mineContainer).invoke(entityPlayer, this.container);
+                entityPlayer.getClass().getMethod(MinecraftMethod.AddSlotListener.getMethod(), this.mineContainer).invoke(entityPlayer, this.container);
             } else {
-                this.mineContainer.getMethod(MinecraftField.AddSlotListener.getField(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, entityPlayer);
+                this.mineContainer.getMethod(MinecraftMethod.AddSlotListener.getMethod(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, entityPlayer);
             }
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
