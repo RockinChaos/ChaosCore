@@ -216,7 +216,7 @@ public class GuardAPI {
      */
     private @Nullable ApplicableRegionSet getRegionSet(final @Nonnull Location location) {
         RegionManager regionManager = this.getRegionManager(Objects.requireNonNull(location.getWorld()));
-        if (regionManager == null) {
+        if (regionManager == null || !this.guardEnabled()) {
             return null;
         }
         try {
