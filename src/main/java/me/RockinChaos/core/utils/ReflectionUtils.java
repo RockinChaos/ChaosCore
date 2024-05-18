@@ -36,14 +36,14 @@ import java.util.regex.Pattern;
  * A utility class that simplifies reflection in Bukkit plugins.
  */
 @SuppressWarnings({"unused", "JavaReflectionMemberAccess"})
-public final class ReflectionUtils {
+public class ReflectionUtils {
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String MC_PREFIX = "net.minecraft";
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
     private static final boolean MC_REMAPPED = Integer.parseInt(Bukkit.getServer().getBukkitVersion().substring(0, Bukkit.getServer().getBukkitVersion().indexOf('-')).replace(".", "")) >= 1170;
-    private static final boolean MC_DEOBFUSCATION = isPaperObfuscation();
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
+    private static final boolean MC_DEOBFUSCATION = isPaperObfuscation();
 
     /**
      * Retrieve a field accessor for a specific field type and name.
@@ -564,8 +564,7 @@ public final class ReflectionUtils {
      * @return If the server classes are obfuscated.
      */
     public static boolean isPaperObfuscation() {
-        if (ServerUtils.hasPreciseUpdate("1_20_5"))
-        {
+        if (ServerUtils.hasPreciseUpdate("1_20_5")) {
             try {
                 getField(getMinecraftClass("EntityHuman"), MinecraftField.DefaultContainer.getField());
                 return false;
@@ -603,6 +602,8 @@ public final class ReflectionUtils {
         build("build", "build", "a"),
         builder("builder", "builder", "a"),
         copyTag("copyTag", "copyTag", "c"),
+        getServer("getServer", "getServer", "b"),
+        registryAccess("registryAccess", "registryAccess", "bc"),
         At("at", "create", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
         AddSlotListener("addSlotListener", "initMenu", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
         PlayerInventory("inventory", "getInventory", (ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
@@ -689,6 +690,7 @@ public final class ReflectionUtils {
         ServerConnection(".server.network"),
         IChatBaseComponent(".network.chat"),
         IChatBaseComponent$ChatSerializer(".network.chat"),
+        HolderLookup$a(".core"),
         PacketPlayOutChat(".network.protocol.game"),
         ClientboundSystemChatPacket(".network.protocol.game"),
         ChatMessageType(".network.chat"),

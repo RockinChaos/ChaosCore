@@ -20,6 +20,7 @@ package me.RockinChaos.core.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
+import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -53,14 +54,30 @@ public abstract class ChatComponent {
     public static void sendTo(final @Nonnull TextSection text, final Player player) {
         try {
             final Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            final Object connection = craftPlayer.getClass().getField((ServerUtils.hasSpecificUpdate("1_20") ? "c" : ServerUtils.hasSpecificUpdate("1_17") ? "b" : "playerConnection")).get(craftPlayer);
+            final Object connection = craftPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(craftPlayer);
             final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
             final Class<?> serializer = ReflectionUtils.getMinecraftClass("IChatBaseComponent$ChatSerializer");
             final Class<?> chatPacket = ReflectionUtils.getMinecraftClass((ServerUtils.hasSpecificUpdate("1_19") ? "ClientboundSystemChatPacket" : "PacketPlayOutChat"));
             final Class<?> packetClass = ReflectionUtils.getMinecraftClass("Packet");
-            final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
             final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass);
-            if (ServerUtils.hasSpecificUpdate("1_19")) {
+            if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+                final Object craftServer = player.getServer().getClass().getMethod("getHandle").invoke(player.getServer());
+                final Object mineServer = craftServer.getClass().getMethod(MinecraftMethod.getServer.getMethod()).invoke(craftServer);
+                final Object registryAccess = mineServer.getClass().getMethod(MinecraftMethod.registryAccess.getMethod()).invoke(mineServer);
+                final Object component = serializer.getDeclaredMethod("a", String.class, ReflectionUtils.getMinecraftClass("HolderLookup$a")).invoke(null, text.toString(), registryAccess);
+                try {
+                    final Constructor<?> packet = chatPacket.getConstructor(baseComponent, int.class);
+                    sendPacket.invoke(connection, packet.newInstance(component, 0));
+                } catch (Exception e) {
+                    try {
+                        final Constructor<?> packet = chatPacket.getConstructor(baseComponent, boolean.class);
+                        sendPacket.invoke(connection, packet.newInstance(component, false));
+                    } catch (Exception e2) {
+                        ServerUtils.sendSevereTrace(e2);
+                    }
+                }
+            } else if (ServerUtils.hasSpecificUpdate("1_19")) {
+                final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
                 try {
                     final Constructor<?> packet = chatPacket.getConstructor(baseComponent, int.class);
                     sendPacket.invoke(connection, packet.newInstance(component, 0));
@@ -73,6 +90,7 @@ public abstract class ChatComponent {
                     }
                 }
             } else if (ServerUtils.hasSpecificUpdate("1_16")) {
+                final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
                 final Constructor<?> packet = chatPacket.getConstructor(baseComponent, ReflectionUtils.getMinecraftClass("ChatMessageType"), player.getUniqueId().getClass());
                 try {
                     final Class<?> chatMessage = ReflectionUtils.getMinecraftClass("ChatMessageType");
@@ -81,6 +99,7 @@ public abstract class ChatComponent {
                     ServerUtils.sendSevereTrace(e);
                 }
             } else {
+                final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
                 final Constructor<?> packet = chatPacket.getConstructor(baseComponent);
                 sendPacket.invoke(connection, packet.newInstance(component));
             }
