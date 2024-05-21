@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     protected final Inventory craftingInventory;
+    protected final boolean isShift;
     private Result useAutoCraft;
 
     /**
@@ -42,9 +43,10 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      * @param who               - The Player triggering the event.
      * @param craftingInventory - The crafting inventory being interacted.
      */
-    public PlayerAutoCraftEvent(final @Nonnull Player who, final @Nullable Inventory craftingInventory) {
+    public PlayerAutoCraftEvent(final @Nonnull Player who, final @Nullable Inventory craftingInventory, final boolean isShift) {
         super(who);
         this.craftingInventory = craftingInventory;
+        this.isShift = isShift;
         this.useAutoCraft = craftingInventory == null ? Result.DENY : Result.ALLOW;
     }
 
@@ -79,6 +81,15 @@ public class PlayerAutoCraftEvent extends PlayerEvent implements Cancellable {
      */
     public void setCancelled(final boolean cancel) {
         this.useAutoCraft(cancel ? Result.DENY : this.useAutoCraft() == Result.DENY ? Result.DEFAULT : this.useAutoCraft());
+    }
+
+    /**
+     * Returns if the Auto Recipe was Shift Clicked.
+     *
+     * @return If the Auto Recipe was Shift Clicked.
+     */
+    public boolean isShift() {
+        return this.isShift;
     }
 
     /**
