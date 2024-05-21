@@ -56,7 +56,7 @@ public class ProtocolManager {
              */
             @Override
             public Object onPacketInAsync(final Player player, final Channel channel, final Object packet) {
-                if (packet != null && manageEvents(player, packet.getClass().getSimpleName(), packet)) {
+                if (packet != null && manageEvents(player, packet.getClass().getSimpleName(), protocol.getContainer(packet))) {
                     return null;
                 }
                 return super.onPacketInAsync(player, channel, packet);
@@ -79,18 +79,18 @@ public class ProtocolManager {
     /**
      * Handles the custom plugin events corresponding to their packet names.
      *
-     * @param player     - the player tied to the packet.
-     * @param packetName - the packet name.
-     * @param packet     - the packet object.
+     * @param player          - the player tied to the packet.
+     * @param packetName      - the packet name.
+     * @param packetContainer - the PacketContainer.
      */
-    public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull Object packet) {
+    public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull PacketContainer packetContainer) {
         try {
             if (packetName.equalsIgnoreCase("PacketPlayInPickItem")) {
                 final PlayerPickItemEvent PickItem = new PlayerPickItemEvent(player, player.getInventory());
                 callEvent(PickItem);
                 return PickItem.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
-                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, player.getOpenInventory().getTopInventory());
+                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, player.getOpenInventory().getTopInventory(), (boolean) packetContainer.read(2).getData());
                 callEvent(AutoCraft);
                 return AutoCraft.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow")) {
@@ -98,18 +98,16 @@ public class ProtocolManager {
                 callEvent(CloseInventory);
                 return CloseInventory.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload")) {
-                final PacketContainer container = protocol.getContainer(packet);
-                if (container.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && player.getOpenInventory().getType().name().equalsIgnoreCase("ANVIL")) {
-                    final Object UnbufferedPayload = container.read(1).getData();
+                if (packetContainer.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && player.getOpenInventory().getType().name().equalsIgnoreCase("ANVIL")) {
+                    final Object UnbufferedPayload = packetContainer.read(1).getData();
                     final String renameText = (String) UnbufferedPayload.getClass().getMethod(ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
                     final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(player.getOpenInventory(), renameText);
                     callEvent(PrepareAnvil);
                     return PrepareAnvil.isCancelled();
                 }
             } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick")) {
-                final PacketContainer container = protocol.getContainer(packet);
-                if (container.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
-                    final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) container.read(3).getData() : (int) container.read(1).getData());
+                if (packetContainer.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
+                    final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) packetContainer.read(3).getData() : (int) packetContainer.read(1).getData());
                     if (slot >= 0) {
                         final PlayerCloneItemEvent CloneItem = new PlayerCloneItemEvent(player, slot, ClickType.MIDDLE);
                         callEvent(CloneItem);

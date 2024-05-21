@@ -25,6 +25,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.ServerUtils;
+import me.RockinChaos.core.utils.protocol.packet.PacketContainer;
 
 @SuppressWarnings("unused")
 public class ProtocolAPI {
@@ -67,8 +68,10 @@ public class ProtocolAPI {
                                             (event.getPacket() != null && event.getPacketType() == PacketType.Play.Client.WINDOW_CLICK ? "PacketPlayInWindowClick" : null))));
                 } catch (NullPointerException ignored) {
                 }
-                if (packetName != null && me.RockinChaos.core.utils.protocol.ProtocolManager.manageEvents(event.getPlayer(), packetName, event.getPacket())) {
+                if (packetName != null && me.RockinChaos.core.utils.protocol.ProtocolManager.manageEvents(event.getPlayer(), packetName, new PacketContainer(event.getPacket().getHandle()))) {
                     event.setCancelled(true);
+                } else if (packetName != null && packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
+                    final PacketContainer container = new PacketContainer(event.getPacket().getHandle());
                 }
             }
         });
