@@ -552,7 +552,7 @@ public class ItemHandler {
                 GameProfile gameProfile;
                 if (!gameProfiles.containsKey(skullTexture)) {
                     final UUID uuid = UUID.randomUUID();
-                    gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", ""));
+                    gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16));
                     gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
                     gameProfiles.put(skullTexture, gameProfile);
                 } else {
