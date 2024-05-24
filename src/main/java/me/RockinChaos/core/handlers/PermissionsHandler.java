@@ -68,7 +68,7 @@ public class PermissionsHandler {
      * @param sender - The entity executing the plugin command.
      * @return If the command sender is the developer of the plugin.
      */
-    private static boolean isDeveloper(final CommandSender sender) {
+    public static boolean isDeveloper(final CommandSender sender) {
         if (Core.getCore().getData().debugEnabled()) {
             if (sender instanceof Player) {
                 return ((Player) sender).getUniqueId().toString().equalsIgnoreCase("ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee");

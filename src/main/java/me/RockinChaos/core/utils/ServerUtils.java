@@ -41,6 +41,7 @@ public class ServerUtils {
     private static final String serverPreciseVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
+    private static boolean devListening = false;
 
     /**
      * Gets the current server version.
@@ -130,9 +131,11 @@ public class ServerUtils {
             String prefix = "[" + Core.getCore().getPlugin().getName() + "_DEBUG] ";
             message = prefix + message;
             Bukkit.getServer().getLogger().info(message);
-            Player player = PlayerHandler.getPlayerString(devPlayer);
-            if (player != null && player.isOnline()) {
-                player.sendMessage(message);
+            if (devListening) {
+                Player player = PlayerHandler.getPlayerString(devPlayer);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage(message);
+                }
             }
         }
     }
@@ -218,6 +221,17 @@ public class ServerUtils {
      */
     public static void clearErrorStatements() {
         errorStatements.clear();
+    }
+
+    /**
+     * Enables or Disables the listening of Debug messages for the Developer.
+     * This is a static toggle, executing once enables it while executing again disables it.
+     *
+     * @return The updated listening status.
+     */
+    public static boolean devListening() {
+        devListening = !devListening;
+        return devListening;
     }
 
     /**
