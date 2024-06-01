@@ -59,7 +59,7 @@ public class ServerUtils {
      * @return If the server version is greater than or equal to the specified version.
      */
     public static boolean hasSpecificUpdate(final @Nonnull String versionString) {
-        return Integer.parseInt(serverVersion) >= Integer.parseInt(versionString.replace("_", ""));
+        return Integer.parseInt(serverVersion) >= Integer.parseInt(versionString.replace("_", "") + 0);
     }
 
     /**
@@ -148,9 +148,11 @@ public class ServerUtils {
     public static void sendDebugTrace(final Exception e) {
         if (Core.getCore().getData().debugEnabled()) {
             e.printStackTrace();
-            Player player = PlayerHandler.getPlayerString(devPlayer);
-            if (player != null && player.isOnline()) {
-                player.sendMessage(e.toString());
+            if (devListening) {
+                Player player = PlayerHandler.getPlayerString(devPlayer);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage(e.toString());
+                }
             }
         }
     }
