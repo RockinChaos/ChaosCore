@@ -593,7 +593,7 @@ public class ReflectionUtils {
         get("get", "get", "a"),
         of("of", "of", "a"),
         setInt("setInt", "setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
-        getPage("a", "a", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getPage")),
+        getPage("a", "a", "a"),
         getTag("getTag", "getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
         setTag("setTag", "setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
         setString("setString", "putString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
