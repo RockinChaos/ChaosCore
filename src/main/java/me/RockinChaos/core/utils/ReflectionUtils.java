@@ -385,7 +385,7 @@ public class ReflectionUtils {
             Class<?> potionDataClass = Class.forName("org.bukkit.potion.PotionData");
             Constructor<?> potionDataConstructor = potionDataClass.getConstructor(Class.forName("org.bukkit.potion.PotionType"));
             Object potionData = potionDataConstructor.newInstance(potionType);
-            Class<?> itemMetaClass = Class.forName("org.bukkit.inventory.meta.ItemMeta");
+            Class<?> itemMetaClass = Class.forName("org.bukkit.inventory.meta.PotionMeta");
             Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
             setBasePotionDataMethod.invoke(tempMeta, potionData);
         } catch (Exception e) {
