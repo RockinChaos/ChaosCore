@@ -143,9 +143,26 @@ public class ReflectionUtils {
                 };
             }
         }
-        if (target.getSuperclass() != null)
+        if (target.getSuperclass() != null) {
             return getField(target.getSuperclass(), name, fieldType, index);
-        throw new IllegalArgumentException("Cannot find field with type " + fieldType);
+        } else {
+            throw new IllegalArgumentException("Cannot find field with type " + fieldType);
+        }
+    }
+
+    /**
+     * Gets the field value of the target object.
+     *
+     * @param object  - The object to have its field value retrieved.
+     * @param name    - The String name of the Field to access.
+     * @return The found Field Value as an Object instance.
+     */
+    public static @Nonnull Object getFieldValue(final @Nonnull Object object, final @Nonnull String name) {
+        try {
+            return getField(object.getClass(), name).get(object);
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot get field value " + name, e);
+        }
     }
 
     /**
@@ -211,7 +228,7 @@ public class ReflectionUtils {
      */
     public static @Nonnull Object getPlayerField(final @Nonnull Player player, final @Nonnull String field) {
         try {
-            final Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
+            final Object craftPlayer = getEntity(player);
             return craftPlayer.getClass().getField(field).get(craftPlayer);
         } catch (Exception e) {
             throw new RuntimeException("Cannot invoke player field " + field, e);
@@ -445,7 +462,7 @@ public class ReflectionUtils {
      * @param packet - The Packet Object being sent.
      */
     public static void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) throws Exception {
-        Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
+        Object nmsPlayer = getEntity(player);
         Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
         Class<?> packetClass = getMinecraftClass("Packet");
         playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass).invoke(playerHandle, packet);
@@ -493,7 +510,7 @@ public class ReflectionUtils {
      */
     public static @Nullable Object getEntity(final @Nonnull Player player) {
         try {
-            return player.getClass().getMethod("getHandle").invoke(player);
+            return invokeMethod("getHandle", player);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }

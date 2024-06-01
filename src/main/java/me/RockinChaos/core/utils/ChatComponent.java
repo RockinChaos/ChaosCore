@@ -19,8 +19,8 @@ package me.RockinChaos.core.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
+import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -53,59 +53,88 @@ public abstract class ChatComponent {
      */
     public static void sendTo(final @Nonnull TextSection text, final Player player) {
         try {
-            final Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            final Object connection = craftPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(craftPlayer);
-            final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
-            final Class<?> serializer = ReflectionUtils.getMinecraftClass("IChatBaseComponent$ChatSerializer");
-            final Class<?> chatPacket = ReflectionUtils.getMinecraftClass((ServerUtils.hasSpecificUpdate("1_19") ? "ClientboundSystemChatPacket" : "PacketPlayOutChat"));
-            final Class<?> packetClass = ReflectionUtils.getMinecraftClass("Packet");
-            final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass);
-            if (ServerUtils.hasPreciseUpdate("1_20_5")) {
-                final Object craftServer = player.getServer().getClass().getMethod("getHandle").invoke(player.getServer());
-                final Object mineServer = craftServer.getClass().getMethod(MinecraftMethod.getServer.getMethod()).invoke(craftServer);
-                final Object registryAccess = mineServer.getClass().getMethod(MinecraftMethod.registryAccess.getMethod()).invoke(mineServer);
-                final Object component = serializer.getDeclaredMethod("a", String.class, ReflectionUtils.getMinecraftClass("HolderLookup$a")).invoke(null, text.toString(), registryAccess);
-                try {
-                    final Constructor<?> packet = chatPacket.getConstructor(baseComponent, int.class);
-                    sendPacket.invoke(connection, packet.newInstance(component, 0));
-                } catch (Exception e) {
-                    try {
-                        final Constructor<?> packet = chatPacket.getConstructor(baseComponent, boolean.class);
-                        sendPacket.invoke(connection, packet.newInstance(component, false));
-                    } catch (Exception e2) {
-                        ServerUtils.sendSevereTrace(e2);
-                    }
-                }
-            } else if (ServerUtils.hasSpecificUpdate("1_19")) {
-                final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
-                try {
-                    final Constructor<?> packet = chatPacket.getConstructor(baseComponent, int.class);
-                    sendPacket.invoke(connection, packet.newInstance(component, 0));
-                } catch (Exception e) {
-                    try {
-                        final Constructor<?> packet = chatPacket.getConstructor(baseComponent, boolean.class);
-                        sendPacket.invoke(connection, packet.newInstance(component, false));
-                    } catch (Exception e2) {
-                        ServerUtils.sendSevereTrace(e2);
-                    }
-                }
-            } else if (ServerUtils.hasSpecificUpdate("1_16")) {
-                final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
-                final Constructor<?> packet = chatPacket.getConstructor(baseComponent, ReflectionUtils.getMinecraftClass("ChatMessageType"), player.getUniqueId().getClass());
-                try {
-                    final Class<?> chatMessage = ReflectionUtils.getMinecraftClass("ChatMessageType");
-                    sendPacket.invoke(connection, packet.newInstance(component, chatMessage.getMethod("a", byte.class).invoke(null, (byte) 0), player.getUniqueId()));
-                } catch (Exception e) {
-                    ServerUtils.sendSevereTrace(e);
-                }
-            } else {
-                final Object component = serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
-                final Constructor<?> packet = chatPacket.getConstructor(baseComponent);
-                sendPacket.invoke(connection, packet.newInstance(component));
+            final Object craftPlayer = ReflectionUtils.getEntity(player);
+            if (craftPlayer != null) {
+                final Object connection = ReflectionUtils.getFieldValue(craftPlayer, MinecraftField.PlayerConnection.getField());
+                final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), ReflectionUtils.getMinecraftClass("Packet"));
+                final Object textComponent = getComponent(text, player);
+                final Object packet = createPacket(textComponent, player);
+                sendPacket.invoke(connection, packet);
             }
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
+    }
+
+    /**
+     * Creates the IChatBaseComponent.
+     *
+     * @param text   - The TextComponent to be sent.
+     * @param player - The Player being referenced.
+     * @return the newly created IChatBaseComponent.
+     */
+    private static @Nonnull Object getComponent(final TextSection text, final @Nonnull Player player) throws Exception {
+        final Class<?> serializer = ReflectionUtils.getMinecraftClass("IChatBaseComponent$ChatSerializer");
+        if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+            final Object craftServer = ReflectionUtils.invokeMethod("getHandle", player.getServer());
+            final Object mineServer = ReflectionUtils.invokeMethod(MinecraftMethod.getServer.getMethod(), craftServer);
+            final Object registryAccess = ReflectionUtils.invokeMethod(MinecraftMethod.registryAccess.getMethod(), mineServer);
+            return serializer.getDeclaredMethod("a", String.class, ReflectionUtils.getMinecraftClass("HolderLookup$a")).invoke(null, text.toString(), registryAccess);
+        } else {
+            return serializer.getDeclaredMethod("a", String.class).invoke(null, text.toString());
+        }
+    }
+
+    /**
+     * Gets the Packet Constructor.
+     *
+     * @param player - The Player being referenced.
+     * @return The Packet Constructor.
+     */
+    private static @Nonnull Constructor<?> getPacketConstructor(final @Nonnull Player player) throws Exception {
+        final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
+        final Class<?> chatPacket = ReflectionUtils.getMinecraftClass((ServerUtils.hasSpecificUpdate("1_19") ? "ClientboundSystemChatPacket" : "PacketPlayOutChat"));
+        Constructor<?> packetConstructor;
+        if (ServerUtils.hasPreciseUpdate("1_20_5") || ServerUtils.hasSpecificUpdate("1_19")) {
+            try {
+                packetConstructor = chatPacket.getConstructor(baseComponent, int.class);
+            } catch (NoSuchMethodException e) {
+                packetConstructor = chatPacket.getConstructor(baseComponent, boolean.class);
+            }
+        } else if (ServerUtils.hasSpecificUpdate("1_16")) {
+            final Class<?> messageType = ReflectionUtils.getMinecraftClass("ChatMessageType");
+            packetConstructor = chatPacket.getConstructor(baseComponent, messageType, player.getUniqueId().getClass());
+        } else {
+            packetConstructor = chatPacket.getConstructor(baseComponent);
+        }
+        return packetConstructor;
+    }
+
+    /**
+     * Creates the Chat Packet with the initialized TextComponent value.
+     *
+     * @param textComponent - The initialized TextComponent value.
+     * @param player        - The Player being referenced.
+     * @return The newly created Chat Packet instance.
+     */
+    private static @Nonnull Object createPacket(final @Nonnull Object textComponent, final @Nonnull Player player) throws Exception {
+        final Constructor<?> packetConstructor = getPacketConstructor(player);
+        Object packet;
+        int parameterCount = packetConstructor.getParameterCount();
+        if (parameterCount == 3) {
+            final Class<?> chatMessageTypeClass = ReflectionUtils.getMinecraftClass("ChatMessageType");
+            final Object chatMessageType = chatMessageTypeClass.getMethod("a", byte.class).invoke(null, (byte) 0);
+            packet = packetConstructor.newInstance(textComponent, chatMessageType, player.getUniqueId());
+        } else if (parameterCount == 2) {
+            if (packetConstructor.getParameterTypes()[1] == int.class) {
+                packet = packetConstructor.newInstance(textComponent, 0);
+            } else {
+                packet = packetConstructor.newInstance(textComponent, false);
+            }
+        } else {
+            packet = packetConstructor.newInstance(textComponent);
+        }
+        return packet;
     }
 
     /**
