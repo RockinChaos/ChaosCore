@@ -83,6 +83,7 @@ public class LanguageAPI {
         if (sender instanceof Player) {
             player = (Player) sender;
         }
+        langMessage = this.translateLangHolders(langMessage, this.initializeRows(newString()));
         langMessage = StringUtils.translateLayout(langMessage, player);
         hoverMessage = StringUtils.translateLayout(hoverMessage, player);
         clickMessage = StringUtils.translateLayout(clickMessage, player);
