@@ -19,6 +19,8 @@ package me.RockinChaos.core.utils.protocol;
 
 import io.netty.channel.Channel;
 import me.RockinChaos.core.Core;
+import me.RockinChaos.core.handlers.PlayerHandler;
+import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.protocol.events.*;
 import me.RockinChaos.core.utils.protocol.packet.PacketContainer;
@@ -26,17 +28,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.AuthorNagException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 
 import javax.annotation.Nonnull;
+import java.util.*;
 import java.util.logging.Level;
 
 @SuppressWarnings("unused")
 public class ProtocolManager {
 
     private static TinyProtocol protocol;
+    private static int permissionTask;
 
     /**
      * Handles both server side and client side protocol packets.
@@ -74,6 +79,34 @@ public class ProtocolManager {
                 return packet;
             }
         };
+    }
+
+    /**
+     * Handles the repeating task to check all players on the server to see
+     * if their permissions have changed.
+     */
+    public static void handlePermissions() {
+        if (permissionTask == 0) {
+            final Map<Player, List<String>> playerPermissions = new HashMap<>();
+            permissionTask = SchedulerUtils.runAsyncAtInterval(5L, 0L, () -> {
+                PlayerHandler.forOnlinePlayers(player -> {
+                    final Iterator<PermissionAttachmentInfo> iterator = player.getEffectivePermissions().iterator();
+                    final List<String> currentPermissions = new ArrayList<>();
+                    while (iterator.hasNext()) {
+                        final PermissionAttachmentInfo it = iterator.next();
+                        currentPermissions.add(it.getPermission() + ":" + it.getValue());
+                    }
+                    if (!playerPermissions.containsKey(player) || (playerPermissions.containsKey(player) && !(new HashSet<>(playerPermissions.get(player)).containsAll(currentPermissions)))) {
+                        final List<String> changedPermissions = new ArrayList<>(currentPermissions);
+                        if (playerPermissions.containsKey(player)) {
+                            changedPermissions.removeAll(playerPermissions.get(player));
+                            callEvent(new PermissionChangedEvent(player, changedPermissions));
+                        }
+                        playerPermissions.put(player, new ArrayList<>(currentPermissions));
+                    }
+                });
+            });
+        }
     }
 
     /**
