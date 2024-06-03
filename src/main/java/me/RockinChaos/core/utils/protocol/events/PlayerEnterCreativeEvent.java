@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Called when a player tries to pick block using the middle mouse button.
+ * Called when a player enters an emulated creative mode.
  */
 @SuppressWarnings("unused")
 public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable {
@@ -41,8 +41,11 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
     /**
      * Creates a new PlayerEnterCreativeEvent instance.
      *
-     * @param who    - The Sender triggering the event.
-     * @param altWho - The other Player being referenced.
+     * @param who       - The Sender triggering the event.
+     * @param altWho    - The other Player being referenced.
+     * @param refresh   - If the gamemode change is a simple refresh.
+     * @param restore   - If the player inventory should be restored.
+     * @param silent    - If the event should trigger any messages.
      */
     public PlayerEnterCreativeEvent(final @Nonnull CommandSender who, final @Nullable Player altWho, final boolean refresh, final boolean restore, final boolean silent) {
         super((altWho != null ? altWho : (Player) who));
@@ -63,8 +66,8 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
     }
 
     /**
-     * Gets the cancellation state of this event. Set to true if you want to
-     * prevent the pick block action from shifting materials in the players inventory, materials will not be lost.
+     * Gets the cancellation state of this event.
+     * Set to true if you want to prevent the creative mode action.
      *
      * @return boolean cancellation state.
      */
@@ -85,11 +88,11 @@ public class PlayerEnterCreativeEvent extends PlayerEvent implements Cancellable
     }
 
     /**
-     * This controls the action to take with the pick block action.
+     * This controls the action to take with the creative mode action.
      * When this is set to default, it will be allowed if no action
-     * is taken on the pick block action.
+     * is taken on the creative mode action.
      *
-     * @return The action to take with the pick block action.
+     * @return The action to take with the creative mode action.
      */
     public @Nonnull Result returnResult() {
         return this.result;

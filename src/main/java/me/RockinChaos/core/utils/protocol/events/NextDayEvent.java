@@ -25,7 +25,7 @@ import org.bukkit.event.HandlerList;
 import javax.annotation.Nonnull;
 
 /**
- * Called when a player tries to pick block using the middle mouse button.
+ * Called when the current day reaches midnight.
  */
 @SuppressWarnings("unused")
 public class NextDayEvent extends Event implements Cancellable {
@@ -94,11 +94,11 @@ public class NextDayEvent extends Event implements Cancellable {
     }
 
     /**
-     * This controls the action to take with the pick block action.
+     * This controls the action to take with the day change action.
      * When this is set to default, it will be allowed if no action
-     * is taken on the pick block action.
+     * is taken on the day change action.
      *
-     * @return The action to take with the pick block action.
+     * @return The action to take with the day change action.
      */
     public @Nonnull Result allowChange() {
         return this.allowChange;
