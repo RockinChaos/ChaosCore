@@ -68,21 +68,6 @@ public class SchedulerUtils {
     }
 
     /**
-     * Runs the task repeating on the main thread.
-     *
-     * @param runnable - The task to be performed.
-     * @param delay    - The ticks to wait before performing the task.
-     * @param interval - The interval in which to run the task.
-     * @return The repeating task identifier.
-     */
-    public static int runAsyncAtInterval(final long delay, final long interval, final @Nonnull Runnable runnable) {
-        if (Core.getCore().getPlugin().isEnabled()) {
-            return Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, interval, delay).getTaskId();
-        }
-        return 0;
-    }
-
-    /**
      * Runs the task on another thread.
      *
      * @param runnable - The task to be performed.
@@ -116,6 +101,22 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, interval, delay);
         }
+    }
+
+
+    /**
+     * Runs the task repeating on the another thread.
+     *
+     * @param runnable - The task to be performed.
+     * @param delay    - The ticks to wait before performing the task (the ticks to wait before running the task for the first time).
+     * @param interval - The interval in which to run the task (the ticks to wait between runs).
+     * @return The repeating task identifier.
+     */
+    public static int runAsyncAtInterval(final long delay, final long interval, final @Nonnull Runnable runnable) {
+        if (Core.getCore().getPlugin().isEnabled()) {
+            return Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, interval, delay).getTaskId();
+        }
+        return 0;
     }
 
     /**
