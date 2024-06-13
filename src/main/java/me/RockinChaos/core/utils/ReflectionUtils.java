@@ -41,7 +41,7 @@ public class ReflectionUtils {
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String MC_PREFIX = "net.minecraft";
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-    private static final boolean MC_REMAPPED = Integer.parseInt(Bukkit.getServer().getBukkitVersion().substring(0, Bukkit.getServer().getBukkitVersion().indexOf('-')).replace(".", "")) >= 1170;
+    private static final boolean MC_REMAPPED = ServerUtils.hasPreciseUpdate("1_17_0");
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
     private static final boolean MC_DEOBFUSCATION = isPaperObfuscation();
 

@@ -38,7 +38,7 @@ public class ServerUtils {
     private static final String packageVersion = Bukkit.getServer().getBukkitVersion();
     private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-')).replace(".", "_");
     private static final String serverVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
-    private static final String serverPreciseVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
+    private static final String serverPreciseVersion = packageSub.replace("_", "").replaceAll("[a-z]", "") + (StringUtils.countCharacters(packageSub, "_") == 1 ? 0 : "");
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
     private static boolean devListening = false;
@@ -59,7 +59,7 @@ public class ServerUtils {
      * @return If the server version is greater than or equal to the specified version.
      */
     public static boolean hasSpecificUpdate(final @Nonnull String versionString) {
-        return Integer.parseInt(serverVersion) >= Integer.parseInt(versionString.replace("_", "") + 0);
+        return Integer.parseInt(serverVersion) >= Integer.parseInt(versionString.replace("_", "") + (StringUtils.countCharacters(packageSub, "_") > 1 ? 0 : ""));
     }
 
     /**

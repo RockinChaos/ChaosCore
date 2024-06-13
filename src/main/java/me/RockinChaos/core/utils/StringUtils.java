@@ -279,6 +279,17 @@ public class StringUtils {
     }
 
     /**
+     * Gets the number of times a specific character occurs in a String
+     *
+     * @param str - The String to be checked.
+     * @param character - The character to be filtered.
+     * @return The number of time a specific character occurs in the String.
+     */
+    public static int countCharacters(final @Nullable String str, final @Nonnull String character) {
+        return str != null ? str.length() - str.replace(character, "").length() : 0;
+    }
+
+    /**
      * Checks if the specified String is an Integer Value.
      *
      * @param str - The String to be checked.
