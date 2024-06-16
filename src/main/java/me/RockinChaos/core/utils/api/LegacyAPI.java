@@ -25,6 +25,7 @@ import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.*;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
@@ -33,6 +34,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.MapMeta;
@@ -511,6 +513,19 @@ public class LegacyAPI {
             }
         }
         return tempItem;
+    }
+
+    /**
+     * Attempts to get a new AttributeModifier instance.
+     *
+     * @param uuid - The unique UUID to identify the AttributeModifier as.
+     * @param attrib - The actual name of the Attribute.
+     * @param value - The amount or strength of the Attribute.
+     * @param slot - The Equipment slot of the Attribute.
+     * @return The new AttributeModifier instance.
+     */
+    public static @Nonnull AttributeModifier getAttribute(final @Nonnull String uuid, final @Nonnull String attrib, final double value, final @Nonnull EquipmentSlot slot) {
+        return new AttributeModifier(UUID.nameUUIDFromBytes(uuid.getBytes()), attrib.toLowerCase().replace("_", "."), value, AttributeModifier.Operation.ADD_NUMBER, slot);
     }
 
     /**
