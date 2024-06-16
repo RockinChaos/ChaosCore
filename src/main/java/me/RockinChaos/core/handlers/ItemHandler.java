@@ -705,14 +705,23 @@ public class ItemHandler {
             item1.setAmount(DESIRED_STACK_SIZE - MINECRAFT_STACK_MAX);
             REMAINING_STACK_SIZE = item1.getAmount();
         } else {
-            item2.setAmount(item2.getAmount() + item1.getAmount());
             if (slot == -1) {
-                player.getOpenInventory().setCursor(new ItemStack(Material.AIR));
-            } else if (slot != -2) {
-                if (topInventory) {
-                    player.getOpenInventory().getTopInventory().setItem(slot, new ItemStack(Material.AIR));
+                item2.setAmount(item2.getAmount() + 1);
+                if (item1.getAmount() == 1) {
+                    player.getOpenInventory().setCursor(new ItemStack(Material.AIR));
                 } else {
-                    player.getInventory().setItem(slot, new ItemStack(Material.AIR));
+                    item1.setAmount(item1.getAmount() - 1);
+                }
+            } else {
+                item2.setAmount(item2.getAmount() + item1.getAmount());
+                if (slot == -2) {
+                    player.getOpenInventory().setCursor(new ItemStack(Material.AIR));
+                } else if (slot != -3) {
+                    if (topInventory) {
+                        player.getOpenInventory().getTopInventory().setItem(slot, new ItemStack(Material.AIR));
+                    } else {
+                        player.getInventory().setItem(slot, new ItemStack(Material.AIR));
+                    }
                 }
             }
         }
