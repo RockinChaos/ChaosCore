@@ -650,21 +650,19 @@ public class PlayerHandler {
             Player[] playersOnlineOld;
             try {
                 if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                    if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                        playersOnlineNew = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                        for (Object objPlayer : playersOnlineNew) {
-                            if (((Player) objPlayer).isOnline() && PlayerHandler.isCraftingInv(((Player) objPlayer).getOpenInventory())) {
-                                ItemStack[] tempContents = ((Player) objPlayer).getOpenInventory().getTopInventory().getContents();
-                                ItemStack[] contents = new ItemStack[5];
-                                for (int i = 0; i <= 4; i++) {
-                                    if (tempContents[i] != null) {
-                                        contents[i] = tempContents[i].clone();
-                                    }
+                    playersOnlineNew = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
+                    for (Object objPlayer : playersOnlineNew) {
+                        if (((Player) objPlayer).isOnline() && PlayerHandler.isCraftingInv(((Player) objPlayer).getOpenInventory())) {
+                            ItemStack[] tempContents = ((Player) objPlayer).getOpenInventory().getTopInventory().getContents();
+                            ItemStack[] contents = new ItemStack[5];
+                            for (int i = 0; i <= 4; i++) {
+                                if (tempContents[i] != null) {
+                                    contents[i] = tempContents[i].clone();
                                 }
-                                craftingItems.put(PlayerHandler.getPlayerID(((Player) objPlayer)), contents);
-                            } else {
-                                craftingItems.remove(PlayerHandler.getPlayerID((Player) objPlayer));
                             }
+                            craftingItems.put(PlayerHandler.getPlayerID(((Player) objPlayer)), contents);
+                        } else {
+                            craftingItems.remove(PlayerHandler.getPlayerID((Player) objPlayer));
                         }
                     }
                 } else {
