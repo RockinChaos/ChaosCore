@@ -294,7 +294,7 @@ public class Database extends Controller {
             rs = ps.executeQuery(statement);
             columnExists = true;
         } catch (Exception e) {
-            if (!(StringUtils.containsIgnoreCase(e.getMessage(), "no such column") || StringUtils.containsIgnoreCase(e.getMessage(), "Unknown column"))) {
+            if (!(StringUtils.containsIgnoreCase(e.getMessage(), "no such column") || StringUtils.containsIgnoreCase(e.getMessage(), "unknown column") || StringUtils.containsIgnoreCase(e.getMessage(), "unknown error"))) {
                 ServerUtils.logSevere("{SQL} [6] Failed to execute database statement.");
                 if (conn != null) {
                     try {
