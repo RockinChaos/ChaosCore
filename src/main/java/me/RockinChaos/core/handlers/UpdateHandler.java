@@ -17,6 +17,8 @@
  */
 package me.RockinChaos.core.handlers;
 
+import me.RockinChaos.core.Core;
+import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.Bukkit;
@@ -32,6 +34,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.util.Collection;
 
 @SuppressWarnings("unused")
@@ -65,7 +68,9 @@ public class UpdateHandler {
         this.devVersion = this.localeVersion.equals("${project.version}");
         this.buildNumber = this.versionExact.split("-b")[1];
         this.updatesAllowed = updatesAllowed;
-        this.checkUpdates(plugin.getServer().getConsoleSender(), true);
+        SchedulerUtils.runAsync(() -> {
+            this.checkUpdates(plugin.getServer().getConsoleSender(), true);
+        });
     }
 
     /**
@@ -96,47 +101,73 @@ public class UpdateHandler {
             String updateSuccess;
             String uri;
             if (update == Update.BETA) {
-                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.localeVersion + "-SNAPSHOT-b" + this.latestBuild, true);
+                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.localeVersion + "-SNAPSHOT-b" + this.latestBuild + "&a.", true);
                 updateSuccess = this.localeVersion + "-SNAPSHOT-b" + this.latestBuild;
                 uri = this.DEV_HOST + "/artifact/" +  this.artifactPath + "?_=" + System.currentTimeMillis();
             } else {
-                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.localeVersion + " &ato the new " + "&ev" + this.latestVersion, true);
-                updateSuccess = this.latestVersion;
+                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.latestVersion + "-RELEASE" + "&a.", true);
+                updateSuccess = this.latestVersion + "-RELEASE";
                 uri = this.HOST.replace("repos/", "").replace("api.", "").replace("latest", "download/" + "v" + this.latestVersion + "/" + this.NAME.toLowerCase() + ".jar") + "?_=" + System.currentTimeMillis();
             }
+            final File upgradeFile = new File(Core.getCore().getPlugin().getDataFolder() + "/" + this.NAME + ".jar" + ".tmp");
             try {
-                HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
+                final HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
                 httpConnection.setRequestProperty("User-Agent", "Mozilla/5.0...");
-                BufferedInputStream in = new BufferedInputStream(httpConnection.getInputStream());
-                FileOutputStream fos = new FileOutputStream(this.jarRef);
-                int BYTE_SIZE = 2048;
-                BufferedOutputStream bout = new BufferedOutputStream(fos, BYTE_SIZE);
-                String progressBar = "&a::::::::::::::::::::::::::::::";
-                int currentProgress = -1;
-                byte[] data = new byte[BYTE_SIZE];
-                long cloudFileSize = httpConnection.getContentLength();
-                long fetchedSize = 0;
-                int bytesRead;
-                while ((bytesRead = in.read(data, 0, BYTE_SIZE)) >= 0) {
-                    bout.write(data, 0, bytesRead);
-                    fetchedSize += bytesRead;
-                    final int updateProgress = (int) (((double) fetchedSize / (double) cloudFileSize) * 30);
-                    if ((((fetchedSize * 100) / cloudFileSize) % 25) == 0 && updateProgress > 10) {
-                        if (currentProgress != updateProgress) {
-                            ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), true);
+                final int BYTE_SIZE = 2048;
+                final long hostFileSize = httpConnection.getContentLength();
+                if (hostFileSize <= 0) {
+                    throw new Exception("Invalid file size from the host server.");
+                }
+                try (final BufferedInputStream in = new BufferedInputStream(httpConnection.getInputStream());
+                     final FileOutputStream fos = new FileOutputStream(upgradeFile);
+                     final BufferedOutputStream bout = new BufferedOutputStream(fos, BYTE_SIZE)) {
+                    final String progressBar = "&a::::::::::::::::::::::::::::::";
+                    int currentProgress = -1;
+                    final byte[] data = new byte[BYTE_SIZE];
+                    long fetchedSize = 0;
+                    int bytesRead;
+                    while ((bytesRead = in.read(data, 0, BYTE_SIZE)) >= 0) {
+                        bout.write(data, 0, bytesRead);
+                        fetchedSize += bytesRead;
+                        final int updateProgress = (int) (((double) fetchedSize / (double) hostFileSize) * 30);
+                        if ((((fetchedSize * 100) / hostFileSize) % 25) == 0 && updateProgress > 10) {
+                            if (currentProgress != updateProgress) {
+                                ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), true);
+                            }
+                            currentProgress = updateProgress;
                         }
-                        currentProgress = updateProgress;
+                    }
+                    bout.flush();
+                }
+                if (upgradeFile.length() != hostFileSize) {
+                    throw new Exception("Downloaded file size does not match expected size.");
+                }
+                if (!upgradeFile.renameTo(jarRef)) {
+                    try (final InputStream in = Files.newInputStream(upgradeFile.toPath());
+                         final OutputStream out = Files.newOutputStream(jarRef.toPath())) {
+
+                        final byte[] buffer = new byte[BYTE_SIZE];
+                        int bytesRead;
+                        while ((bytesRead = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    if (!upgradeFile.delete()) {
+                        ServerUtils.logSevere("&cFailed to delete upgrade file " + upgradeFile.getAbsolutePath());
                     }
                 }
-                bout.close();
-                in.close();
-                fos.close();
-                ServerUtils.messageSender(sender, "&aSuccessfully updated to v" + updateSuccess + "!", true);
-                ServerUtils.messageSender(sender, "&aYou must restart your server for this to take affect.", true);
+                ServerUtils.messageSender(sender, "&aSuccessfully updated to &ev" + updateSuccess + "&a!", true);
+                ServerUtils.messageSender(sender, "&aYou must restart your server for this to take effect.", true);
             } catch (Exception e) {
-                ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + this.NAME + ".", true);
-                ServerUtils.messageSender(sender, "&cPlease try again later, if you continue to see this please contact the plugin developer.", true);
+                ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".", true);
+                ServerUtils.messageSender(sender, "&cPlease try again later. If you continue to see this, please contact the plugin developer.", true);
+                ServerUtils.logSevere("&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".");
                 ServerUtils.sendDebugTrace(e);
+                if (upgradeFile.exists()) {
+                    if (!upgradeFile.delete()) {
+                        ServerUtils.logSevere("&cFailed to delete upgrade file " + upgradeFile.getAbsolutePath());
+                    }
+                }
             }
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
@@ -231,7 +262,7 @@ public class UpdateHandler {
                             reader.close();
                         } catch (Exception e) {
                             ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, Craftation Labs has detected too many access requests, try again later.", true);
-                            e.printStackTrace();
+                            ServerUtils.sendDebugTrace(e);
                         }
                     }
                 }
@@ -260,13 +291,11 @@ public class UpdateHandler {
             Collection<?> playersOnline;
             Player[] playersOnlineOld;
             if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                    playersOnline = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                    for (Object objPlayer : playersOnline) {
-                        if (((Player) objPlayer).isOp()) {
-                            ServerUtils.messageSender(((Player) objPlayer), "&eAn update has been found!", true);
-                            ServerUtils.messageSender(((Player) objPlayer), "&ePlease update to the latest version: v" + this.latestVersion, true);
-                        }
+                playersOnline = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
+                for (Object objPlayer : playersOnline) {
+                    if (((Player) objPlayer).isOp()) {
+                        ServerUtils.messageSender(((Player) objPlayer), "&eAn update has been found!", true);
+                        ServerUtils.messageSender(((Player) objPlayer), "&ePlease update to the latest version: v" + this.latestVersion, true);
                     }
                 }
             } else {
