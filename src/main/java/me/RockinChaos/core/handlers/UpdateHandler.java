@@ -153,7 +153,7 @@ public class UpdateHandler {
                         }
                     }
                     if (!upgradeFile.delete()) {
-                        ServerUtils.logSevere("&cFailed to delete upgrade file " + upgradeFile.getAbsolutePath());
+                        ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
                     }
                 }
                 ServerUtils.messageSender(sender, "&aSuccessfully updated to &ev" + updateSuccess + "&a!", true);
@@ -161,11 +161,11 @@ public class UpdateHandler {
             } catch (Exception e) {
                 ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".", true);
                 ServerUtils.messageSender(sender, "&cPlease try again later. If you continue to see this, please contact the plugin developer.", true);
-                ServerUtils.logSevere("&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".");
+                ServerUtils.logSevere("An error has occurred while trying to update the plugin " + jarRef.getName() + ".");
                 ServerUtils.sendDebugTrace(e);
                 if (upgradeFile.exists()) {
                     if (!upgradeFile.delete()) {
-                        ServerUtils.logSevere("&cFailed to delete upgrade file " + upgradeFile.getAbsolutePath());
+                        ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
                     }
                 }
             }
