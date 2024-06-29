@@ -37,7 +37,7 @@ import java.util.Map;
 public class Container {
 
     private final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
-    private final Class<?> dataComponent = ReflectionUtils.getMinecraftClass("DataComponents");
+    private final Class<?> dataComponent = (ServerUtils.hasPreciseUpdate("1_20_5") ? ReflectionUtils.getMinecraftClass("DataComponents") : null);
     private final Class<?> humanEntity = ReflectionUtils.getMinecraftClass("EntityHuman");
     private final Class<?> mineContainer = ReflectionUtils.getMinecraftClass("Container");
     private final FieldAccessor<?> activeContainer = ReflectionUtils.getField(this.humanEntity, MinecraftField.ActiveContainer.getField());
