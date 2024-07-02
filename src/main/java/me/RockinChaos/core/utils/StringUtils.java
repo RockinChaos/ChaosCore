@@ -78,8 +78,16 @@ public class StringUtils {
      * @param string2 - The String that should be inside string1.
      * @return If string1 contains string2.
      */
-    public static boolean containsIgnoreCase(final @Nullable String string1, final @Nullable String string2) {
-        return string1 != null && string2 != null && string1.toLowerCase().contains(string2.toLowerCase());
+    public static boolean containsIgnoreCase(final @Nullable String string1, final @Nullable String... string2) {
+        if (string1 == null || string2 == null) {
+            return false;
+        }
+        for (final String argument : string2) {
+            if (argument != null && string1.toLowerCase().contains(argument.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -18,6 +18,7 @@
 package me.RockinChaos.core.handlers;
 
 import me.RockinChaos.core.Core;
+import me.RockinChaos.core.utils.CompatUtils;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
@@ -32,7 +33,6 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -124,7 +124,7 @@ public class PlayerHandler {
      */
     public static void clearItems(final @Nonnull Player player) {
         final PlayerInventory inventory = player.getInventory();
-        final Inventory craftView = player.getOpenInventory().getTopInventory();
+        final Inventory craftView = CompatUtils.getTopInventory(player);
         inventory.setHelmet(new ItemStack(Material.AIR));
         inventory.setChestplate(new ItemStack(Material.AIR));
         inventory.setLeggings(new ItemStack(Material.AIR));
@@ -140,11 +140,12 @@ public class PlayerHandler {
     /**
      * Checks if the InventoryView is a player crafting inventory.
      *
-     * @param view - The InventoryView to be checked.
+     * @param object - The InventoryView or Player to be checked.
      * @return If the currently open inventory is a player crafting inventory.
      */
-    public static boolean isCraftingInv(final @Nonnull InventoryView view) {
-        return (!view.getType().name().equalsIgnoreCase("HOPPER") && !view.getType().name().equalsIgnoreCase("BREWING") && view.getTopInventory().getSize() == PLAYER_CRAFT_INV_SIZE);
+    public static boolean isCraftingInv(final @Nonnull Object object) {
+        final Object view = (object instanceof Player ? CompatUtils.getOpenInventory(object) : object);
+        return (!CompatUtils.getInventoryType(view).name().equalsIgnoreCase("HOPPER") && !CompatUtils.getInventoryType(view).name().equalsIgnoreCase("BREWING") && CompatUtils.getTopInventory(view).getSize() == PLAYER_CRAFT_INV_SIZE);
     }
 
     /**
@@ -180,12 +181,12 @@ public class PlayerHandler {
     /**
      * Checks if the player has an open menu while left-clicking.
      *
-     * @param view   - The InventoryView being compared.
+     * @param player   - The Player being referenced.
      * @param action - The action being checked.
      * @return If the player is currently interacting with an open menu.
      */
-    public static boolean isMenuClick(final @Nonnull InventoryView view, final @Nonnull Action action) {
-        return !isCraftingInv(view) && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
+    public static boolean isMenuClick(final @Nonnull Player player, final @Nonnull Action action) {
+        return !isCraftingInv(player) && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
     }
 
     /**
@@ -195,7 +196,7 @@ public class PlayerHandler {
      * @return The ItemStack list of crafting slot contents.
      */
     public static @Nonnull ItemStack[] getTopContents(final @Nonnull Player player) {
-        ItemStack[] tempContents = player.getOpenInventory().getTopInventory().getContents();
+        ItemStack[] tempContents = CompatUtils.getTopInventory(player).getContents();
         ItemStack[] contents = new ItemStack[5];
         for (int i = 0; i <= 4; i++) {
             contents[i] = tempContents[i].clone();
@@ -385,12 +386,12 @@ public class PlayerHandler {
                         ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45, 0);
                     }
                 }
-                if (isCraftingInv(player.getOpenInventory())) {
+                if (isCraftingInv(player)) {
                     /*
                         Updates Crafting Slot(s)
                      */
                     for (int i = 4; i >= 0; i--) {
-                        final ItemStack invItem = player.getOpenInventory().getTopInventory().getItem(i);
+                        final ItemStack invItem = CompatUtils.getTopInventory(player).getItem(i);
                         if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
                             ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i, 0);
                         }
@@ -544,10 +545,10 @@ public class PlayerHandler {
      * @param player - The player having their crafting items saved.
      */
     public static void quickCraftSave(final @Nonnull Player player) {
-        if (PlayerHandler.isCraftingInv(player.getOpenInventory())) {
+        if (PlayerHandler.isCraftingInv(player)) {
             ItemStack[] contents = new ItemStack[5];
             for (int i = 0; i <= 4; i++) {
-                contents[i] = player.getOpenInventory().getTopInventory().getContents()[i].clone();
+                contents[i] = CompatUtils.getTopInventory(player).getContents()[i].clone();
             }
             craftingItems.put(PlayerHandler.getPlayerID(player), contents);
         }
@@ -652,8 +653,8 @@ public class PlayerHandler {
                 if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
                     playersOnlineNew = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
                     for (Object objPlayer : playersOnlineNew) {
-                        if (((Player) objPlayer).isOnline() && PlayerHandler.isCraftingInv(((Player) objPlayer).getOpenInventory())) {
-                            ItemStack[] tempContents = ((Player) objPlayer).getOpenInventory().getTopInventory().getContents();
+                        if (((Player) objPlayer).isOnline() && PlayerHandler.isCraftingInv(((Player) objPlayer))) {
+                            ItemStack[] tempContents = CompatUtils.getTopInventory(objPlayer).getContents();
                             ItemStack[] contents = new ItemStack[5];
                             for (int i = 0; i <= 4; i++) {
                                 if (tempContents[i] != null) {
@@ -668,8 +669,8 @@ public class PlayerHandler {
                 } else {
                     playersOnlineOld = ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
                     for (Player player : playersOnlineOld) {
-                        if (player.isOnline() && PlayerHandler.isCraftingInv(player.getOpenInventory())) {
-                            ItemStack[] tempContents = player.getOpenInventory().getTopInventory().getContents();
+                        if (player.isOnline() && PlayerHandler.isCraftingInv(player)) {
+                            ItemStack[] tempContents = CompatUtils.getTopInventory(player).getContents();
                             ItemStack[] contents = new ItemStack[5];
                             for (int i = 0; i <= 4; i++) {
                                 contents[i] = tempContents[i].clone();

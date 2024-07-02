@@ -17,12 +17,13 @@
  */
 package me.RockinChaos.core.utils.protocol.events;
 
+import me.RockinChaos.core.utils.CompatUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.inventory.InventoryView;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -106,8 +107,17 @@ public class PlayerCloneItemEvent extends PlayerEvent implements Cancellable {
      *
      * @return The InventoryView which the cloning took place.
      */
-    public @Nonnull InventoryView getView() {
-        return player.getOpenInventory();
+    public @Nonnull Object getView() {
+        return CompatUtils.getOpenInventory(player);
+    }
+
+    /**
+     * Returns the InventoryType represented by this event.
+     *
+     * @return The InventoryType which the cloning took place.
+     */
+    public @Nonnull InventoryType getInventoryType() {
+        return CompatUtils.getInventoryType(CompatUtils.getOpenInventory(player));
     }
 
     /**

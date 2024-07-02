@@ -18,6 +18,7 @@
 package me.RockinChaos.core.utils.interfaces;
 
 import me.RockinChaos.core.Core;
+import me.RockinChaos.core.utils.CompatUtils;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
@@ -814,7 +815,7 @@ public class Query {
                 if (renameText != null) {
                     container.handleTyping(renameText);
                     {
-                        event.setResult(container.getResult((Player) event.getView().getPlayer(), renameText));
+                        event.setResult(container.getResult(CompatUtils.getPlayer(event.getView()), renameText));
                         {
                             container.removeCost(event.getInventory());
                             container.setAction(false);

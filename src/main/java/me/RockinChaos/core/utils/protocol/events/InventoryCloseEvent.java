@@ -17,22 +17,26 @@
  */
 package me.RockinChaos.core.utils.protocol.events;
 
+import me.RockinChaos.core.utils.CompatUtils;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
  * Called when a player attempts to close an open inventory.
  */
 @SuppressWarnings("unused")
-public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
+public class InventoryCloseEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
+    protected Object transaction;
     protected ItemStack[] topContents;
     protected ItemStack[] bottomContents;
     private Result inventoryClose;
@@ -42,8 +46,8 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      *
      * @param transaction - The InventoryView of the closed window.
      */
-    public InventoryCloseEvent(final @Nonnull InventoryView transaction) {
-        super(transaction);
+    public InventoryCloseEvent(final @Nonnull Object transaction) {
+        this.transaction = transaction;
     }
 
     /**
@@ -61,8 +65,8 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
     private void saveContents() {
         if (this.topContents == null && this.bottomContents == null) {
             int itr = 0;
-            this.topContents = this.transaction.getTopInventory().getContents();
-            this.bottomContents = this.transaction.getBottomInventory().getContents();
+            this.topContents = CompatUtils.getTopInventory(this.transaction).getContents();
+            this.bottomContents = CompatUtils.getBottomInventory(this.transaction).getContents();
             for (ItemStack stack : this.topContents) {
                 if (this.topContents[itr] != null) {
                     this.topContents[itr] = stack.clone();
@@ -86,7 +90,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      */
     public final @Nonnull Player getPlayer() {
         this.saveContents();
-        return (Player) this.transaction.getPlayer();
+        return CompatUtils.getPlayer(this.transaction);
     }
 
     /**
@@ -105,7 +109,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      * @return Contents of the top inventory.
      */
     public @Nonnull ItemStack[] getTopContents() {
-        return this.transaction.getTopInventory().getContents();
+        return CompatUtils.getTopInventory(this.transaction).getContents();
     }
 
     /**
@@ -114,7 +118,34 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
      * @return Contents of the bottom inventory.
      */
     public @Nonnull ItemStack[] getBottomContents() {
-        return this.transaction.getBottomInventory().getContents();
+        return CompatUtils.getBottomInventory(this.transaction).getContents();
+    }
+
+    /**
+     * Returns the current contents of the player inventory.
+     *
+     * @return Contents of the player inventory.
+     */
+    public @Nonnull Inventory getInventory() {
+        return CompatUtils.getTopInventory(this.transaction);
+    }
+
+    /**
+     * Returns the list of viewers for the player inventory.
+     *
+     * @return The list of inventory viewers.
+     */
+    public @Nonnull List<HumanEntity> getViewers() {
+        return CompatUtils.getTopInventory(this.transaction).getViewers();
+    }
+
+    /**
+     * Returns the InventoryView as an Object.
+     *
+     * @return The InventoryView as an Object.
+     */
+    public Object getView() {
+        return this.transaction;
     }
 
     /**
@@ -126,7 +157,7 @@ public class InventoryCloseEvent extends InventoryEvent implements Cancellable {
         stack.setAmount(0);
         stack.setType(Material.AIR);
         try {
-            this.transaction.getTopInventory().setItem(slot, new ItemStack(Material.AIR));
+            CompatUtils.getTopInventory(this.transaction).setItem(slot, new ItemStack(Material.AIR));
         } catch (IllegalStateException ignored) {
         }
     }
