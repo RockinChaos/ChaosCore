@@ -33,7 +33,6 @@ import java.lang.reflect.Method;
  */
 public class CompatUtils {
 
-
     /**
      * Attempts to get the Open Inventory of the Player.
      * In API versions 1.21 (and above), InventoryView is an interface.
@@ -226,9 +225,9 @@ public class CompatUtils {
     public static void setItem(final @Nonnull Object object, final @Nonnull ItemStack itemStack, final int slot) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
-            final Method setItem = view.getClass().getMethod("setItem", ItemStack.class, int.class);
+            final Method setItem = view.getClass().getMethod("setItem", int.class, ItemStack.class);
             setItem.setAccessible(true);
-            setItem.invoke(view, itemStack, slot);
+            setItem.invoke(view, slot, itemStack);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#setItem!");
             throw new RuntimeException(e);
