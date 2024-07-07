@@ -22,8 +22,8 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("unused")
 public enum Hats {
     GENERAL("/hat"),
-    ESSENTIALS("/EHAT"),
-    CMI("/CMI HAT");
+    ESSENTIALS("/ehat"),
+    CMI("/cmi clear");
 
     private final String command;
 
