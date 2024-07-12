@@ -114,7 +114,7 @@ public class SchedulerUtils {
      */
     public static int runAsyncAtInterval(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            return Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, interval, delay).getTaskId();
+            return Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, delay, interval).getTaskId();
         }
         return 0;
     }
