@@ -100,15 +100,15 @@ public class LegacyAPI {
     }
 
     /**
-     * Gets the GameRule for the World.
+     * Gets the GameRule value for the World.
      *
      * @param world    - The world being referenced.
      * @param gamerule - The gamerule to locate.
-     * @return The boolean value fo the gamerule.
+     * @return The boolean value of the gamerule.
      */
-    public static boolean getGameRule(final @Nonnull World world, final @Nonnull String gamerule) {
+    public static boolean hasGameRule(final @Nonnull World world, final @Nonnull String gamerule) {
         String value = world.getGameRuleValue(gamerule);
-        return value.isEmpty() || !Boolean.parseBoolean(value);
+        return value.isEmpty() || Boolean.parseBoolean(value);
     }
 
     /**
