@@ -21,6 +21,8 @@ import me.RockinChaos.core.Core;
 import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.handlers.PlayerHandler;
 import me.RockinChaos.core.utils.api.LegacyAPI;
+import me.RockinChaos.core.utils.types.PlaceHolder;
+import me.RockinChaos.core.utils.types.PlaceHolder.Holder;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
@@ -700,84 +702,36 @@ public class StringUtils {
      *
      * @param str         - The String being translated.
      * @param player      - The Player having their String translated.
-     * @param placeHolder - The placeholders to be replaced into the String.
+     * @param placeHolder - (Optional) The placeholders to be replaced into the String, only a single PlaceHolder option is allowed.
      * @return The newly translated String.
      */
-    public static @Nonnull String translateLayout(@Nullable String str, final @Nullable Player player, final @Nonnull String... placeHolder) {
+    public static @Nonnull String translateLayout(@Nullable String str, final @Nullable Player player, final @Nonnull PlaceHolder... placeHolder) {
         if (str != null && !str.isEmpty()) {
             String playerName = (player == null ? null : PlayerHandler.getPlayerName(player));
             if (playerName == null || playerName.isEmpty()) {
                 playerName = "EXEMPT";
             }
+            final PlaceHolder ph = (placeHolder.length > 0 ? placeHolder[0] : new PlaceHolder());
             if (player != null && !(player instanceof ConsoleCommandSender)) {
                 try {
-                    str = str.replace("%player%", playerName);
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%player_uuid%", player.getUniqueId().toString());
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%mob_kills%", String.valueOf(player.getStatistic(Statistic.MOB_KILLS)));
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%player_kills%", String.valueOf(player.getStatistic(Statistic.PLAYER_KILLS)));
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%player_deaths%", String.valueOf(player.getStatistic(Statistic.DEATHS)));
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%player_food%", String.valueOf(player.getFoodLevel()));
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%player_level%", String.valueOf(player.getLevel()));
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    final double health = player.getHealth();
-                    str = str.replace("%player_health%", String.valueOf(health));
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    str = str.replace("%player_location%", player.getLocation().getBlockX() + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    if (placeHolder.length >= 1 && placeHolder[0] != null) {
-                        str = str.replace("%player_hit%", placeHolder[0]);
-                    }
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
-                try {
-                    if (Bukkit.isPrimaryThread()) {
-                        str = str.replace("%player_interact%", PlayerHandler.getNearbyPlayer(player, 3));
-                    }
+                    ph.with(Holder.PLAYER, playerName)
+                            .with(Holder.PLAYER_UUID, player.getUniqueId().toString())
+                            .with(Holder.MOB_KILLS, String.valueOf(player.getStatistic(Statistic.MOB_KILLS)))
+                            .with(Holder.PLAYER_KILLS, String.valueOf(player.getStatistic(Statistic.PLAYER_KILLS)))
+                            .with(Holder.PLAYER_DEATHS, String.valueOf(player.getStatistic(Statistic.DEATHS)))
+                            .with(Holder.PLAYER_FOOD, String.valueOf(player.getFoodLevel()))
+                            .with(Holder.PLAYER_HEALTH, String.valueOf(player.getHealth()))
+                            .with(Holder.PLAYER_LEVEL,String.valueOf(player.getLevel()))
+                            .with(Holder.PLAYER_LOCATION, player.getLocation().getBlockX() + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ())
+                            .with(Holder.PLAYER_INTERACT, (Bukkit.isPrimaryThread() ? PlayerHandler.getNearbyPlayer(player, 3) : ""));
                 } catch (Exception e) {
                     ServerUtils.sendDebugTrace(e);
                 }
             }
             if (player == null) {
-                try {
-                    str = str.replace("%player%", "CONSOLE");
-                } catch (Exception e) {
-                    ServerUtils.sendDebugTrace(e);
-                }
+                ph.with(Holder.PLAYER, "CONSOLE");
             }
+            str = (ph.setPlaceholders(str));
             if (Core.getCore().getDependencies().placeHolderEnabled()) {
                 try {
                     str = PlaceholderAPI.setPlaceholders(player, str);

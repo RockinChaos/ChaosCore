@@ -24,13 +24,13 @@ import me.RockinChaos.core.utils.ChatComponent.ClickEvent;
 import me.RockinChaos.core.utils.ChatComponent.TextSection;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
+import me.RockinChaos.core.utils.types.PlaceHolder;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
@@ -83,7 +83,7 @@ public class LanguageAPI {
         if (sender instanceof Player) {
             player = (Player) sender;
         }
-        langMessage = this.translateLangHolders(langMessage, this.initializeRows(newString()));
+        langMessage = new PlaceHolder().setPlaceholders(langMessage);
         langMessage = StringUtils.translateLayout(langMessage, player);
         hoverMessage = StringUtils.translateLayout(hoverMessage, player);
         clickMessage = StringUtils.translateLayout(clickMessage, player);
@@ -111,14 +111,14 @@ public class LanguageAPI {
      * @param sender       - The Sender who will receive the Message.
      * @param placeHolder  - Placeholders to be placed into the Language Message.
      */
-    public void sendLangMessage(final @Nonnull String nodeLocation, final @Nonnull CommandSender sender, final @Nonnull String... placeHolder) {
+    public void sendLangMessage(final @Nonnull String nodeLocation, final @Nonnull CommandSender sender, final @Nonnull PlaceHolder... placeHolder) {
         Player player = null;
         if (sender instanceof Player) {
             player = (Player) sender;
         }
         String langMessage = (sender.isPermissionSet(Core.getCore().getPlugin().getName().toLowerCase() + ".lang." + nodeLocation) ? sender.hasPermission(Core.getCore().getPlugin().getName().toLowerCase() + ".lang." + nodeLocation) ? this.getLangMessage(nodeLocation) : null : this.getLangMessage(nodeLocation));
         if (langMessage != null && !langMessage.isEmpty()) {
-            langMessage = this.translateLangHolders(langMessage, this.initializeRows(placeHolder));
+            langMessage = (placeHolder.length > 0 ? placeHolder[0].setPlaceholders(langMessage) : langMessage);
             langMessage = StringUtils.translateLayout(langMessage, player).replace(" \\n ", " \\n").replace(" /n ", " \\n").replace(" /n", " \\n");
             String[] langLines = langMessage.split(Pattern.quote(" \\" + "n"));
             for (String langLine : langLines) {
@@ -146,58 +146,6 @@ public class LanguageAPI {
     }
 
     /**
-     * Initializes the Placeholders for the Lang Message.
-     *
-     * @param placeHolder - Placeholders to be placed into the Language Message.
-     */
-    private @Nonnull String[] initializeRows(final @Nonnull String... placeHolder) {
-        if (placeHolder.length != this.newString().length) {
-            String[] langHolder = this.newString();
-            Arrays.fill(langHolder, "&lnull");
-            return langHolder;
-        } else {
-            for (int i = 0; i < placeHolder.length; i++) {
-                if (placeHolder[i] == null) {
-                    placeHolder[i] = "&lnull";
-                }
-            }
-            return placeHolder;
-        }
-    }
-
-    /**
-     * Translates the Language PlaceHolders into the actual Placeholders defined for the Message.
-     *
-     * @param langMessage - The Message being sent.
-     * @param langHolder  - Placeholders to be placed into the Language Message.
-     */
-    private @Nonnull String translateLangHolders(final @Nonnull String langMessage, final @Nonnull String... langHolder) {
-        return langMessage
-                .replace("%world%", langHolder[0])
-                .replace("%target_player%", langHolder[1])
-                .replace("%target_player_world%", langHolder[2])
-                .replace("%item%", langHolder[3])
-                .replace("%item_type%", langHolder[4])
-                .replace("%balance%", langHolder[5])
-                .replace("%cost%", langHolder[6])
-                .replace("%fail_count%", langHolder[7])
-                .replace("%command%", langHolder[9])
-                .replace("%purge_data%", langHolder[10])
-                .replace("%amount%", langHolder[11])
-                .replace("%players%", langHolder[12])
-                .replace("%time_left%", langHolder[13])
-                .replace("%input_example%", langHolder[15])
-                .replace("%input%", langHolder[16])
-                .replace("%item_slot%", langHolder[17])
-                .replace("%item_permission%", langHolder[18])
-                .replace("%gamemode%", langHolder[19])
-                .replace("%hotbar%", langHolder[20])
-                .replace("%player%", langHolder[21])
-                .replace("%prefix%", this.langPrefix);
-
-    }
-
-    /**
      * Checks if the Language Message is a Console Message.
      *
      * @param nodeLocation - The String location of the Language Message.
@@ -206,15 +154,6 @@ public class LanguageAPI {
     private boolean isConsoleMessage(final @Nonnull String nodeLocation) {
         return nodeLocation.equalsIgnoreCase("Commands.Updates.checking")
                 || nodeLocation.equalsIgnoreCase("Commands.Updates.forcing");
-    }
-
-    /**
-     * Creates a new String Array for langHolders.
-     *
-     * @return The new String Array.
-     */
-    public @Nonnull String[] newString() {
-        return new String[22];
     }
 
     /**
@@ -268,6 +207,15 @@ public class LanguageAPI {
     public void setPrefix() {
         final String prefix = Core.getCore().getConfig(this.langType.nodeLocation()).getString("Prefix");
         this.langPrefix = StringUtils.colorFormat(prefix == null ? "" : prefix);
+    }
+
+    /**
+     * Gets the Plugin Prefix.
+     *
+     * @return The Plugin Prefix.
+     */
+    public String getPrefix() {
+        return this.langPrefix;
     }
 
     /**
