@@ -195,7 +195,7 @@ public class ConfigHandler {
             }
         } else if (this.noSource.get(configFile)) {
             ServerUtils.logSevere("Your " + configFile + " is not using proper YAML Syntax and will not be loaded!");
-            ServerUtils.logSevere("Check your YAML formatting by using a YAML-PARSER such as http://yaml-online-parser.appspot.com/");
+            ServerUtils.logSevere("Check your YAML formatting by using a YAML-PARSER such as https://yamlchecker.com/");
         }
         if (!this.noSource.get(configFile)) {
             if (this.Generating && !Core.getCore().getData().getUpdateConfig().isEmpty() && configFile.equalsIgnoreCase(Core.getCore().getData().getUpdateConfig())) {
