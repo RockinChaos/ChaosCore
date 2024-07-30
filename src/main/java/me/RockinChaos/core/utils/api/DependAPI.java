@@ -22,6 +22,7 @@ import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -147,6 +148,16 @@ public class DependAPI {
      */
     public boolean authMeEnabled() {
         return Bukkit.getServer().getPluginManager().isPluginEnabled("AuthMe") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "AuthMe");
+    }
+
+    /**
+     * Checks if the Player is Authenticated with AuthMe.
+     * @param player the Player being checked.
+     *
+     * @return If the Player is Authenticated with AuthMe.
+     */
+    public boolean isAuthenticated(final Player player) {
+        return !authMeEnabled() || (authMeEnabled() && (fr.xephi.authme.api.v3.AuthMeApi.getInstance().isAuthenticated(player) || (fr.xephi.authme.api.v3.AuthMeApi.getInstance().getPlugin().getConfig().getString("settings.registration.force") != null && !fr.xephi.authme.api.v3.AuthMeApi.getInstance().getPlugin().getConfig().getBoolean("settings.registration.force"))));
     }
 
     /**
