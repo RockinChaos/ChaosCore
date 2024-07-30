@@ -115,8 +115,8 @@
         </repository>
         <!--Vault Repository-->
         <repository>
-            <id>VaultAPI</id>
-            <url>https://ci.ender.zone/plugin/repository/everything/net/milkbowl/vault/</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
         <!--Citizens Repository-->
         <repository>
@@ -157,7 +157,7 @@
         </dependency>
         <!--Vault API-->
         <dependency>
-            <groupId>net.milkbowl.vault</groupId>
+            <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
             <scope>provided</scope>
