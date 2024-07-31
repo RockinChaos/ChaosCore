@@ -69,7 +69,7 @@ public class ServerUtils {
      * @return If the server version is greater than or equal to the specified version.
      */
     public static boolean hasPreciseUpdate(final @Nonnull String versionString) {
-        return Integer.parseInt(serverPreciseVersion) >= Integer.parseInt(versionString.replace("_", ""));
+        return Integer.parseInt(serverPreciseVersion) >= Integer.parseInt(versionString.replace("_", "") + (StringUtils.countCharacters(versionString, "_") == 1 ? 0 : ""));
     }
 
     /**
