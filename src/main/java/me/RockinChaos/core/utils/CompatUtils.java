@@ -48,7 +48,8 @@ public class CompatUtils {
             return getOpenInventory.invoke(object);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with Player#getOpenInventory!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -62,13 +63,16 @@ public class CompatUtils {
      */
     public static @Nonnull Inventory getTopInventory(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method getTopInventory = view.getClass().getMethod("getTopInventory");
             getTopInventory.setAccessible(true);
             return (Inventory) getTopInventory.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getTopInventory!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -82,13 +86,16 @@ public class CompatUtils {
      */
     public static @Nonnull Inventory getBottomInventory(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method getBottomInventory = view.getClass().getMethod("getBottomInventory");
             getBottomInventory.setAccessible(true);
             return (Inventory) getBottomInventory.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getBottomInventory!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -102,13 +109,15 @@ public class CompatUtils {
      */
     public static @Nonnull Player getPlayer(final @Nonnull Object object) {
         try {
-            final Object view = (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView());
+            final Object view = (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView());
             final Method getPlayer = view.getClass().getMethod("getPlayer");
             getPlayer.setAccessible(true);
             return (Player) getPlayer.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getPlayer!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -122,13 +131,16 @@ public class CompatUtils {
      */
     public static @Nonnull String getInventoryTitle(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method getTitle = view.getClass().getMethod("getTitle");
             getTitle.setAccessible(true);
             return (String) getTitle.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getTitle!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -142,13 +154,16 @@ public class CompatUtils {
      */
     public static @Nonnull InventoryType getInventoryType(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method getType = view.getClass().getMethod("getType");
             getType.setAccessible(true);
             return (InventoryType) getType.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getType!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -162,13 +177,16 @@ public class CompatUtils {
      */
     public static @Nonnull ItemStack getCursor(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method getCursor = view.getClass().getMethod("getCursor");
             getCursor.setAccessible(true);
             return (ItemStack) getCursor.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getCursor!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -182,13 +200,16 @@ public class CompatUtils {
      */
     public static void setCursor(final @Nonnull Object object, final @Nonnull ItemStack itemStack) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method setCursor = view.getClass().getMethod("setCursor", ItemStack.class);
             setCursor.setAccessible(true);
             setCursor.invoke(view, itemStack);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#setCursor!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -203,13 +224,16 @@ public class CompatUtils {
      */
     public static @Nonnull ItemStack getItem(final @Nonnull Object object, final int slot) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method getCursor = view.getClass().getMethod("getItem", int.class);
             getCursor.setAccessible(true);
             return (ItemStack) getCursor.invoke(view, slot);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getItem!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 
@@ -224,13 +248,16 @@ public class CompatUtils {
      */
     public static void setItem(final @Nonnull Object object, final @Nonnull ItemStack itemStack, final int slot) {
         try {
-            final Object view = (object instanceof Player ? getOpenInventory(object) : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object : ((InventoryEvent)object).getView()));
+            final Object view = (object instanceof Player ? getOpenInventory(object)
+                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
+                    : ((InventoryEvent)object).getView()));
             final Method setItem = view.getClass().getMethod("setItem", int.class, ItemStack.class);
             setItem.setAccessible(true);
             setItem.invoke(view, slot, itemStack);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#setItem!");
-            throw new RuntimeException(e);
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException(object.getClass().getName(), e);
         }
     }
 }
