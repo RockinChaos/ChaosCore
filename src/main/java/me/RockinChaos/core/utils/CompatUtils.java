@@ -64,8 +64,8 @@ public class CompatUtils {
     public static @Nonnull Inventory getTopInventory(final @Nonnull Object object) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getTopInventory = view.getClass().getMethod("getTopInventory");
             getTopInventory.setAccessible(true);
             return (Inventory) getTopInventory.invoke(view);
@@ -87,8 +87,8 @@ public class CompatUtils {
     public static @Nonnull Inventory getBottomInventory(final @Nonnull Object object) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getBottomInventory = view.getClass().getMethod("getBottomInventory");
             getBottomInventory.setAccessible(true);
             return (Inventory) getBottomInventory.invoke(view);
@@ -109,8 +109,8 @@ public class CompatUtils {
      */
     public static @Nonnull Player getPlayer(final @Nonnull Object object) {
         try {
-            final Object view = (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView());
+            final Object view = (object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getPlayer = view.getClass().getMethod("getPlayer");
             getPlayer.setAccessible(true);
             return (Player) getPlayer.invoke(view);
@@ -132,8 +132,8 @@ public class CompatUtils {
     public static @Nonnull String getInventoryTitle(final @Nonnull Object object) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getTitle = view.getClass().getMethod("getTitle");
             getTitle.setAccessible(true);
             return (String) getTitle.invoke(view);
@@ -155,8 +155,8 @@ public class CompatUtils {
     public static @Nonnull InventoryType getInventoryType(final @Nonnull Object object) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getType = view.getClass().getMethod("getType");
             getType.setAccessible(true);
             return (InventoryType) getType.invoke(view);
@@ -178,8 +178,8 @@ public class CompatUtils {
     public static @Nonnull ItemStack getCursor(final @Nonnull Object object) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getCursor = view.getClass().getMethod("getCursor");
             getCursor.setAccessible(true);
             return (ItemStack) getCursor.invoke(view);
@@ -201,8 +201,8 @@ public class CompatUtils {
     public static void setCursor(final @Nonnull Object object, final @Nonnull ItemStack itemStack) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method setCursor = view.getClass().getMethod("setCursor", ItemStack.class);
             setCursor.setAccessible(true);
             setCursor.invoke(view, itemStack);
@@ -225,8 +225,8 @@ public class CompatUtils {
     public static @Nonnull ItemStack getItem(final @Nonnull Object object, final int slot) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method getCursor = view.getClass().getMethod("getItem", int.class);
             getCursor.setAccessible(true);
             return (ItemStack) getCursor.invoke(view, slot);
@@ -249,8 +249,8 @@ public class CompatUtils {
     public static void setItem(final @Nonnull Object object, final @Nonnull ItemStack itemStack, final int slot) {
         try {
             final Object view = (object instanceof Player ? getOpenInventory(object)
-                    : (StringUtils.containsIgnoreCase(object.getClass().getName(), "InventoryView", "Container") ? object
-                    : ((InventoryEvent)object).getView()));
+                    : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+                    : object);
             final Method setItem = view.getClass().getMethod("setItem", int.class, ItemStack.class);
             setItem.setAccessible(true);
             setItem.invoke(view, slot, itemStack);
