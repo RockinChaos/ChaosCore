@@ -659,6 +659,22 @@ public class StringUtils {
     }
 
     /**
+     * Checks if a String contains ASCII characters over 0x80.
+     * Current chat support is for anything under 0x80.
+     *
+     * @param string - The String to be checked.
+     * @return If the String contains invalid ASCII.
+     */
+    public static boolean invalidASCII(final @Nonnull String string) {
+        for (char c : string.toCharArray()) {
+            if (c > 0x8F) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Translated the specified String by formatting its hex color codes.
      *
      * @param str - The String to have its Color Codes properly Converted to Mojang Hex Colors.
