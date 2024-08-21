@@ -811,11 +811,11 @@ public class Query {
         @EventHandler
         public final void onPrepareAnvil(final PrepareAnvilEvent event) {
             if (event.getInventory().equals(inventory)) {
-                final String renameText = event.getInventory().getRenameText();
+                final String renameText = ServerUtils.hasSpecificUpdate("1_21") ? event.getView().getRenameText() : LegacyAPI.getRenameText(event);
                 if (renameText != null) {
                     container.handleTyping(renameText);
                     {
-                        event.setResult(container.getResult(CompatUtils.getPlayer(event.getView()), renameText));
+                        event.setResult(container.getResult(CompatUtils.getPlayer(event), renameText));
                         {
                             container.removeCost(event.getInventory());
                             container.setAction(false);

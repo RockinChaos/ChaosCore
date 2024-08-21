@@ -109,7 +109,7 @@ public class CompatUtils {
      */
     public static @Nonnull Player getPlayer(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
+            final Object view = (object instanceof InventoryEvent ? object.getClass().getMethod("getView").invoke(object)
                     : object);
             final Method getPlayer = view.getClass().getMethod("getPlayer");
             getPlayer.setAccessible(true);

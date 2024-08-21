@@ -638,6 +638,22 @@ public class LegacyAPI {
     }
 
     /**
+     * Gets the rename text of the anvil item.
+     *
+     * @param event - The event being referenced.
+     * @return The rename text of the anvil item.
+     */
+    public static @Nonnull String getRenameText(final @Nonnull Object event) {
+        try {
+            final Object inventory = event.getClass().getMethod("getInventory").invoke(event);
+            return (String) inventory.getClass().getMethod("getRenameText").invoke(inventory);
+        } catch (Exception e) {
+            ServerUtils.logSevere("{LegacyAPI} An error has occurred with InventoryEvent#getRenameText!");
+            return "";
+        }
+    }
+
+    /**
      * Gets the Data Value from the ItemStack.
      *
      * @param item - The ItemStack to have its Data Value fetched.
