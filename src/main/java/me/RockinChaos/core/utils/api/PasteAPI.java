@@ -22,6 +22,8 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import me.RockinChaos.core.Core;
+import me.RockinChaos.core.utils.SchedulerUtils;
+import me.RockinChaos.core.utils.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,7 +31,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class PasteAPI {
@@ -139,6 +141,8 @@ public class PasteAPI {
         connection.setRequestMethod("POST");
         connection.setRequestProperty("User-Agent", "Mozilla/5.0");
         connection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
         connection.connect();
         try (OutputStream os = connection.getOutputStream()) {
             os.write(postBytes);
@@ -148,21 +152,30 @@ public class PasteAPI {
 
     /**
      * Attempts to get a successful paste URL.
+     * This is run asynchronously to prevent the main thread from hanging.
      *
-     * @return The successful paste URL.
+     * @param callback - The successful paste URL result upon completion, this may be null.
      */
-    public @Nonnull String getPaste() throws IOException, ParseException {
-        final HttpURLConnection connection = getHttpURLConnection(this.pasteData);
-        final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        final StringBuilder response = new StringBuilder();
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-        connection.disconnect();
-        final JSONObject objectReader = (JSONObject) JSONValue.parseWithException(response.toString());
-        final String pasteKey = objectReader.get("key").toString();
-        return "https://ci.craftationgaming.com/dump?id=" + pasteKey;
+    public void getPaste(@Nonnull final Consumer<String> callback) {
+        SchedulerUtils.runAsync(() -> {
+            try {
+                final HttpURLConnection connection = getHttpURLConnection(this.pasteData);
+                final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                final StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                connection.disconnect();
+                final JSONObject objectReader = (JSONObject) JSONValue.parseWithException(response.toString());
+                final String pasteKey = objectReader.get("key").toString();
+                callback.accept("https://ci.craftationgaming.com/dump?id=" + pasteKey);
+            } catch (Exception e) {
+                ServerUtils.logSevere("{PasteAPI} A severe error has occurred which has prevented the paste URL from generating.");
+                ServerUtils.sendSevereTrace(e);
+                callback.accept(null);
+            }
+        });
     }
 }
