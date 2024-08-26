@@ -113,6 +113,8 @@ public class UpdateHandler {
             try {
                 final HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
                 httpConnection.setRequestProperty("User-Agent", "Mozilla/5.0...");
+                httpConnection.setConnectTimeout(15000);
+                httpConnection.setReadTimeout(15000);
                 final int BYTE_SIZE = 2048;
                 final long hostFileSize = httpConnection.getContentLength();
                 if (hostFileSize <= 0) {
