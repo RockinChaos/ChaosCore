@@ -33,7 +33,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -573,17 +572,6 @@ public class LegacyAPI {
         } catch (Exception ignored) {
         }
         return false;
-    }
-
-    /**
-     * Sets if the arrow item should be consumed on EntityShootBowEvent.
-     *
-     * @param event - EntityShootBowEvent.
-     * @param bool  - If consuming the item should be canceled or not.
-     * @warn Non-Functional as of Spigot/Bukkit 1.20.5.
-     */
-    public static void setConsumeItem(final EntityShootBowEvent event, final boolean bool) {
-        event.setConsumeItem(bool);
     }
 
     /**
