@@ -73,13 +73,14 @@ public class ServerUtils {
     }
 
     /**
-     * Checks if the server is running Folia.
+     * Checks if the server is running Folia,
+     * <a href="https://docs.papermc.io/paper/dev/folia-support">Supporting Paper and Folia</a>
      *
      * @return true if the server is running Folia, false otherwise.
      */
     public static boolean isFolia() {
         try {
-            Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             return true;
         } catch (ClassNotFoundException e) {
             return false;
