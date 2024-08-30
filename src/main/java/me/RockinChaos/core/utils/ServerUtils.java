@@ -79,7 +79,7 @@ public class ServerUtils {
      */
     public static boolean isFolia() {
         try {
-            Class<?> globalRegionSchedulerClass = Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
+            Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
             return true;
         } catch (ClassNotFoundException e) {
             return false;
