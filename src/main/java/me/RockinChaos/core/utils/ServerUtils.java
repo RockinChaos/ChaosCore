@@ -73,6 +73,20 @@ public class ServerUtils {
     }
 
     /**
+     * Checks if the server is running Folia.
+     *
+     * @return true if the server is running Folia, false otherwise.
+     */
+    public static boolean isFolia() {
+        try {
+            Class<?> globalRegionSchedulerClass = Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
      * Sends a low priority log message as the plugin header.
      *
      * @param message - The un-formatted message text to be sent.

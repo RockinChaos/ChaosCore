@@ -242,9 +242,9 @@ public class ReflectionUtils {
      * @param params     - the expected parameters.
      * @return The newly created Object.
      */
-    public static @Nonnull Object invokeMethod(final @Nonnull String methodName, final @Nonnull Object params) {
+    public static @Nonnull Object invokeMethod(final @Nonnull String methodName, final @Nonnull Object... params) {
         try {
-            return getMethod(params.getClass(), methodName).invoke(params);
+            return getMethod((Class<?>)(params[0] instanceof Class<?> ? params[0] : params[0].getClass()), methodName).invoke(params[params.length - 1]);
         } catch (Exception e) {
             throw new RuntimeException("Cannot invoke method " + methodName, e);
         }

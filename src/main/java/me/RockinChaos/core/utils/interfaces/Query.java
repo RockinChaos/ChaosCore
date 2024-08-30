@@ -604,7 +604,7 @@ public class Query {
                 }
             }
             if (this.mainThreadExecutor == null) {
-                this.mainThreadExecutor = task -> Bukkit.getScheduler().runTask(Core.getCore().getPlugin(), task);
+                this.mainThreadExecutor = SchedulerUtils::run;
             }
             final Query query = new Query(
                     player,

@@ -725,19 +725,21 @@ public class PlayerHandler {
      * @return The String name of the Nearby Player.
      */
     public static @Nonnull String getNearbyPlayer(final @Nonnull Player player, final int range) {
-        ArrayList<Location> sight = new ArrayList<>();
-        ArrayList<Entity> entities = (ArrayList<Entity>) player.getNearbyEntities(range, range, range);
-        Location origin = player.getEyeLocation();
-        sight.add(origin.clone().add(origin.getDirection()));
-        sight.add(origin.clone().add(origin.getDirection().multiply(range)));
-        sight.add(origin.clone().add(origin.getDirection().multiply(range + 3)));
-        for (Location location : sight) {
-            for (Entity entity : entities) {
-                if (Math.abs(entity.getLocation().getX() - location.getX()) < 1.3) {
-                    if (Math.abs(entity.getLocation().getY() - location.getY()) < 1.5) {
-                        if (Math.abs(entity.getLocation().getZ() - location.getZ()) < 1.3) {
-                            if (entity instanceof Player) {
-                                return entity.getName();
+        if (SchedulerUtils.isMainThread()) {
+            ArrayList<Location> sight = new ArrayList<>();
+            ArrayList<Entity> entities = (ArrayList<Entity>) player.getNearbyEntities(range, range, range);
+            Location origin = player.getEyeLocation();
+            sight.add(origin.clone().add(origin.getDirection()));
+            sight.add(origin.clone().add(origin.getDirection().multiply(range)));
+            sight.add(origin.clone().add(origin.getDirection().multiply(range + 3)));
+            for (Location location : sight) {
+                for (Entity entity : entities) {
+                    if (Math.abs(entity.getLocation().getX() - location.getX()) < 1.3) {
+                        if (Math.abs(entity.getLocation().getY() - location.getY()) < 1.5) {
+                            if (Math.abs(entity.getLocation().getZ() - location.getZ()) < 1.3) {
+                                if (entity instanceof Player) {
+                                    return entity.getName();
+                                }
                             }
                         }
                     }

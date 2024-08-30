@@ -45,6 +45,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -297,6 +298,16 @@ public class StringUtils {
      */
     public static int countCharacters(final @Nullable String str, final @Nonnull String character) {
         return str != null ? str.length() - str.replace(character, "").length() : 0;
+    }
+
+    /**
+     * Gets a guestimation of the number of ticks represented as milliseconds (TimeUnit).
+     *
+     * @param ticks - The number of ticks to be converted to milliseconds.
+     * @return The number of ticks represented in milliseconds.
+     */
+    public static long ticksToMillis(final long ticks) {
+        return TimeUnit.MILLISECONDS.convert(ticks * 50, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -739,7 +750,7 @@ public class StringUtils {
                             .with(Holder.PLAYER_HEALTH, String.valueOf(player.getHealth()))
                             .with(Holder.PLAYER_LEVEL,String.valueOf(player.getLevel()))
                             .with(Holder.PLAYER_LOCATION, player.getLocation().getBlockX() + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ())
-                            .with(Holder.PLAYER_INTERACT, (Bukkit.isPrimaryThread() ? PlayerHandler.getNearbyPlayer(player, 3) : ""));
+                            .with(Holder.PLAYER_INTERACT, PlayerHandler.getNearbyPlayer(player, 3));
                 } catch (Exception e) {
                     ServerUtils.sendDebugTrace(e);
                 }
