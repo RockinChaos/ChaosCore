@@ -18,6 +18,7 @@
 package me.RockinChaos.core.handlers;
 
 import me.RockinChaos.core.Core;
+import me.RockinChaos.core.utils.ChatComponent;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
@@ -49,6 +50,7 @@ public class UpdateHandler {
     private final boolean betaVersion;
     private final boolean devVersion;
     private final String buildNumber;
+    private String latestDev;
     private String latestBuild;
     private String artifactPath;
     private final File jarRef;
@@ -101,8 +103,8 @@ public class UpdateHandler {
             String updateSuccess;
             String uri;
             if (update == Update.BETA) {
-                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.localeVersion + "-SNAPSHOT-b" + this.latestBuild + "&a.", true);
-                updateSuccess = this.localeVersion + "-SNAPSHOT-b" + this.latestBuild;
+                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.latestDev + "&a.", true);
+                updateSuccess = this.latestDev;
                 uri = this.DEV_HOST + "/artifact/" +  this.artifactPath + "?_=" + System.currentTimeMillis();
             } else {
                 ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.latestVersion + "-RELEASE" + "&a.", true);
@@ -191,7 +193,7 @@ public class UpdateHandler {
         if (update.updateNeeded && this.updatesAllowed) {
             if (update == Update.BETA) {
                 ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.versionExact, true);
-                ServerUtils.messageSender(sender, "&cA new snapshot build is available: " + "&av" + this.localeVersion + "-SNAPSHOT-b" + this.latestBuild, true);
+                ServerUtils.messageSender(sender, "&cA new snapshot build is available: " + "&av" + this.latestDev, true);
                 ServerUtils.messageSender(sender, "&aGet it from: " + this.DEV_HOST, true);
                 ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             } else {
@@ -205,7 +207,7 @@ public class UpdateHandler {
                 ServerUtils.messageSender(sender, "&aGet it from: https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", true);
                 ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             }
-            this.sendNotifications();
+            this.sendNotifications(update);
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
                 ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
@@ -240,22 +242,26 @@ public class UpdateHandler {
                 reader.close();
                 if (gitVersion.length() <= 7) {
                     this.latestVersion = gitVersion.replaceAll("[a-z]", "").replace("-SNAPSHOT", "").replace("-BETA", "").replace("-ALPHA", "").replace("-RELEASE", "");
-                    String[] latestSplit = this.latestVersion.split("\\.");
-                    String[] localeSplit = this.localeVersion.split("\\.");
+                    int latestNumber = !this.devVersion ? Integer.parseInt(this.latestVersion.replace(".", "")) : 0;
+                    int localeNumber = !this.devVersion ? Integer.parseInt(this.localeVersion.replace(".", "")) : 0;
                     if (this.devVersion) {
                         return Update.DEV;
-                    } else if ((Integer.parseInt(latestSplit[0]) > Integer.parseInt(localeSplit[0]) || Integer.parseInt(latestSplit[1]) > Integer.parseInt(localeSplit[1]) || Integer.parseInt(latestSplit[2]) > Integer.parseInt(localeSplit[2]))
-                            || (this.betaVersion && (Integer.parseInt(latestSplit[0]) == Integer.parseInt(localeSplit[0]) && Integer.parseInt(latestSplit[1]) == Integer.parseInt(localeSplit[1]) && Integer.parseInt(latestSplit[2]) == Integer.parseInt(localeSplit[2])))) {
+                    } else if (latestNumber > localeNumber
+                            || (this.betaVersion && latestNumber == localeNumber)) {
                         return Update.RELEASE;
                     } else if (this.betaVersion) {
                         try {
                             URLConnection devConnection = new URL(this.DEV_HOST + "/api/json" + "?_=" + System.currentTimeMillis()).openConnection();
+                            devConnection.setConnectTimeout(15000);
+                            devConnection.setReadTimeout(15000);
                             BufferedReader devReader = new BufferedReader(new InputStreamReader(devConnection.getInputStream()));
                             String devJsonString = StringUtils.toString(devReader);
                             JSONObject devObjectReader = (JSONObject) JSONValue.parseWithException(devJsonString);
+                            String devVersion = ((JSONObject)((JSONArray)devObjectReader.get("artifacts")).get(0)).get("fileName").toString().replace("ItemJoin-", "").replace(".jar", "");
                             String buildVersion = devObjectReader.get("id").toString();
                             if (StringUtils.isInt(this.buildNumber) && Integer.parseInt(this.buildNumber) < Integer.parseInt(buildVersion)) {
                                 String artifactPath = ((JSONObject)((JSONArray)devObjectReader.get("artifacts")).get(0)).get("relativePath").toString();
+                                this.latestDev = devVersion;
                                 this.latestBuild = buildVersion;
                                 this.artifactPath = artifactPath;
                                 reader.close();
@@ -287,8 +293,10 @@ public class UpdateHandler {
     /**
      * Sends out notifications to all online op players that
      * an update is available at the time of checking for updates.
+     *
+     * @param update - The update type.
      */
-    private void sendNotifications() {
+    private void sendNotifications(final Update update) {
         try {
             Collection<?> playersOnline;
             Player[] playersOnlineOld;
@@ -296,8 +304,13 @@ public class UpdateHandler {
                 playersOnline = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
                 for (Object objPlayer : playersOnline) {
                     if (((Player) objPlayer).isOp()) {
-                        ServerUtils.messageSender(((Player) objPlayer), "&eAn update has been found!", true);
-                        ServerUtils.messageSender(((Player) objPlayer), "&ePlease update to the latest version: v" + this.latestVersion, true);
+                        if (update == Update.BETA) {
+                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &eA new snapshot build is available!", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
+                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &ePlease update to the &a&lv" + this.latestDev + "&e.", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
+                        } else {
+                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &eAn update has been found!", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
+                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &ePlease update to the &a&lv" + this.latestVersion + "-RELEASE&e.", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
+                        }
                     }
                 }
             } else {
@@ -305,7 +318,13 @@ public class UpdateHandler {
                 for (Player objPlayer : playersOnlineOld) {
                     if (objPlayer.isOp()) {
                         ServerUtils.messageSender(objPlayer, "&eAn update has been found!", true);
-                        ServerUtils.messageSender(objPlayer, "&ePlease update to the latest version: v" + this.latestVersion, true);
+                        if (update == Update.BETA) {
+                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &eA new snapshot build is available!", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
+                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &ePlease update to the &a&lv" + this.latestDev + "&e.", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
+                        } else {
+                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &eAn update has been found!", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
+                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &ePlease update to the &a&lv" + this.latestVersion + "-RELEASE&e.", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
+                        }
                     }
                 }
             }
