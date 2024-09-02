@@ -89,24 +89,22 @@ public class ProtocolManager {
     public static void handlePermissions() {
         if (permissionTask == 0) {
             final Map<Player, List<String>> playerPermissions = new HashMap<>();
-            permissionTask = SchedulerUtils.runAsyncAtInterval(5L, 0L, () -> {
-                PlayerHandler.forOnlinePlayers(player -> {
-                    final Iterator<PermissionAttachmentInfo> iterator = player.getEffectivePermissions().iterator();
-                    final List<String> currentPermissions = new ArrayList<>();
-                    while (iterator.hasNext()) {
-                        final PermissionAttachmentInfo it = iterator.next();
-                        currentPermissions.add(it.getPermission() + ":" + it.getValue());
+            permissionTask = SchedulerUtils.runAsyncAtInterval(5L, 0L, () -> PlayerHandler.forOnlinePlayers(player -> {
+                final Iterator<PermissionAttachmentInfo> iterator = player.getEffectivePermissions().iterator();
+                final List<String> currentPermissions = new ArrayList<>();
+                while (iterator.hasNext()) {
+                    final PermissionAttachmentInfo it = iterator.next();
+                    currentPermissions.add(it.getPermission() + ":" + it.getValue());
+                }
+                if (!playerPermissions.containsKey(player) || (playerPermissions.containsKey(player) && !(new HashSet<>(playerPermissions.get(player)).containsAll(currentPermissions)))) {
+                    final List<String> changedPermissions = new ArrayList<>(currentPermissions);
+                    if (playerPermissions.containsKey(player)) {
+                        changedPermissions.removeAll(playerPermissions.get(player));
+                        callEvent(new PermissionChangedEvent(player, changedPermissions));
                     }
-                    if (!playerPermissions.containsKey(player) || (playerPermissions.containsKey(player) && !(new HashSet<>(playerPermissions.get(player)).containsAll(currentPermissions)))) {
-                        final List<String> changedPermissions = new ArrayList<>(currentPermissions);
-                        if (playerPermissions.containsKey(player)) {
-                            changedPermissions.removeAll(playerPermissions.get(player));
-                            callEvent(new PermissionChangedEvent(player, changedPermissions));
-                        }
-                        playerPermissions.put(player, new ArrayList<>(currentPermissions));
-                    }
-                });
-            });
+                    playerPermissions.put(player, new ArrayList<>(currentPermissions));
+                }
+            }));
         }
     }
 

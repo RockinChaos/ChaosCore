@@ -48,8 +48,8 @@ public class ProtocolAPI {
             packetType[2] = PacketType.Play.Client.AUTO_RECIPE;
         } else {
             packetType = new PacketType[2];
-            packetType[1] = PacketType.Play.Client.WINDOW_CLICK;
             packetType[0] = PacketType.Play.Client.CLOSE_WINDOW;
+            packetType[1] = PacketType.Play.Client.WINDOW_CLICK;
         }
 
         protocolManager.addPacketListener(new PacketAdapter(Core.getCore().getPlugin(), ListenerPriority.LOWEST, packetType) {
