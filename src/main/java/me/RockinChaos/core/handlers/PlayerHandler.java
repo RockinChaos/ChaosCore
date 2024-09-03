@@ -750,6 +750,35 @@ public class PlayerHandler {
     }
 
     /**
+     * Executes an input of methods for the selected entities.
+     *
+     * @param sender - The sender who selected the entities.
+     * @param entities - The entities to be fetched.
+     * @param input - The methods to be executed.
+     */
+    public static void forSelectedEntities(final @Nonnull CommandSender sender, final @Nullable String entities, final @Nonnull Consumer<Player> input) {
+        try {
+            if (entities == null) {
+                input.accept(null);
+            } else {
+                final List<Entity> targets = Bukkit.selectEntities(sender, entities);
+                if (targets.isEmpty()) {
+                    input.accept(null);
+                } else {
+                    for (final Entity target : targets) {
+                        if (target instanceof Player) {
+                            input.accept((Player) target);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            input.accept(null);
+        }
+    }
+
+    /**
      * Executes an input of methods for the currently online players.
      *
      * @param input - The methods to be executed.
