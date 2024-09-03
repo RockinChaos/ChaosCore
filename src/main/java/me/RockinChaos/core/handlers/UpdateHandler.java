@@ -22,9 +22,7 @@ import me.RockinChaos.core.utils.ChatComponent;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -36,7 +34,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
-import java.util.Collection;
 
 @SuppressWarnings("unused")
 public class UpdateHandler {
@@ -70,9 +67,7 @@ public class UpdateHandler {
         this.devVersion = this.localeVersion.equals("${project.version}");
         this.buildNumber = this.versionExact.split("-b")[1];
         this.updatesAllowed = updatesAllowed;
-        SchedulerUtils.runAsync(() -> {
-            this.checkUpdates(plugin.getServer().getConsoleSender(), true);
-        });
+        SchedulerUtils.runAsync(() -> this.checkUpdates(plugin.getServer().getConsoleSender(), true));
     }
 
     /**
@@ -297,40 +292,17 @@ public class UpdateHandler {
      * @param update - The update type.
      */
     private void sendNotifications(final Update update) {
-        try {
-            Collection<?> playersOnline;
-            Player[] playersOnlineOld;
-            if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                playersOnline = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                for (Object objPlayer : playersOnline) {
-                    if (((Player) objPlayer).isOp()) {
-                        if (update == Update.BETA) {
-                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &eA new snapshot build is available!", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
-                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &ePlease update to the &a&lv" + this.latestDev + "&e.", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
-                        } else {
-                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &eAn update has been found!", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
-                            Core.getCore().getLang().dispatchMessage(((Player) objPlayer), "%prefix% &ePlease update to the &a&lv" + this.latestVersion + "-RELEASE&e.", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
-                        }
-                    }
-                }
-            } else {
-                playersOnlineOld = ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                for (Player objPlayer : playersOnlineOld) {
-                    if (objPlayer.isOp()) {
-                        ServerUtils.messageSender(objPlayer, "&eAn update has been found!", true);
-                        if (update == Update.BETA) {
-                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &eA new snapshot build is available!", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
-                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &ePlease update to the &a&lv" + this.latestDev + "&e.", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
-                        } else {
-                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &eAn update has been found!", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
-                            Core.getCore().getLang().dispatchMessage(objPlayer, "%prefix% &ePlease update to the &a&lv" + this.latestVersion + "-RELEASE&e.", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
-                        }
-                    }
+        PlayerHandler.forOnlinePlayers(player -> {
+            if (player.isOp()) {
+                if (update == Update.BETA) {
+                    Core.getCore().getLang().dispatchMessage(player, "%prefix% &eA new snapshot build is available!", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
+                    Core.getCore().getLang().dispatchMessage(player, "%prefix% &ePlease update to the &a&lv" + this.latestDev + "&e.", "&eClick to go to the download page.", this.DEV_HOST, ChatComponent.ClickAction.OPEN_URL);
+                } else {
+                    Core.getCore().getLang().dispatchMessage(player, "%prefix% &eAn update has been found!", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
+                    Core.getCore().getLang().dispatchMessage(player, "%prefix% &ePlease update to the &a&lv" + this.latestVersion + "-RELEASE&e.", "&eClick to go to the download page.", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", ChatComponent.ClickAction.OPEN_URL);
                 }
             }
-        } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
-        }
+        });
     }
 
     /**
