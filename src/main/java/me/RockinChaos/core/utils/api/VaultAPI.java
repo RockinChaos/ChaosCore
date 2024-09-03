@@ -107,7 +107,7 @@ public class VaultAPI {
      * @param player - The Player being transacted.
      * @param cost   - The cost to be charged to the Player.
      */
-    public void withdrawBalance(final @Nonnull Player player, final int cost) {
+    public void withdrawBalance(final @Nonnull Player player, final double cost) {
         this.econ.withdrawPlayer(player, cost);
     }
 }
