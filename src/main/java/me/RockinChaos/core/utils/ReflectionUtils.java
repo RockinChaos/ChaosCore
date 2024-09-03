@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 /**
  * A utility class that simplifies reflection in Bukkit plugins.
  */
-@SuppressWarnings({"unused", "JavaReflectionMemberAccess"})
+@SuppressWarnings({"unused", "JavaReflectionMemberAccess", "JavaReflectionInvocation"})
 public class ReflectionUtils {
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
@@ -229,7 +229,7 @@ public class ReflectionUtils {
     public static @Nonnull Object getPlayerField(final @Nonnull Player player, final @Nonnull String field) {
         try {
             final Object craftPlayer = getEntity(player);
-            return craftPlayer.getClass().getField(field).get(craftPlayer);
+            return craftPlayer != null ? craftPlayer.getClass().getField(field).get(craftPlayer) : new Object();
         } catch (Exception e) {
             throw new RuntimeException("Cannot invoke player field " + field, e);
         }
@@ -463,9 +463,11 @@ public class ReflectionUtils {
      */
     public static void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) throws Exception {
         Object nmsPlayer = getEntity(player);
-        Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
-        Class<?> packetClass = getMinecraftClass("Packet");
-        playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass).invoke(playerHandle, packet);
+        if (nmsPlayer != null) {
+            Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
+            Class<?> packetClass = getMinecraftClass("Packet");
+            playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass).invoke(playerHandle, packet);
+        }
     }
 
     /**

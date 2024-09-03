@@ -25,7 +25,7 @@ import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -295,11 +295,13 @@ public class Container {
     /**
      * Removes the repair cost of the AnvilInventory Container.
      *
-     * @param inventory - The AnvilInventory instance.
+     * @param event - The PrepareAnvilEvent instance.
      */
-    public void removeCost(final @Nonnull AnvilInventory inventory) {
-        if (ServerUtils.hasSpecificUpdate("1_11")) {
-            inventory.setRepairCost(0);
+    public void removeCost(final @Nonnull PrepareAnvilEvent event) {
+        if (ServerUtils.hasSpecificUpdate("1_21")) { // still experimental...
+            event.getView().setRepairCost(0);
+        } else if (ServerUtils.hasSpecificUpdate("1_11")) {
+            LegacyAPI.setRepairCost(event.getInventory(), 0);
         }
     }
 

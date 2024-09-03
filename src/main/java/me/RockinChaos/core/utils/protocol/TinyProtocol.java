@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.*;
+import me.RockinChaos.core.handlers.PlayerHandler;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ReflectionUtils.FieldAccessor;
 import me.RockinChaos.core.utils.ReflectionUtils.MethodInvoker;
@@ -210,25 +211,7 @@ public abstract class TinyProtocol {
      * Register online players.
      */
     private void registerPlayers(final @Nonnull Plugin plugin) {
-        Collection<?> playersOnlineNew;
-        Player[] playersOnlineOld;
-        try {
-            if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                    playersOnlineNew = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                    for (Object objPlayer : playersOnlineNew) {
-                        this.injectPlayer(((Player) objPlayer));
-                    }
-                }
-            } else {
-                playersOnlineOld = ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                for (Player player : playersOnlineOld) {
-                    this.injectPlayer(player);
-                }
-            }
-        } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
-        }
+        PlayerHandler.forOnlinePlayers(this::injectPlayer);
     }
 
     /**

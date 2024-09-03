@@ -104,7 +104,7 @@ public class Query {
      */
     private void openInventory() {
         Bukkit.getPluginManager().registerEvents(this.inventoryListener, Core.getCore().getPlugin());
-        if (ServerUtils.hasSpecificUpdate("1_11")) {
+        if (ServerUtils.hasSpecificUpdate("1_13")) {
             Bukkit.getPluginManager().registerEvents(this.typingListener, Core.getCore().getPlugin());
         } else {
             if (ProtocolManager.isDead()) {
@@ -810,14 +810,14 @@ public class Query {
          */
         @EventHandler
         public final void onPrepareAnvil(final PrepareAnvilEvent event) {
-            if (event.getInventory().equals(inventory)) {
+            if (event.getInventory().equals(inventory)) { // still experimental...
                 final String renameText = ServerUtils.hasSpecificUpdate("1_21") ? event.getView().getRenameText() : LegacyAPI.getRenameText(event);
                 if (renameText != null) {
                     container.handleTyping(renameText);
                     {
                         event.setResult(container.getResult(CompatUtils.getPlayer(event), renameText));
                         {
-                            container.removeCost(event.getInventory());
+                            container.removeCost(event);
                             container.setAction(false);
                         }
                     }
@@ -828,15 +828,15 @@ public class Query {
 
     /**
      * Simply holds the listener(s) for the typing actions inside the anvil.
-     * This uses packets so the use is limited to server versions below 1.9.
+     * This uses packets so the use is limited to server versions below 1.13.
      */
     private class PrepareAnvil_LEGACY implements Listener {
 
         /**
          * Handles the anvil input event for the virtualInventory.
-         * This uses packets so the use is limited to server versions 1.8 - 1.10.
+         * This uses packets so the use is limited to server versions 1.8 - 1.12.
          * <p>
-         * SchedulerUtils#runAsync is required to prevent item ghosting .
+         * SchedulerUtils#runAsync is required to prevent item ghosting.
          *
          * @param event - {@link me.RockinChaos.core.utils.protocol.events.PrepareAnvilEvent}.
          */

@@ -28,6 +28,8 @@ import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
 import org.bukkit.block.Skull;
+import org.bukkit.block.banner.Pattern;
+import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
@@ -305,6 +307,25 @@ public class ItemHandler {
      */
     public static void setData(final @Nonnull ItemMeta itemMeta, final int data) {
         itemMeta.setCustomModelData(data);
+    }
+
+    /**
+     * Gets the name of the Pattern.
+     *
+     * @param pattern - The Pattern to have its name fetched, this can either be a Pattern or PatternType instance.
+     * @return The Found Pattern Name.
+     */
+    public static String getPatternName(final @Nonnull Object pattern) {
+        return (ServerUtils.hasSpecificUpdate("1_21") ? (pattern instanceof Pattern ? ((Pattern)pattern).getPattern() : ((PatternType)pattern)).getKey().getKey() : LegacyAPI.getPatternName((pattern instanceof Pattern ? ((Pattern)pattern).getPattern() : pattern))).toUpperCase();
+    }
+
+    /**
+     * Gets a list of all registered Patterns on the server.
+     *
+     * @return The list of all available Patterns.
+     */
+    public static @Nonnull List<PatternType> getPatterns() {
+        return (ServerUtils.hasPreciseUpdate("1_21") ? ImmutableList.copyOf(Registry.BANNER_PATTERN.iterator()) : LegacyAPI.getPatterns());
     }
 
     /**

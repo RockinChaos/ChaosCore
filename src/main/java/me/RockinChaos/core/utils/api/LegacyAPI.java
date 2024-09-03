@@ -29,10 +29,12 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
+import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -44,6 +46,7 @@ import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -524,7 +527,28 @@ public class LegacyAPI {
      * @return The new AttributeModifier instance.
      */
     public static @Nonnull AttributeModifier getAttribute(final @Nonnull String uuid, final @Nonnull String attrib, final double value, final @Nonnull EquipmentSlot slot) {
-        return new AttributeModifier(UUID.nameUUIDFromBytes(uuid.getBytes()), attrib.toLowerCase().replace("_", "."), value, AttributeModifier.Operation.ADD_NUMBER, slot);
+        try {
+            final Constructor<?> constructor = AttributeModifier.class.getConstructor(UUID.class, String.class, double.class, AttributeModifier.Operation.class, EquipmentSlot.class);
+            return (AttributeModifier) constructor.newInstance(UUID.nameUUIDFromBytes(uuid.getBytes()), attrib.toLowerCase().replace("_", "."), value, AttributeModifier.Operation.ADD_NUMBER, slot);
+        } catch (Exception e) {
+            ServerUtils.sendSevereTrace(e);
+            throw new RuntimeException("{LegacyAPI} An error has occurred getting the attribute: " + attrib, e);
+        }
+    }
+
+    /**
+     * Attempts to set the Repair Cost for the AnvilInventory.
+     *
+     * @param inventory - The AnvilInventory instance.
+     * @param cost      - The cost of the repair.
+     */
+    public static void setRepairCost(final AnvilInventory inventory, final int cost) {
+        try {
+            inventory.getClass().getDeclaredMethod("setRepairCost", int.class).invoke(inventory, cost);
+        } catch (Exception e) {
+            ServerUtils.logSevere("{LegacyAPI} An error has occurred while setting the repair cost!");
+            ServerUtils.sendSevereTrace(e);
+        }
     }
 
     /**
@@ -594,6 +618,50 @@ public class LegacyAPI {
      */
     public static void setPotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType, final boolean extended, final boolean upgraded) {
         ReflectionUtils.setBasePotionData(tempMeta, potionType, extended, upgraded);
+    }
+
+    /**
+     * Gets the PatternType instance given the Pattern Name.
+     *
+     * @param patternName - The PatternType to be fetched.
+     * @return the PatternType instance from the Pattern Name.
+     */
+    public static @Nonnull PatternType getPattern(final @Nonnull String patternName) {
+        try {
+            return (PatternType) PatternType.class.getDeclaredMethod("valueOf", String.class).invoke(null, patternName.toUpperCase());
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the PatternType: " + patternName, e);
+        }
+    }
+
+    /**
+     * Gets the Pattern Name of the given PatternType.
+     *
+     * @param pattern - The PatternType to have its name fetched.
+     * @return the Pattern Name of the given PatternType.
+     */
+    public static @Nonnull String getPatternName(final @Nonnull Object pattern) {
+        try {
+            return (String) pattern.getClass().getMethod("name").invoke(pattern);
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Pattern Name", e);
+        }
+    }
+
+    /**
+     * Gets the list of Patterns.
+     *
+     * @return The full list of registered Patterns.
+     */
+    public static @Nonnull List<PatternType> getPatterns() {
+        try {
+            return Arrays.asList((PatternType[]) Class.forName("org.bukkit.block.banner.PatternType").getMethod("values").invoke(null));
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Pattern#values", e);
+        }
     }
 
     /**
