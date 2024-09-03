@@ -38,11 +38,11 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class PrepareAnvilEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    protected Object transaction;
+    protected final Object transaction;
     protected ItemStack[] topContents;
     protected ItemStack[] bottomContents;
 
-    protected String textEntry;
+    protected final String textEntry;
     private Result prepareAnvil;
 
     /**

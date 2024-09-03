@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * A utility class that represents a primary key composed of one object: a primary key.
  * The equality and hash code of the primary key are based on the primary key value.
- *
+ * <p>
  * MetaData is not considered in the PrimaryKey.
  */
 @SuppressWarnings({"unused"})

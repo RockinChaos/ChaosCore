@@ -646,45 +646,14 @@ public class PlayerHandler {
      * Constantly cycles through the players crafting slots saving them to a HashMap for later use.
      */
     public static void cycleCrafting() {
-        SchedulerUtils.runAsyncTimer(15L, 0L, () -> {
-            Collection<?> playersOnlineNew;
-            Player[] playersOnlineOld;
-            try {
-                if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                    playersOnlineNew = ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                    for (Object objPlayer : playersOnlineNew) {
-                        if (((Player) objPlayer).isOnline() && PlayerHandler.isCraftingInv(((Player) objPlayer))) {
-                            ItemStack[] tempContents = CompatUtils.getTopInventory(objPlayer).getContents();
-                            ItemStack[] contents = new ItemStack[5];
-                            for (int i = 0; i <= 4; i++) {
-                                if (tempContents[i] != null) {
-                                    contents[i] = tempContents[i].clone();
-                                }
-                            }
-                            craftingItems.put(PlayerHandler.getPlayerID(((Player) objPlayer)), contents);
-                        } else {
-                            craftingItems.remove(PlayerHandler.getPlayerID((Player) objPlayer));
-                        }
-                    }
-                } else {
-                    playersOnlineOld = ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]));
-                    for (Player player : playersOnlineOld) {
-                        if (player.isOnline() && PlayerHandler.isCraftingInv(player)) {
-                            ItemStack[] tempContents = CompatUtils.getTopInventory(player).getContents();
-                            ItemStack[] contents = new ItemStack[5];
-                            for (int i = 0; i <= 4; i++) {
-                                contents[i] = tempContents[i].clone();
-                            }
-                            craftingItems.put(PlayerHandler.getPlayerID(player), contents);
-                        } else {
-                            craftingItems.remove(PlayerHandler.getPlayerID(player));
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                ServerUtils.sendDebugTrace(e);
+        SchedulerUtils.runAsyncTimer(15L, 0L, () -> forOnlinePlayers(player -> {
+            if (player.isOnline() && PlayerHandler.isCraftingInv(player)) {
+                ItemStack[] contents = getTopContents(player);
+                craftingItems.put(PlayerHandler.getPlayerID(player), contents);
+            } else {
+                craftingItems.remove(PlayerHandler.getPlayerID(player));
             }
-        });
+        }));
     }
 
     /**
@@ -804,7 +773,9 @@ public class PlayerHandler {
                 }
             }
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                input.accept(player);
+            }
         }
     }
 

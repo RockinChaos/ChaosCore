@@ -107,67 +107,69 @@ public class UpdateHandler {
                 uri = this.HOST.replace("repos/", "").replace("api.", "").replace("latest", "download/" + "v" + this.latestVersion + "/" + this.NAME.toLowerCase() + ".jar") + "?_=" + System.currentTimeMillis();
             }
             final File upgradeFile = new File(Core.getCore().getPlugin().getDataFolder() + "/" + this.NAME + ".jar" + ".tmp");
-            try {
-                final HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
-                httpConnection.setRequestProperty("User-Agent", "Mozilla/5.0...");
-                httpConnection.setConnectTimeout(15000);
-                httpConnection.setReadTimeout(15000);
-                final int BYTE_SIZE = 2048;
-                final long hostFileSize = httpConnection.getContentLength();
-                if (hostFileSize <= 0) {
-                    throw new Exception("Invalid file size from the host server.");
-                }
-                try (final BufferedInputStream in = new BufferedInputStream(httpConnection.getInputStream());
-                     final FileOutputStream fos = new FileOutputStream(upgradeFile);
-                     final BufferedOutputStream bout = new BufferedOutputStream(fos, BYTE_SIZE)) {
-                    final String progressBar = "&a::::::::::::::::::::::::::::::";
-                    int currentProgress = -1;
-                    final byte[] data = new byte[BYTE_SIZE];
-                    long fetchedSize = 0;
-                    int bytesRead;
-                    while ((bytesRead = in.read(data, 0, BYTE_SIZE)) >= 0) {
-                        bout.write(data, 0, bytesRead);
-                        fetchedSize += bytesRead;
-                        final int updateProgress = (int) (((double) fetchedSize / (double) hostFileSize) * 30);
-                        if ((((fetchedSize * 100) / hostFileSize) % 25) == 0 && updateProgress > 10) {
-                            if (currentProgress != updateProgress) {
-                                ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), true);
-                            }
-                            currentProgress = updateProgress;
-                        }
+            SchedulerUtils.runAsync(() -> {
+                try {
+                    final HttpURLConnection httpConnection = (HttpURLConnection) new URL(uri).openConnection();
+                    httpConnection.setRequestProperty("User-Agent", "Mozilla/5.0...");
+                    httpConnection.setConnectTimeout(30000);
+                    httpConnection.setReadTimeout(30000);
+                    final int BYTE_SIZE = 2048;
+                    final long hostFileSize = httpConnection.getContentLength();
+                    if (hostFileSize <= 0) {
+                        throw new Exception("Invalid file size from the host server.");
                     }
-                    bout.flush();
-                }
-                if (upgradeFile.length() != hostFileSize) {
-                    throw new Exception("Downloaded file size does not match expected size.");
-                }
-                if (!upgradeFile.renameTo(jarRef)) {
-                    try (final InputStream in = Files.newInputStream(upgradeFile.toPath());
-                         final OutputStream out = Files.newOutputStream(jarRef.toPath())) {
-
-                        final byte[] buffer = new byte[BYTE_SIZE];
+                    try (final BufferedInputStream in = new BufferedInputStream(httpConnection.getInputStream());
+                         final FileOutputStream fos = new FileOutputStream(upgradeFile);
+                         final BufferedOutputStream bout = new BufferedOutputStream(fos, BYTE_SIZE)) {
+                        final String progressBar = "&a::::::::::::::::::::::::::::::";
+                        int currentProgress = -1;
+                        final byte[] data = new byte[BYTE_SIZE];
+                        long fetchedSize = 0;
                         int bytesRead;
-                        while ((bytesRead = in.read(buffer)) != -1) {
-                            out.write(buffer, 0, bytesRead);
+                        while ((bytesRead = in.read(data, 0, BYTE_SIZE)) >= 0) {
+                            bout.write(data, 0, bytesRead);
+                            fetchedSize += bytesRead;
+                            final int updateProgress = (int) (((double) fetchedSize / (double) hostFileSize) * 30);
+                            if ((((fetchedSize * 100) / hostFileSize) % 25) == 0 && updateProgress > 10) {
+                                if (currentProgress != updateProgress) {
+                                    ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), true);
+                                }
+                                currentProgress = updateProgress;
+                            }
+                        }
+                        bout.flush();
+                    }
+                    if (upgradeFile.length() != hostFileSize) {
+                        throw new Exception("Downloaded file size does not match expected size.");
+                    }
+                    if (!upgradeFile.renameTo(jarRef)) {
+                        try (final InputStream in = Files.newInputStream(upgradeFile.toPath());
+                             final OutputStream out = Files.newOutputStream(jarRef.toPath())) {
+
+                            final byte[] buffer = new byte[BYTE_SIZE];
+                            int bytesRead;
+                            while ((bytesRead = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, bytesRead);
+                            }
+                        }
+                        if (!upgradeFile.delete()) {
+                            ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
                         }
                     }
-                    if (!upgradeFile.delete()) {
-                        ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
+                    ServerUtils.messageSender(sender, "&aSuccessfully updated to &ev" + updateSuccess + "&a!", true);
+                    ServerUtils.messageSender(sender, "&aYou must restart your server for this to take effect.", true);
+                } catch (Exception e) {
+                    ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".", true);
+                    ServerUtils.messageSender(sender, "&cPlease try again later. If you continue to see this, please contact the plugin developer.", true);
+                    ServerUtils.logSevere("An error has occurred while trying to update the plugin " + jarRef.getName() + ".");
+                    ServerUtils.sendDebugTrace(e);
+                    if (upgradeFile.exists()) {
+                        if (!upgradeFile.delete()) {
+                            ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
+                        }
                     }
                 }
-                ServerUtils.messageSender(sender, "&aSuccessfully updated to &ev" + updateSuccess + "&a!", true);
-                ServerUtils.messageSender(sender, "&aYou must restart your server for this to take effect.", true);
-            } catch (Exception e) {
-                ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".", true);
-                ServerUtils.messageSender(sender, "&cPlease try again later. If you continue to see this, please contact the plugin developer.", true);
-                ServerUtils.logSevere("An error has occurred while trying to update the plugin " + jarRef.getName() + ".");
-                ServerUtils.sendDebugTrace(e);
-                if (upgradeFile.exists()) {
-                    if (!upgradeFile.delete()) {
-                        ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
-                    }
-                }
-            }
+            });
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
                 ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
@@ -237,8 +239,8 @@ public class UpdateHandler {
                 reader.close();
                 if (gitVersion.length() <= 7) {
                     this.latestVersion = gitVersion.replaceAll("[a-z]", "").replace("-SNAPSHOT", "").replace("-BETA", "").replace("-ALPHA", "").replace("-RELEASE", "");
-                    int latestNumber = !this.devVersion ? Integer.parseInt(this.latestVersion.replace(".", "")) : 0;
-                    int localeNumber = !this.devVersion ? Integer.parseInt(this.localeVersion.replace(".", "")) : 0;
+                    int latestNumber = !this.devVersion ? Integer.parseInt(this.latestVersion.replaceAll("[^0-9]", "")) : 0;
+                    int localeNumber = !this.devVersion ? Integer.parseInt(this.localeVersion.replaceAll("[^0-9]", "")) : 0;
                     if (this.devVersion) {
                         return Update.DEV;
                     } else if (latestNumber > localeNumber

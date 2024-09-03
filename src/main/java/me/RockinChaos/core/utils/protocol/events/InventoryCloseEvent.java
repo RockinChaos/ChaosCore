@@ -36,7 +36,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class InventoryCloseEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    protected Object transaction;
+    protected final Object transaction;
     protected ItemStack[] topContents;
     protected ItemStack[] bottomContents;
     private Result inventoryClose;
