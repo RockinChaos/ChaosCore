@@ -86,9 +86,10 @@ public class TimerUtils {
      *
      * @param uniqueId the unique identifier for the object
      * @param object   the object to be removed
+     * @param force    the object should be removed whether expired or not.
      */
-    public static void removeExpiry(final String uniqueId, final Object object) {
-        if (isExpired(uniqueId, object)) {
+    public static void removeExpiry(final String uniqueId, final Object object, final boolean force) {
+        if (force || isExpired(uniqueId, object)) {
             final Map<Object, Long> objectMap = timedMap.get(uniqueId);
             if (objectMap != null) {
                 objectMap.remove(object);
