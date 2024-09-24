@@ -203,10 +203,10 @@ public class DependAPI {
      */
     public boolean skinsRestorerEnabled() {
         final boolean skinsEnabled = Bukkit.getServer().getPluginManager().isPluginEnabled("SkinsRestorer") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "SkinsRestorer");
-        if (skinsEnabled && (this.skinsNetty == null || this.skinsRestorer == null)) {
+        if (skinsEnabled && this.skinsRestorer == null) {
             initSkins();
         }
-        return !this.proxySkins && skinsEnabled;
+        return !this.proxySkins && skinsEnabled && this.skinsRestorer != null;
     }
 
     /**
@@ -217,6 +217,9 @@ public class DependAPI {
         try {
             this.skinsNetty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerProvider");
         } catch (Exception e1) {
+            if (StringUtils.containsIgnoreCase(e1.getMessage(), "SkinsRestorerAPI is not initialized yet!") || StringUtils.containsIgnoreCase(e1.getMessage(), "SkinsRestorer API is not initialized yet!")) {
+                return;
+            }
             try {
                 this.skinsNetty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerAPI");
             } catch (Exception e2) {
@@ -275,7 +278,7 @@ public class DependAPI {
      * @param cause - The Throwable reference to fetch the cause message.
      */
     private void isSkinsProxy(final @Nonnull Throwable cause) {
-        if (!this.proxySkins && (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode"))) {
+        if (!this.proxySkins && (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorer API is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode"))) {
             ServerUtils.sendSevereThrowable(cause);
         } else {
             this.proxySkins = true;
