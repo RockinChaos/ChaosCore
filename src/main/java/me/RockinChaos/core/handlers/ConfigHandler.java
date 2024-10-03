@@ -22,8 +22,8 @@ import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -71,7 +71,7 @@ public class ConfigHandler {
      * @param path - The File to be fetched.
      * @return The file.
      */
-    public FileConfiguration getFile(@NonNull final String path) {
+    public FileConfiguration getFile(@Nonnull final String path) {
         final File file = new File(Core.getCore().getPlugin().getDataFolder(), path);
         boolean hasPath = false;
         for (String config : this.configFiles.keySet()) {
@@ -97,7 +97,7 @@ public class ConfigHandler {
      *
      * @param path - The File to be loaded.
      */
-    public void getSource(@NonNull final String path) {
+    public void getSource(@Nonnull final String path) {
         final File file = new File(Core.getCore().getPlugin().getDataFolder(), path);
         if (!(file).exists()) {
             try {
@@ -141,7 +141,7 @@ public class ConfigHandler {
      * @param commit - If the File should be committed to memory.
      * @return The Memory loaded config file.
      */
-    public YamlConfiguration getLoadedConfig(@NonNull final File file, final boolean commit) throws Exception {
+    public YamlConfiguration getLoadedConfig(@Nonnull final File file, final boolean commit) throws Exception {
         if (commit) {
             final Map<String, Integer> configs = Core.getCore().getData().getConfigs();
             for (final String config : configs.keySet()) {
@@ -169,7 +169,7 @@ public class ConfigHandler {
      * @param version    - The version String to be checked in the config file.
      * @param id         - The expected version id to be found in the config file.
      */
-    private void copyFile(@NonNull final String configFile, @NonNull final String version, final int id) {
+    private void copyFile(@Nonnull final String configFile, @Nonnull final String version, final int id) {
         this.getSource(configFile);
         File File = new File(Core.getCore().getPlugin().getDataFolder(), configFile);
         if (File.exists() && !this.noSource.get(configFile) && this.getFile(configFile).getInt(version) != id) {
@@ -217,7 +217,7 @@ public class ConfigHandler {
      * @param fileFolder - The folder of the file being modified.
      * @param file       - The file name being accessed.
      */
-    public void saveFile(@NonNull final FileConfiguration dataFile, @NonNull final File fileFolder, @NonNull final String file) {
+    public void saveFile(@Nonnull final FileConfiguration dataFile, @Nonnull final File fileFolder, @Nonnull final String file) {
         try {
             dataFile.save(fileFolder);
             this.getSource(file);

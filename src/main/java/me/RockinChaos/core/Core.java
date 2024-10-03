@@ -72,8 +72,7 @@ public class Core {
         final boolean isSupported = ServerUtils.hasSpecificUpdate("1_8");
         if (!isSupported) {
             ServerUtils.logSevere("detected incompatible server version.");
-            ServerUtils.logSevere("only Minecraft 1.8 and above is supported.");
-            ServerUtils.logSevere("disabling...");
+            ServerUtils.logSevere("only Minecraft 1.8 and above is supported... disabling...");
             getPlugin().getPluginLoader().disablePlugin(getPlugin());
         }
         return isSupported;
