@@ -59,8 +59,8 @@ public class UpdateHandler {
     public UpdateHandler(final @Nonnull JavaPlugin plugin, final @Nonnull File pluginFile, final boolean updatesAllowed) {
         this.NAME = plugin.getName();
         this.jarRef = pluginFile;
-        this.HOST = "https://api.github.com/repos/RockinChaos/" + plugin.getName().toLowerCase() + "/releases/latest";
-        this.DEV_HOST = "https://ci-dev.craftationgaming.com/job/" + plugin.getName() + "/lastSuccessfulBuild";
+        this.HOST = "https://api.github.com/repos/RockinChaos/" + this.NAME + "/releases/latest";
+        this.DEV_HOST = "https://ci-dev.craftationgaming.com/job/" + this.NAME + "/lastSuccessfulBuild";
         this.versionExact = plugin.getDescription().getVersion();
         this.localeVersion = this.versionExact.split("-")[0];
         this.betaVersion = this.versionExact.contains("-SNAPSHOT") || this.versionExact.contains("-EXPERIMENTAL") || this.versionExact.contains("-BETA") || this.versionExact.contains("-ALPHA");
@@ -254,7 +254,7 @@ public class UpdateHandler {
                             BufferedReader devReader = new BufferedReader(new InputStreamReader(devConnection.getInputStream()));
                             String devJsonString = StringUtils.toString(devReader);
                             JSONObject devObjectReader = (JSONObject) JSONValue.parseWithException(devJsonString);
-                            String devVersion = ((JSONObject)((JSONArray)devObjectReader.get("artifacts")).get(0)).get("fileName").toString().replace("ItemJoin-", "").replace(".jar", "");
+                            String devVersion = ((JSONObject)((JSONArray)devObjectReader.get("artifacts")).get(0)).get("fileName").toString().replace(this.NAME + "-", "").replace(".jar", "");
                             String buildVersion = devObjectReader.get("id").toString();
                             if (StringUtils.isInt(this.buildNumber) && Integer.parseInt(this.buildNumber) < Integer.parseInt(buildVersion)) {
                                 String artifactPath = ((JSONObject)((JSONArray)devObjectReader.get("artifacts")).get(0)).get("relativePath").toString();
