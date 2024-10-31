@@ -17,7 +17,6 @@
  */
 package me.RockinChaos.core.handlers;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.RockinChaos.core.Core;
@@ -26,9 +25,11 @@ import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Skull;
-import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -116,7 +117,7 @@ public class ItemHandler {
      * @return The list of all available Enchantments.
      */
     public static @Nonnull List<Enchantment> getEnchants() {
-        return (ServerUtils.hasPreciseUpdate("1_20_3") ? ImmutableList.copyOf(Registry.ENCHANTMENT.iterator()) : LegacyAPI.getEnchants());
+        return CompatUtils.values(Enchantment.class);
     }
 
     /**
@@ -316,7 +317,7 @@ public class ItemHandler {
      * @return The Found Pattern Name.
      */
     public static String getPatternName(final @Nonnull Object pattern) {
-        return (ServerUtils.hasSpecificUpdate("1_21") ? (pattern instanceof Pattern ? ((Pattern)pattern).getPattern() : ((PatternType)pattern)).getKey().getKey() : LegacyAPI.getPatternName((pattern instanceof Pattern ? ((Pattern)pattern).getPattern() : pattern))).toUpperCase();
+        return CompatUtils.getName(pattern);
     }
 
     /**
@@ -325,7 +326,7 @@ public class ItemHandler {
      * @return The list of all available Patterns.
      */
     public static @Nonnull List<PatternType> getPatterns() {
-        return (ServerUtils.hasPreciseUpdate("1_21") ? ImmutableList.copyOf(Registry.BANNER_PATTERN.iterator()) : LegacyAPI.getPatterns());
+        return CompatUtils.values(PatternType.class);
     }
 
     /**
@@ -350,7 +351,7 @@ public class ItemHandler {
         }
         if (ServerUtils.hasSpecificUpdate("1_13")) {
             final Material bukkitMaterial = getMaterial(material, null);
-            tempItem = new ItemStack(bukkitMaterial, count);
+            tempItem = new ItemStack(bukkitMaterial != Material.AIR ? bukkitMaterial : Material.STONE, count);
         } else {
             short dataValue = 0;
             if (material.contains(":")) {
@@ -358,7 +359,8 @@ public class ItemHandler {
                 material = parts[0];
                 dataValue = (short) Integer.parseInt(parts[1]);
             }
-            tempItem = LegacyAPI.newItemStack(getMaterial(material, null), count, dataValue);
+            final Material legacyMaterial = getMaterial(material, null);
+            tempItem = LegacyAPI.newItemStack(legacyMaterial != Material.AIR ? legacyMaterial : Material.STONE, count, dataValue);
         }
         if (glowing) {
             setGlowing(tempItem);
