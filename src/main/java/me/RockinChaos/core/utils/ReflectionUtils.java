@@ -625,7 +625,7 @@ public class ReflectionUtils {
         registryAccess("registryAccess", "registryAccess", "bc"),
         At("at", "create", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
         AddSlotListener("addSlotListener", "initMenu", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
-        PlayerInventory("inventory", "getInventory", (ServerUtils.hasSpecificUpdate("1_21") ? "fY" : ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
+        PlayerInventory("inventory", "getInventory", (ServerUtils.hasPreciseUpdate("1_21_2") ? "gi" : ServerUtils.hasSpecificUpdate("1_21") ? "fY" : ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
         withReplacedPages("withReplacedPages", "withReplacedPages", "b"),
         getComponents("getComponents", "getComponents", "a"),
@@ -654,7 +654,7 @@ public class ReflectionUtils {
      * Searchable tags that no longer require NBT Reflections.
      */
     public enum MinecraftField {
-        PlayerConnection("playerConnection", "connection", (ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
+        PlayerConnection("playerConnection", "connection", (ServerUtils.hasPreciseUpdate("1_21_2") ? "f" : ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
         ActiveContainer("activeContainer", "containerMenu", (ServerUtils.hasSpecificUpdate("1_21") ? "cd" : ServerUtils.hasPreciseUpdate("1_20_5") ? "cb" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
                 ServerUtils.hasSpecificUpdate("1_19") ? "bU" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bV" : ServerUtils.hasSpecificUpdate("1_18") ? "bW" : "bV")),
         DefaultContainer("defaultContainer", "inventoryMenu", (ServerUtils.hasSpecificUpdate("1_21") ? "cc" : ServerUtils.hasPreciseUpdate("1_20_5") ? "ca" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :

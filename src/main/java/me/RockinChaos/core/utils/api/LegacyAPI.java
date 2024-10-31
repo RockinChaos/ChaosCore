@@ -25,6 +25,7 @@ import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -243,8 +244,13 @@ public class LegacyAPI {
      * @param enchant - The Enchantment to have its String name fetched.
      * @return The Enchantments String name.
      */
-    public static @Nonnull String getEnchantName(final @Nonnull org.bukkit.enchantments.Enchantment enchant) {
-        return enchant.getName();
+    public static @Nonnull String getEnchantName(final @Nonnull Object enchant) {
+        try {
+            return (String) enchant.getClass().getMethod("getName").invoke(enchant);
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Enchantment Name", e);
+        }
     }
 
     /**
@@ -253,7 +259,12 @@ public class LegacyAPI {
      * @return The full list of registered Enchants.
      */
     public static @Nonnull List<Enchantment> getEnchants() {
-        return Arrays.asList(Enchantment.values());
+        try {
+            return Arrays.asList((Enchantment[]) Class.forName("org.bukkit.enchantments.Enchantment").getMethod("values").invoke(null));
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Enchantment#values", e);
+        }
     }
 
     /**
@@ -285,7 +296,26 @@ public class LegacyAPI {
      * @return The full list of registered Effects.
      */
     public static @Nonnull List<PotionEffectType> getEffects() {
-        return Arrays.asList(PotionEffectType.values());
+        try {
+            return Arrays.asList((PotionEffectType[]) Class.forName("org.bukkit.potion.PotionEffectType").getMethod("values").invoke(null));
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting PotionEffectType#values", e);
+        }
+    }
+
+    /**
+     * Gets the list of Attribute.
+     *
+     * @return The full list of registered Attributes.
+     */
+    public static @Nonnull List<Attribute> getAttributes() {
+        try {
+            return Arrays.asList((Attribute[]) Class.forName("org.bukkit.attribute.Attribute").getMethod("values").invoke(null));
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Attribute#values", e);
+        }
     }
 
     /**
@@ -670,8 +700,43 @@ public class LegacyAPI {
      * @param type - The potion name to be fetched.
      * @return the potion effect type name.
      */
-    public static @Nonnull String getEffectName(final @Nonnull PotionEffectType type) {
-        return type.getName();
+    public static @Nonnull String getEffectName(final @Nonnull Object type) {
+        try {
+            return (String) type.getClass().getMethod("getName").invoke(type);
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the PotionEffectType Name", e);
+        }
+    }
+
+    /**
+     * Gets the Attribute Name.
+     *
+     * @param attribute - The attribute name to be fetched.
+     * @return the attribute name.
+     */
+    public static @Nonnull String getAttributeName(final @Nonnull Object attribute) {
+        try {
+            return (String) attribute.getClass().getMethod("name").invoke(attribute);
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute Name", e);
+        }
+    }
+
+    /**
+     * Gets the Attribute instance given the Attribute Name.
+     *
+     * @param attributeName - The Attribute to be fetched.
+     * @return the Attribute instance from the Attribute Name.
+     */
+    public static @Nonnull Attribute getAttribute(final @Nonnull String attributeName) {
+        try {
+            return (Attribute) Attribute.class.getDeclaredMethod("valueOf", String.class).invoke(null, attributeName.toUpperCase());
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute: " + attributeName, e);
+        }
     }
 
     /**

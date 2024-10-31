@@ -17,20 +17,32 @@
  */
 package me.RockinChaos.core.utils;
 
+import com.google.common.collect.ImmutableList;
+import me.RockinChaos.core.utils.api.LegacyAPI;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.block.banner.Pattern;
+import org.bukkit.block.banner.PatternType;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Welcome to the magical land of hopes and dreams.
  * These methods exist to bridge the gap between newer and older Minecraft versions
  * with the goal to be able to compile using the latest Minecraft version.
  */
+@SuppressWarnings("unchecked")
 public class CompatUtils {
 
     /**
@@ -259,5 +271,72 @@ public class CompatUtils {
             ServerUtils.sendSevereTrace(e);
             throw new RuntimeException(object.getClass().getName(), e);
         }
+    }
+
+    /**
+     * Attempts to get the Name of the Object.
+     * Currently Supported:
+     * Attribute - name deprecated in 1.21.
+     * Pattern - name deprecated in 1.21.
+     * PatternType - name deprecated in 1.21.
+     * PotionEffect - getName deprecated in 1.20.3.
+     * PotionEffectType - getName deprecated in 1.20.3.
+     *
+     * @param object The object to have its name fetched, can be an Attribute, Pattern, PatternType, PotionEffect, or PotionEffectType.
+     * @return The name of the Object.
+     */
+    public static String getName(final Object object) {
+        if (object instanceof Attribute) {
+            return (ServerUtils.hasSpecificUpdate("1_21") ? ((Attribute) object).getKey().getKey() : LegacyAPI.getAttributeName(object)).toUpperCase();
+        } else if (object instanceof Pattern) {
+            return (ServerUtils.hasSpecificUpdate("1_21") ? ((Pattern)object).getPattern().getKey().getKey() : LegacyAPI.getPatternName(((Pattern)object).getPattern())).toUpperCase();
+        } else if (object instanceof PatternType) {
+            return (ServerUtils.hasSpecificUpdate("1_21") ? ((PatternType)object).getKey().getKey() : LegacyAPI.getPatternName(object)).toUpperCase();
+        } else if (object instanceof PotionEffect) {
+            return (ServerUtils.hasPreciseUpdate("1_20_3") ? ((PotionEffect)object).getType().getKey().getKey() : LegacyAPI.getEffectName(((PotionEffect)object).getType())).toUpperCase();
+        } else if (object instanceof PotionEffectType) {
+            return (ServerUtils.hasPreciseUpdate("1_20_3") ? ((PotionEffectType)object).getKey().getKey() : LegacyAPI.getEffectName(object)).toUpperCase();
+        }
+        throw new RuntimeException("{CompatUtils} Unable to get name of an unknown class: " + object.getClass().getName());
+    }
+
+    /**
+     * Attempts to get the Values of the Object Class.
+     * Currently Supported:
+     * Attribute - values deprecated in 1.21.3.
+     * PatternType - values deprecated in 1.21.
+     * PotionEffectType - values deprecated in 1.20.3.
+     * Enchantment - values deprecated in 1.20.3.
+     *
+     * @param clazz The class to have its name fetched, can be an Attribute, PatternType, PotionEffectType, or Enchantment.
+     * @return The values of the Object Class.
+     */
+    public static <T> List<T> values(final Class<T> clazz) {
+        if (clazz.equals(Attribute.class)) {
+            return (List<T>) (ServerUtils.hasPreciseUpdate("1_21_3") ? ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()) : LegacyAPI.getAttributes());
+        } else if (clazz.equals(PatternType.class)) {
+            return (List<T>) (ServerUtils.hasPreciseUpdate("1_21") ? ImmutableList.copyOf(Registry.BANNER_PATTERN.iterator()) : LegacyAPI.getPatterns());
+        } else if (clazz.equals(PotionEffectType.class)) {
+            return (List<T>) (ServerUtils.hasPreciseUpdate("1_20_3") ? ImmutableList.copyOf(Registry.EFFECT.iterator()) : LegacyAPI.getEffects());
+        } else if (clazz.equals(Enchantment.class)) {
+            return (List<T>) (ServerUtils.hasPreciseUpdate("1_20_3") ? ImmutableList.copyOf(Registry.ENCHANTMENT.iterator()) : LegacyAPI.getEnchants());
+        }
+        throw new RuntimeException("{CompatUtils} Unable to get values of an unknown class: " + clazz.getName());
+    }
+
+    /**
+     * Attempts to get the valueOf the Class Name given the Class.
+     * Currently Supported:
+     * Attribute - valueOf deprecated in 1.21.3.
+     *
+     * @param clazz The class to have its name fetched, can be an Attribute.
+     * @param clazzName The name of the Object of the Class to fetch.
+     * @return The Class Object of the clazzName.
+     */
+    public static <T> Object valueOf(final Class<T> clazz, final String clazzName) {
+        if (clazz.equals(Attribute.class)) {
+            return ServerUtils.hasPreciseUpdate("1_21_3") ? Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))) : LegacyAPI.getAttribute(clazzName);
+        }
+        throw new RuntimeException("{CompatUtils} Unable to get values of an unknown class: " + clazz.getName() + " with the value: " + clazzName);
     }
 }
