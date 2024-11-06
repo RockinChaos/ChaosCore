@@ -19,6 +19,7 @@ package me.RockinChaos.core.utils;
 
 import com.google.common.collect.ImmutableList;
 import me.RockinChaos.core.utils.api.LegacyAPI;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
@@ -42,7 +43,7 @@ import java.util.List;
  * These methods exist to bridge the gap between newer and older Minecraft versions
  * with the goal to be able to compile using the latest Minecraft version.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "ConstantExpression", "ConstantValue"})
 public class CompatUtils {
 
     /**
@@ -285,7 +286,7 @@ public class CompatUtils {
      * @param object The object to have its name fetched, can be an Attribute, Pattern, PatternType, PotionEffect, or PotionEffectType.
      * @return The name of the Object.
      */
-    public static String getName(final Object object) {
+    public static String getName(final @Nonnull Object object) {
         if (object instanceof Attribute) {
             return (ServerUtils.hasSpecificUpdate("1_21") ? ((Attribute) object).getKey().getKey() : LegacyAPI.getAttributeName(object)).toUpperCase();
         } else if (object instanceof Pattern) {
@@ -311,7 +312,7 @@ public class CompatUtils {
      * @param clazz The class to have its name fetched, can be an Attribute, PatternType, PotionEffectType, or Enchantment.
      * @return The values of the Object Class.
      */
-    public static <T> List<T> values(final Class<T> clazz) {
+    public static <T> List<T> values(final @Nonnull Class<T> clazz) {
         if (clazz.equals(Attribute.class)) {
             return (List<T>) (ServerUtils.hasPreciseUpdate("1_21_3") ? ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()) : LegacyAPI.getAttributes());
         } else if (clazz.equals(PatternType.class)) {
@@ -333,10 +334,34 @@ public class CompatUtils {
      * @param clazzName The name of the Object of the Class to fetch.
      * @return The Class Object of the clazzName.
      */
-    public static <T> Object valueOf(final Class<T> clazz, final String clazzName) {
+    public static <T> Object valueOf(final @Nonnull Class<T> clazz, final @Nonnull String clazzName) {
         if (clazz.equals(Attribute.class)) {
             return ServerUtils.hasPreciseUpdate("1_21_3") ? Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))) : LegacyAPI.getAttribute(clazzName);
         }
         throw new RuntimeException("{CompatUtils} Unable to get values of an unknown class: " + clazz.getName() + " with the value: " + clazzName);
+    }
+
+    /**
+     * Checks if the Bukkit Inventory is empty.
+     * This exists because some server forks have removed the #isEmpty method for whatever reason.
+     *
+     * @param inventory The inventory to be checked.
+     * @return If the Bukkit Inventory is empty.
+     */
+    public static boolean isInventoryEmpty(final @Nonnull Inventory inventory) {
+        try {
+            final Method isEmpty = inventory.getClass().getMethod("isEmpty");
+            if (isEmpty != null) {
+                return (boolean) isEmpty.invoke(inventory);
+            }
+        } catch (Exception ignored) { }
+
+        // Fallback method to check if inventory is empty
+        for (final ItemStack item : inventory.getContents()) {
+            if (item != null && item.getType() != Material.AIR) {
+                return false;
+            }
+        }
+        return true;
     }
 }
