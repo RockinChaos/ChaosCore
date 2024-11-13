@@ -318,6 +318,21 @@ public class LegacyAPI {
         }
     }
 
+
+    /**
+     * Gets the list of Sounds.
+     *
+     * @return The full list of registered Sounds.
+     */
+    public static @Nonnull List<Sound> getSounds() {
+        try {
+            return Arrays.asList((Sound[]) Class.forName("org.bukkit.Sound").getMethod("values").invoke(null));
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Sound#values", e);
+        }
+    }
+
     /**
      * Gets the Enchantment from its String name.
      *
@@ -736,6 +751,36 @@ public class LegacyAPI {
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute: " + attributeName, e);
+        }
+    }
+
+    /**
+     * Gets the Sound Name.
+     *
+     * @param sound - The Sound name to be fetched.
+     * @return the sound name.
+     */
+    public static @Nonnull String getSoundName(final @Nonnull Object sound) {
+        try {
+            return (String) sound.getClass().getMethod("name").invoke(sound);
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Sound Name", e);
+        }
+    }
+
+    /**
+     * Gets the Sound instance given the Sound Name.
+     *
+     * @param soundName - The Sound to be fetched.
+     * @return the Sound instance from the Sound Name.
+     */
+    public static @Nonnull Sound getSound(final @Nonnull String soundName) {
+        try {
+            return (Sound) Sound.class.getDeclaredMethod("valueOf", String.class).invoke(null, soundName.toUpperCase());
+        } catch (Exception e) {
+            ServerUtils.sendDebugTrace(e);
+            throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Sound: " + soundName, e);
         }
     }
 

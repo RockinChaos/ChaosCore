@@ -22,6 +22,7 @@ import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
@@ -277,18 +278,21 @@ public class CompatUtils {
     /**
      * Attempts to get the Name of the Object.
      * Currently Supported:
-     * Attribute - name deprecated in 1.21.
-     * Pattern - name deprecated in 1.21.
-     * PatternType - name deprecated in 1.21.
-     * PotionEffect - getName deprecated in 1.20.3.
-     * PotionEffectType - getName deprecated in 1.20.3.
+     * Attribute#name deprecated in 1.21.
+     * Sound#name deprecated in 1.21.
+     * Pattern#name deprecated in 1.21.
+     * PatternType#name deprecated in 1.21.
+     * PotionEffect#getName deprecated in 1.20.3.
+     * PotionEffectType#getName deprecated in 1.20.3.
      *
-     * @param object The object to have its name fetched, can be an Attribute, Pattern, PatternType, PotionEffect, or PotionEffectType.
+     * @param object The object to have its name fetched, can be an Attribute, Sound, Pattern, PatternType, PotionEffect, or PotionEffectType.
      * @return The name of the Object.
      */
     public static String getName(final @Nonnull Object object) {
         if (object instanceof Attribute) {
             return (ServerUtils.hasSpecificUpdate("1_21") ? ((Attribute) object).getKey().getKey() : LegacyAPI.getAttributeName(object)).toUpperCase();
+        } else if (object instanceof Sound) {
+            return (ServerUtils.hasSpecificUpdate("1_21") ? ((Sound) object).getKey().getKey() : LegacyAPI.getSoundName(object)).toUpperCase();
         } else if (object instanceof Pattern) {
             return (ServerUtils.hasSpecificUpdate("1_21") ? ((Pattern)object).getPattern().getKey().getKey() : LegacyAPI.getPatternName(((Pattern)object).getPattern())).toUpperCase();
         } else if (object instanceof PatternType) {
@@ -304,17 +308,20 @@ public class CompatUtils {
     /**
      * Attempts to get the Values of the Object Class.
      * Currently Supported:
-     * Attribute - values deprecated in 1.21.3.
-     * PatternType - values deprecated in 1.21.
-     * PotionEffectType - values deprecated in 1.20.3.
-     * Enchantment - values deprecated in 1.20.3.
+     * Attribute#values deprecated in 1.21.3.
+     * Sound#values deprecated in 1.21.3.
+     * PatternType#values deprecated in 1.21.
+     * PotionEffectType#values deprecated in 1.20.3.
+     * Enchantment#values deprecated in 1.20.3.
      *
-     * @param clazz The class to have its name fetched, can be an Attribute, PatternType, PotionEffectType, or Enchantment.
+     * @param clazz The class to have its name fetched, can be an Attribute, Sound, PatternType, PotionEffectType, or Enchantment.
      * @return The values of the Object Class.
      */
     public static <T> List<T> values(final @Nonnull Class<T> clazz) {
         if (clazz.equals(Attribute.class)) {
             return (List<T>) (ServerUtils.hasPreciseUpdate("1_21_3") ? ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()) : LegacyAPI.getAttributes());
+        } else if (clazz.equals(Sound.class)) {
+            return (List<T>) (ServerUtils.hasPreciseUpdate("1_21_3") ? ImmutableList.copyOf(Registry.SOUNDS.iterator()) : LegacyAPI.getSounds());
         } else if (clazz.equals(PatternType.class)) {
             return (List<T>) (ServerUtils.hasPreciseUpdate("1_21") ? ImmutableList.copyOf(Registry.BANNER_PATTERN.iterator()) : LegacyAPI.getPatterns());
         } else if (clazz.equals(PotionEffectType.class)) {
@@ -328,15 +335,18 @@ public class CompatUtils {
     /**
      * Attempts to get the valueOf the Class Name given the Class.
      * Currently Supported:
-     * Attribute - valueOf deprecated in 1.21.3.
+     * Attribute#valueOf deprecated in 1.21.3.
+     * Sound#valueOf deprecated in 1.21.3.
      *
-     * @param clazz The class to have its name fetched, can be an Attribute.
+     * @param clazz The class to have its name fetched, can be an Attribute, or Sound.
      * @param clazzName The name of the Object of the Class to fetch.
      * @return The Class Object of the clazzName.
      */
     public static <T> Object valueOf(final @Nonnull Class<T> clazz, final @Nonnull String clazzName) {
         if (clazz.equals(Attribute.class)) {
             return ServerUtils.hasPreciseUpdate("1_21_3") ? Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))) : LegacyAPI.getAttribute(clazzName);
+        } else if (clazz.equals(Sound.class)) {
+            return ServerUtils.hasPreciseUpdate("1_21_3") ? Registry.SOUNDS.get(NamespacedKey.minecraft(clazzName.toLowerCase())) : LegacyAPI.getSound(clazzName);
         }
         throw new RuntimeException("{CompatUtils} Unable to get values of an unknown class: " + clazz.getName() + " with the value: " + clazzName);
     }
