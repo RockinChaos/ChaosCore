@@ -62,7 +62,7 @@ public class ProtocolManager {
              */
             @Override
             public Object onPacketInAsync(final Player player, final Channel channel, final Object packet) {
-                if (packet != null && manageEvents(player, packet.getClass().getSimpleName(), protocol.getContainer(packet))) {
+                if (packet != null && player != null && manageEvents(player, packet.getClass().getSimpleName(), protocol.getContainer(packet))) {
                     return null;
                 }
                 return super.onPacketInAsync(player, channel, packet);

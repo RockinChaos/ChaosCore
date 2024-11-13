@@ -68,7 +68,7 @@ public class ProtocolAPI {
                                             (event.getPacket() != null && event.getPacketType() == PacketType.Play.Client.WINDOW_CLICK ? "PacketPlayInWindowClick" : null))));
                 } catch (NullPointerException ignored) {
                 }
-                if (packetName != null && me.RockinChaos.core.utils.protocol.ProtocolManager.manageEvents(event.getPlayer(), packetName, new PacketContainer(event.getPacket().getHandle()))) {
+                if (packetName != null && event.getPlayer() != null && me.RockinChaos.core.utils.protocol.ProtocolManager.manageEvents(event.getPlayer(), packetName, new PacketContainer(event.getPacket().getHandle()))) {
                     event.setCancelled(true);
                 } else if (packetName != null && packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
                     final PacketContainer container = new PacketContainer(event.getPacket().getHandle());
