@@ -122,7 +122,7 @@ public class ProtocolManager {
                 callEvent(PickItem);
                 return PickItem.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
-                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasPreciseUpdate("1_20_5") ? packetContainer.read(3) : packetContainer.read(2)).getData());
+                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasPreciseUpdate("1_20_5") && packetContainer.read(3).getData() instanceof Boolean ? packetContainer.read(3) : packetContainer.read(2)).getData());
                 callEvent(AutoCraft);
                 return AutoCraft.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow")) {
