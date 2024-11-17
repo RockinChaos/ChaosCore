@@ -117,15 +117,15 @@ public class ProtocolManager {
      */
     public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull PacketContainer packetContainer) {
         try {
-            if (packetName.equalsIgnoreCase("PacketPlayInPickItem")) {
+            if (packetName.equalsIgnoreCase("PacketPlayInPickItem") || packetName.contains("SetCarriedItemPacket")) {
                 final PlayerPickItemEvent PickItem = new PlayerPickItemEvent(player, player.getInventory());
                 callEvent(PickItem);
                 return PickItem.isCancelled();
-            } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe")) {
+            } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe") || packetName.contains("PlaceRecipePacket")) {
                 final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasPreciseUpdate("1_20_5") && packetContainer.read(3).getData() instanceof Boolean ? packetContainer.read(3) : packetContainer.read(2)).getData());
                 callEvent(AutoCraft);
                 return AutoCraft.isCancelled();
-            } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow")) {
+            } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow") || packetName.contains("ContainerClosePacket")) {
                 final InventoryCloseEvent CloseInventory = new InventoryCloseEvent(CompatUtils.getOpenInventory(player));
                 callEvent(CloseInventory);
                 return CloseInventory.isCancelled();
@@ -137,7 +137,7 @@ public class ProtocolManager {
                     callEvent(PrepareAnvil);
                     return PrepareAnvil.isCancelled();
                 }
-            } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick")) {
+            } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick") || packetName.contains("ContainerClickPacket")) {
                 if (packetContainer.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
                     final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) packetContainer.read(3).getData() : (int) packetContainer.read(1).getData());
                     if (slot >= 0) {
