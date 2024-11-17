@@ -129,7 +129,7 @@ public class ProtocolManager {
                 final InventoryCloseEvent CloseInventory = new InventoryCloseEvent(CompatUtils.getOpenInventory(player));
                 callEvent(CloseInventory);
                 return CloseInventory.isCancelled();
-            } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload")) {
+            } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload") || packetName.contains("RenameItemPacket")) {
                 if (packetContainer.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && CompatUtils.getInventoryType(player).name().equalsIgnoreCase("ANVIL")) {
                     final Object UnbufferedPayload = packetContainer.read(1).getData();
                     final String renameText = (String) UnbufferedPayload.getClass().getMethod(ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
