@@ -17,8 +17,10 @@
  */
 package me.RockinChaos.core.utils;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,7 +28,9 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings({"unused"})
 public class TimerUtils {
-    private static final Map<String, Map<Object, Long>> timedMap = new HashMap<>();
+    private static final Map<String, Map<Object, Long>> timedMap = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
+    static { cleaner.scheduleAtFixedRate(TimerUtils::clearExpired, 1, 1, TimeUnit.MINUTES); }
 
     /**
      * Sets an object with a unique ID and the current time.
@@ -39,7 +43,7 @@ public class TimerUtils {
     public static void setExpiry(final String uniqueId, final Object object, final int duration, final TimeUnit... timeUnit) {
         final long future = (timeUnit == null || timeUnit.length == 0 ? StringUtils.ticksToMillis(duration) : timeUnit[0].toMillis(duration));
         final long expiryTime = System.currentTimeMillis() + future;
-        timedMap.computeIfAbsent(uniqueId, k -> new HashMap<>()).put(object, expiryTime);
+        timedMap.computeIfAbsent(uniqueId, k -> new ConcurrentHashMap<>()).put(object, expiryTime);
     }
 
     /**
@@ -51,14 +55,9 @@ public class TimerUtils {
      */
     public static boolean isExpired(final String uniqueId, final Object object) {
         final Map<Object, Long> objectMap = timedMap.get(uniqueId);
-        if (objectMap == null) {
-            return true;
-        }
+        if (objectMap == null) return true;
         final Long expiryTime = objectMap.get(object);
-        if (expiryTime == null) {
-            return true;
-        }
-        return expiryTime <= System.currentTimeMillis();
+        return expiryTime == null || expiryTime <= System.currentTimeMillis();
     }
 
     /**
@@ -66,7 +65,7 @@ public class TimerUtils {
      *
      * @param uniqueId the unique identifier for the object
      * @param object   the object to be retrieved
-     * @return the exact Object instance stored if its not expired.
+     * @return the exact Object instance stored if it's not expired.
      */
     public static Object getAlive(final String uniqueId, final Object object) {
         if (!isExpired(uniqueId, object)) {
@@ -89,9 +88,9 @@ public class TimerUtils {
      * @param force    the object should be removed whether expired or not.
      */
     public static void removeExpiry(final String uniqueId, final Object object, final boolean force) {
-        if (force || isExpired(uniqueId, object)) {
-            final Map<Object, Long> objectMap = timedMap.get(uniqueId);
-            if (objectMap != null) {
+        final Map<Object, Long> objectMap = timedMap.get(uniqueId);
+        if (objectMap != null) {
+            if (force || isExpired(uniqueId, object)) {
                 objectMap.remove(object);
                 if (objectMap.isEmpty()) {
                     timedMap.remove(uniqueId);
@@ -104,8 +103,10 @@ public class TimerUtils {
      * Clears all expired objects from the map.
      */
     public static void clearExpired() {
-        long currentTime = System.currentTimeMillis();
-        timedMap.forEach((id, objectMap) -> objectMap.values().removeIf(expiryTime -> expiryTime <= currentTime));
-        timedMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        synchronized (timedMap) {
+            final long currentTime = System.currentTimeMillis();
+            timedMap.forEach((id, objectMap) -> objectMap.values().removeIf(expiryTime -> expiryTime <= currentTime));
+            timedMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        }
     }
 }
