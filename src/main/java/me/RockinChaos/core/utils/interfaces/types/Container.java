@@ -17,6 +17,7 @@
  */
 package me.RockinChaos.core.utils.interfaces.types;
 
+import me.RockinChaos.core.utils.CompatUtils;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ReflectionUtils.FieldAccessor;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
@@ -298,11 +299,17 @@ public class Container {
      * @param event - The PrepareAnvilEvent instance.
      */
     public void removeCost(final @Nonnull PrepareAnvilEvent event) {
-        if (ServerUtils.hasSpecificUpdate("1_21")) { // still experimental...
-            event.getView().setRepairCost(0);
-        } else if (ServerUtils.hasSpecificUpdate("1_11")) {
-            LegacyAPI.setRepairCost(event.getInventory(), 0);
-        }
+        CompatUtils.resolveByVersion("1_21",
+            () -> {
+                event.getView().setRepairCost(0); // still experimental... not even supported across all server platforms...
+                return null;
+                }, () -> {
+                if (ServerUtils.hasSpecificUpdate("1_11")) {
+                    LegacyAPI.setRepairCost(event.getInventory(), 0);
+                }
+                return null;
+            }
+        );
     }
 
     /**

@@ -810,8 +810,8 @@ public class Query {
          */
         @EventHandler
         public final void onPrepareAnvil(final PrepareAnvilEvent event) {
-            if (event.getInventory().equals(inventory)) { // still experimental...
-                final String renameText = ServerUtils.hasSpecificUpdate("1_21") ? event.getView().getRenameText() : LegacyAPI.getRenameText(event);
+            if (event.getInventory().equals(inventory)) {
+                final String renameText = (String) CompatUtils.resolveByVersion("1_21", () -> event.getView().getRenameText(), () -> LegacyAPI.getRenameText(event)); // still experimental... not even supported across all server platforms...
                 if (renameText != null) {
                     container.handleTyping(renameText);
                     {

@@ -38,6 +38,7 @@ import org.bukkit.potion.PotionEffectType;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Welcome to the magical land of hopes and dreams.
@@ -290,17 +291,17 @@ public class CompatUtils {
      */
     public static String getName(final @Nonnull Object object) {
         if (object instanceof Attribute) {
-            return (ServerUtils.hasSpecificUpdate("1_21") ? ((Attribute) object).getKey().getKey() : LegacyAPI.getAttributeName(object)).toUpperCase();
+            return ((String) resolveByVersion("1_21", () -> ((Attribute) object).getKey().getKey(), () -> LegacyAPI.getAttributeName(object))).toUpperCase();
         } else if (object instanceof Sound) {
-            return (ServerUtils.hasSpecificUpdate("1_21") ? ((Sound) object).getKey().getKey() : LegacyAPI.getSoundName(object)).toUpperCase();
+            return ((String) resolveByVersion("1_21", () -> ((Sound) object).getKey().getKey(), () -> LegacyAPI.getSoundName(object))).toUpperCase();
         } else if (object instanceof Pattern) {
-            return (ServerUtils.hasSpecificUpdate("1_21") ? ((Pattern)object).getPattern().getKey().getKey() : LegacyAPI.getPatternName(((Pattern)object).getPattern())).toUpperCase();
+            return ((String) resolveByVersion( "1_21", () -> ((Pattern) object).getPattern().getKey().getKey(), () -> LegacyAPI.getPatternName(((Pattern) object).getPattern()))).toUpperCase();
         } else if (object instanceof PatternType) {
-            return (ServerUtils.hasSpecificUpdate("1_21") ? ((PatternType)object).getKey().getKey() : LegacyAPI.getPatternName(object)).toUpperCase();
+            return ((String) resolveByVersion("1_21", () -> ((PatternType) object).getKey().getKey(), () -> LegacyAPI.getPatternName(object))).toUpperCase();
         } else if (object instanceof PotionEffect) {
-            return (ServerUtils.hasPreciseUpdate("1_20_3") ? ((PotionEffect)object).getType().getKey().getKey() : LegacyAPI.getEffectName(((PotionEffect)object).getType())).toUpperCase();
+            return ((String) resolveByVersion("1_20_3", () -> ((PotionEffect) object).getType().getKey().getKey(), () -> LegacyAPI.getEffectName(((PotionEffect) object).getType()))).toUpperCase();
         } else if (object instanceof PotionEffectType) {
-            return (ServerUtils.hasPreciseUpdate("1_20_3") ? ((PotionEffectType)object).getKey().getKey() : LegacyAPI.getEffectName(object)).toUpperCase();
+            return ((String) resolveByVersion( "1_20_3", () -> ((PotionEffectType) object).getKey().getKey(), () -> LegacyAPI.getEffectName(object))).toUpperCase();
         }
         throw new RuntimeException("{CompatUtils} Unable to get name of an unknown class: " + object.getClass().getName());
     }
@@ -319,15 +320,15 @@ public class CompatUtils {
      */
     public static <T> List<T> values(final @Nonnull Class<T> clazz) {
         if (clazz.equals(Attribute.class)) {
-            return (List<T>) (ServerUtils.hasPreciseUpdate("1_21_3") ? ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()) : LegacyAPI.getAttributes());
+            return (List<T>) resolveByVersion("1_21_3", () -> ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()), LegacyAPI::getAttributes);
         } else if (clazz.equals(Sound.class)) {
-            return (List<T>) (ServerUtils.hasPreciseUpdate("1_21_3") ? ImmutableList.copyOf(Registry.SOUNDS.iterator()) : LegacyAPI.getSounds());
+            return (List<T>) resolveByVersion("1_21_3", () -> ImmutableList.copyOf(Registry.SOUNDS.iterator()), LegacyAPI::getSounds);
         } else if (clazz.equals(PatternType.class)) {
-            return (List<T>) (ServerUtils.hasPreciseUpdate("1_21") ? ImmutableList.copyOf(Registry.BANNER_PATTERN.iterator()) : LegacyAPI.getPatterns());
+            return (List<T>) resolveByVersion("1_21", () -> ImmutableList.copyOf(Registry.BANNER_PATTERN.iterator()), LegacyAPI::getPatterns);
         } else if (clazz.equals(PotionEffectType.class)) {
-            return (List<T>) (ServerUtils.hasPreciseUpdate("1_20_3") ? ImmutableList.copyOf(Registry.EFFECT.iterator()) : LegacyAPI.getEffects());
+            return (List<T>) resolveByVersion("1_20_3", () -> ImmutableList.copyOf(Registry.EFFECT.iterator()), LegacyAPI::getEffects);
         } else if (clazz.equals(Enchantment.class)) {
-            return (List<T>) (ServerUtils.hasPreciseUpdate("1_20_3") ? ImmutableList.copyOf(Registry.ENCHANTMENT.iterator()) : LegacyAPI.getEnchants());
+            return (List<T>) resolveByVersion("1_20_3", () -> ImmutableList.copyOf(Registry.ENCHANTMENT.iterator()), LegacyAPI::getEnchants);
         }
         throw new RuntimeException("{CompatUtils} Unable to get values of an unknown class: " + clazz.getName());
     }
@@ -344,9 +345,9 @@ public class CompatUtils {
      */
     public static <T> Object valueOf(final @Nonnull Class<T> clazz, final @Nonnull String clazzName) {
         if (clazz.equals(Attribute.class)) {
-            return ServerUtils.hasPreciseUpdate("1_21_3") ? Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))) : LegacyAPI.getAttribute(clazzName);
+            return resolveByVersion("1_21_3", () -> Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))), () -> LegacyAPI.getAttribute(clazzName));
         } else if (clazz.equals(Sound.class)) {
-            return ServerUtils.hasPreciseUpdate("1_21_3") ? Registry.SOUNDS.get(NamespacedKey.minecraft(clazzName.toLowerCase())) : LegacyAPI.getSound(clazzName);
+            return resolveByVersion("1_21_3", () -> Registry.SOUNDS.get(NamespacedKey.minecraft(clazzName.toLowerCase())), () -> LegacyAPI.getSound(clazzName));
         }
         throw new RuntimeException("{CompatUtils} Unable to get values of an unknown class: " + clazz.getName() + " with the value: " + clazzName);
     }
@@ -373,5 +374,23 @@ public class CompatUtils {
             }
         }
         return true;
+    }
+
+    /**
+     * Resolves a value based on the server version.
+     * This utility method attempts to execute modern logic for retrieving a value if the server version supports it.
+     * If the modern logic fails or the version does not support it, the fallback legacy logic is executed instead.
+     *
+     * @param updateVersion The minimum server version required to use the modern logic e.g., 1_21_1)
+     * @param modernGetter  A supplier containing the modern logic to execute (e.g., accessing Registry).
+     * @param legacyGetter  A supplier containing the legacy fallback logic to execute if the modern logic fails or the server version is insufficient.
+     * @return The resolved value, either from the modern logic or the legacy fallback.
+     */
+    public static Object resolveByVersion(final String updateVersion, final Supplier<Object> modernGetter, final Supplier<Object> legacyGetter) {
+        try {
+            return ServerUtils.hasPreciseUpdate(updateVersion) ? modernGetter.get() : legacyGetter.get();
+        } catch (Throwable t) {
+            return legacyGetter.get();
+        }
     }
 }
