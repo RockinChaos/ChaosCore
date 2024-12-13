@@ -620,7 +620,7 @@ public class ReflectionUtils {
         setDouble("setDouble", "setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
         build("build", "build", "a"),
         builder("builder", "builder", "a"),
-        copyTag("copyTag", "copyTag", "c"),
+        copyTag("copyTag", "copyTag", ServerUtils.hasPreciseUpdate("1_21_4") ? "d" : "c"),
         getServer("getServer", "getServer", "b"),
         registryAccess("registryAccess", "registryAccess", "bc"),
         At("at", "create", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
