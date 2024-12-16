@@ -25,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -217,6 +218,7 @@ public class DependAPI {
         try {
             this.skinsNetty = ReflectionUtils.getClass("net.skinsrestorer.api.SkinsRestorerProvider");
         } catch (Exception e1) {
+            final String skinsVersion = Objects.requireNonNull(Bukkit.getServer().getPluginManager().getPlugin("SkinsRestorer")).getDescription().getVersion();
             if (StringUtils.containsIgnoreCase(e1.getMessage(), "SkinsRestorerAPI is not initialized yet!") || StringUtils.containsIgnoreCase(e1.getMessage(), "SkinsRestorer API is not initialized yet!")) {
                 return;
             }
@@ -230,8 +232,8 @@ public class DependAPI {
                         this.skinsNetty = ReflectionUtils.getClass("skinsrestorer.bukkit.SkinsRestorer");
                     } catch (Exception e4) {
                         ServerUtils.sendDebugTrace(e4);
-                        ServerUtils.logSevere("{DependAPI} [1] Unsupported SkinsRestorer version detected, disabling SkinsRestorer support.");
-                        ServerUtils.logWarn("{DependAPI} [1] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                        ServerUtils.logSevere("{DependAPI} [1] Unsupported SkinsRestorer version " + skinsVersion + " detected (THIS IS NOT A BUG), disabling SkinsRestorer support.");
+                        ServerUtils.logSevere("{DependAPI} [1] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented and make sure you are running the latest version of " + Core.getCore().getPlugin().getName() + ".");
                     }
                 }
             }
@@ -241,6 +243,7 @@ public class DependAPI {
                 final Object skinsInstance = this.skinsNetty.getMethod("get").invoke(null);
                 this.skinsRestorer = skinsInstance.getClass().getMethod("getPlayerStorage").invoke(skinsInstance);
             } catch (Exception e1) {
+                final String skinsVersion = Objects.requireNonNull(Bukkit.getServer().getPluginManager().getPlugin("SkinsRestorer")).getDescription().getVersion();
                 try {
                     final Object skinsInstance = this.skinsNetty.getMethod("getInstance").invoke(null);
                     this.skinsRestorer = skinsInstance.getClass().getMethod("getSkinsRestorerBukkitAPI").invoke(skinsInstance);
@@ -254,7 +257,7 @@ public class DependAPI {
                             this.isSkinsProxy(e3.getCause());
                         } catch (NullPointerException e4) {
                             if (StringUtils.containsIgnoreCase(e4.getMessage(), "Cannot invoke \"java.lang.Throwable.getMessage()\" because \"cause\" is null")) {
-                                ServerUtils.logSevere("{DependAPI} [1] An unknown issue occurred when checking SkinsRestorer for proxy mode.");
+                                ServerUtils.logSevere("{DependAPI} [1] An unknown issue occurred when checking SkinsRestorer " + skinsVersion + " for proxy mode.");
                                 ServerUtils.sendSevereTrace(e1);
                                 ServerUtils.sendSevereTrace(e2);
                                 ServerUtils.sendSevereTrace(e3);
@@ -263,8 +266,8 @@ public class DependAPI {
                             }
                         }
                         if (!this.proxySkins) {
-                            ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version detected, disabling SkinsRestorer support.");
-                            ServerUtils.logWarn("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                            ServerUtils.logSevere("{DependAPI} [2] Unsupported SkinsRestorer version " + skinsVersion + " detected (THIS IS NOT A BUG), disabling SkinsRestorer support.");
+                            ServerUtils.logSevere("{DependAPI} [2] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented and make sure you are running the latest version of " + Core.getCore().getPlugin().getName() + ".");
                         }
                     }
                 }
@@ -297,6 +300,7 @@ public class DependAPI {
             final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
             return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
         } catch (Exception e1) {
+            final String skinsVersion = Objects.requireNonNull(Bukkit.getServer().getPluginManager().getPlugin("SkinsRestorer")).getDescription().getVersion();
             try {
                 final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
                 final String ownerData = (playerData != null ? (String) playerData : owner);
@@ -315,8 +319,8 @@ public class DependAPI {
                     ServerUtils.sendDebugTrace(e2);
                     ServerUtils.logDebug("Start of the third trace.");
                     ServerUtils.sendDebugTrace(e3);
-                    ServerUtils.logSevere("{DependAPI} [3] Unsupported SkinsRestorer version detected, unable to set the skull owner " + owner + ".");
-                    ServerUtils.logWarn("{DependAPI} [3] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented.");
+                    ServerUtils.logSevere("{DependAPI} [3] Unsupported SkinsRestorer version " + skinsVersion + " detected (THIS IS NOT A BUG), unable to set the skull owner " + owner + ".");
+                    ServerUtils.logSevere("{DependAPI} [3] If you are using the latest version of SkinsRestorer, consider downgrading until an fix is implemented and make sure you are running the latest version of " + Core.getCore().getPlugin().getName() + ".");
                 }
             }
         }
