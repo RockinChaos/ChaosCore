@@ -117,7 +117,7 @@ public class ProtocolManager {
      */
     public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull PacketContainer packetContainer) {
         try {
-            if (packetName.equalsIgnoreCase("PacketPlayInPickItem") || packetName.contains("SetCarriedItemPacket")) {
+            if (packetName.equalsIgnoreCase("PacketPlayInPickItem") || packetName.contains("PickItemFromBlockPacket")) {
                 final PlayerPickItemEvent PickItem = new PlayerPickItemEvent(player, player.getInventory());
                 callEvent(PickItem);
                 return PickItem.isCancelled();
