@@ -17,6 +17,7 @@
  */
 package me.RockinChaos.core.utils;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.bukkit.Material;
@@ -32,6 +33,7 @@ import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -374,6 +376,21 @@ public class CompatUtils {
             }
         }
         return true;
+    }
+
+    /**
+     * Sets dummy attribute modifiers for the given {@link ItemMeta} if required.
+     * This ensures compatibility with PaperMC or similar forks for version 1.20.5 or higher,
+     * where attribute modifiers must be explicitly set, only doing so if attributes do not already exist.
+     * <p>
+     * This exists because Paper wants to be a special snowflake breaking what works on Spigot just fine...
+     *
+     * @param itemMeta The {@link ItemMeta} to modify.
+     */
+    public static void setDummyAttributes(final ItemMeta itemMeta) {
+        if (ServerUtils.hasPreciseUpdate("1_20_5") && ServerUtils.isPaper() && itemMeta.getAttributeModifiers() == null) {
+            itemMeta.setAttributeModifiers(HashMultimap.create());
+        }
     }
 
     /**

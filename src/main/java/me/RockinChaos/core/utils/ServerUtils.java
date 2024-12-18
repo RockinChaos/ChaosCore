@@ -88,6 +88,20 @@ public class ServerUtils {
     }
 
     /**
+     * Checks if the current server is running Paper (PaperMC or derivatives like Purpur).
+     *
+     * @return true if the server is running Paper, false otherwise.
+     */
+    public static boolean isPaper() {
+        try {
+            Class.forName("com.destroystokyo.paper.Title");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
      * Sends a low priority log message as the plugin header.
      *
      * @param message - The un-formatted message text to be sent.
