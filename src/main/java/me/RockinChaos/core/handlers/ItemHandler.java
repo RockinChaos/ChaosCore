@@ -390,6 +390,7 @@ public class ItemHandler {
             tempMeta.setLore(loreList);
         }
         if (hideAttributes && tempMeta != null) {
+            CompatUtils.setDummyAttributes(tempMeta);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DESTROYS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
