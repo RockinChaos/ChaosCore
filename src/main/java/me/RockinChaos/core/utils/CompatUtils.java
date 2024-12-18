@@ -292,7 +292,7 @@ public class CompatUtils {
      * @return The name of the Object.
      */
     public static String getName(final @Nonnull Object object) {
-        if (object instanceof Attribute) {
+        if (ServerUtils.hasSpecificUpdate("1_9") && object instanceof Attribute) {
             return ((String) resolveByVersion("1_21", () -> ((Attribute) object).getKey().getKey(), () -> LegacyAPI.getAttributeName(object))).toUpperCase();
         } else if (object instanceof Sound) {
             return ((String) resolveByVersion("1_21", () -> ((Sound) object).getKey().getKey(), () -> LegacyAPI.getSoundName(object))).toUpperCase();
@@ -321,7 +321,7 @@ public class CompatUtils {
      * @return The values of the Object Class.
      */
     public static <T> List<T> values(final @Nonnull Class<T> clazz) {
-        if (clazz.equals(Attribute.class)) {
+        if (ServerUtils.hasSpecificUpdate("1_9") && clazz.equals(Attribute.class)) {
             return (List<T>) resolveByVersion("1_21_3", () -> ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()), LegacyAPI::getAttributes);
         } else if (clazz.equals(Sound.class)) {
             return (List<T>) resolveByVersion("1_21_3", () -> ImmutableList.copyOf(Registry.SOUNDS.iterator()), LegacyAPI::getSounds);
@@ -346,7 +346,7 @@ public class CompatUtils {
      * @return The Class Object of the clazzName.
      */
     public static <T> Object valueOf(final @Nonnull Class<T> clazz, final @Nonnull String clazzName) {
-        if (clazz.equals(Attribute.class)) {
+        if (ServerUtils.hasSpecificUpdate("1_9") && clazz.equals(Attribute.class)) {
             return resolveByVersion("1_21_3", () -> Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))), () -> LegacyAPI.getAttribute(clazzName));
         } else if (clazz.equals(Sound.class)) {
             return resolveByVersion("1_21_3", () -> Registry.SOUNDS.get(NamespacedKey.minecraft(clazzName.toLowerCase())), () -> LegacyAPI.getSound(clazzName));
