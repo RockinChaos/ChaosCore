@@ -1242,8 +1242,7 @@ public class ItemHandler {
      * @return If the slot is a crafting slot.
      */
     public static boolean isCraftingSlot(final @Nonnull String slot) {
-        return slot.equalsIgnoreCase("CRAFTING[0]") || slot.equalsIgnoreCase("CRAFTING[1]")
-                || slot.equalsIgnoreCase("CRAFTING[2]") || slot.equalsIgnoreCase("CRAFTING[3]") || slot.equalsIgnoreCase("CRAFTING[4]");
+        return StringUtils.getSlotConversion(slot) != -1;
     }
 
     /**
