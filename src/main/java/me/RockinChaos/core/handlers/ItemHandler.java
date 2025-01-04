@@ -46,10 +46,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class ItemHandler {
@@ -901,22 +902,26 @@ public class ItemHandler {
     }
 
     /**
-     * Converts the Inventory to a Base64 String.
+     * Converts the Inventory to a Compressed Base64 String.
      * This is a way of encrypting an Inventory to be decrypted and referenced later.
      *
      * @param inventory - The Inventory to be converted.
-     * @return The Base64 String of the Inventory.
+     * @return The Compressed Base64 String of the Inventory.
      */
-    public static @Nonnull String serializeInventory(final @Nonnull Inventory inventory) {
+    public static @Nonnull String serializeInventory(@Nonnull Inventory inventory) {
         try {
-            ByteArrayOutputStream str = new ByteArrayOutputStream();
-            org.bukkit.util.io.BukkitObjectOutputStream data = new org.bukkit.util.io.BukkitObjectOutputStream(str);
-            data.writeInt(inventory.getSize());
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            org.bukkit.util.io.BukkitObjectOutputStream dataStream = new org.bukkit.util.io.BukkitObjectOutputStream(byteStream);
+            dataStream.writeInt(inventory.getSize());
             for (int i = 0; i < inventory.getSize(); i++) {
-                data.writeObject(inventory.getItem(i));
+                dataStream.writeObject(inventory.getItem(i));
             }
-            data.close();
-            return Base64.getEncoder().encodeToString(str.toByteArray());
+            dataStream.close();
+            ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
+            GZIPOutputStream gzipStream = new GZIPOutputStream(compressedStream);
+            gzipStream.write(byteStream.toByteArray());
+            gzipStream.close();
+            return Base64.getEncoder().encodeToString(compressedStream.toByteArray());
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -924,26 +929,39 @@ public class ItemHandler {
     }
 
     /**
-     * Converts the Base64 String to an Inventory.
+     * Converts the Compressed Base64 String to an Inventory.
      * This is a way of decrypting an encrypted Inventory to be referenced.
      *
-     * @param inventoryData - The Base64 String to be converted to an Inventory.
+     * @param inventoryData - The Compressed Base64 String to be converted to an Inventory.
      * @return The Inventory instance that has been deserialized.
      */
-    public static @Nullable Inventory deserializeInventory(final @Nonnull String inventoryData) {
+    public static @Nullable Inventory deserializeInventory(@Nonnull String inventoryData) {
         try {
-            ByteArrayInputStream stream = new ByteArrayInputStream(Base64.getDecoder().decode(inventoryData));
-            org.bukkit.util.io.BukkitObjectInputStream data = new org.bukkit.util.io.BukkitObjectInputStream(stream);
-            Inventory inventory = Bukkit.createInventory(null, data.readInt());
-            for (int i = 0; i < inventory.getSize(); i++) {
-                inventory.setItem(i, (ItemStack) data.readObject());
+            byte[] data = Base64.getDecoder().decode(inventoryData);
+            if (data == null || data.length < 2) { return null; }
+            if ((data[0] == (byte) 0x1F && data[1] == (byte) 0x8B)) {
+                ByteArrayInputStream compressedStream = new ByteArrayInputStream(data);
+                GZIPInputStream gzipStream = new GZIPInputStream(compressedStream);
+                ByteArrayOutputStream decompressedStream = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = gzipStream.read(buffer)) != -1) {
+                    decompressedStream.write(buffer, 0, bytesRead);
+                }
+                gzipStream.close();
+                data = decompressedStream.toByteArray();
             }
-            data.close();
+            ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+            org.bukkit.util.io.BukkitObjectInputStream dataStream = new org.bukkit.util.io.BukkitObjectInputStream(byteStream);
+
+            Inventory inventory = Bukkit.createInventory(null, dataStream.readInt());
+            for (int i = 0; i < inventory.getSize(); i++) {
+                inventory.setItem(i, (ItemStack) dataStream.readObject());
+            }
+            dataStream.close();
             return inventory;
-        } catch (EOFException e) {
-            return null;
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
+            ServerUtils.sendSevereTrace(e);
         }
         return null;
     }
