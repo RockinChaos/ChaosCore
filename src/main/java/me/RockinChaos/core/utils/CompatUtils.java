@@ -405,7 +405,7 @@ public class CompatUtils {
      */
     public static Object resolveByVersion(final String updateVersion, final Supplier<Object> modernGetter, final Supplier<Object> legacyGetter) {
         try {
-            return ServerUtils.hasPreciseUpdate(updateVersion) ? modernGetter.get() : legacyGetter.get();
+            return ServerUtils.hasPreciseUpdate(updateVersion) ? modernGetter.get() != null ? modernGetter.get() : legacyGetter.get() : legacyGetter.get();
         } catch (Throwable t) {
             return legacyGetter.get();
         }
