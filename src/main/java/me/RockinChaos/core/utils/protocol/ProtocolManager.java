@@ -137,7 +137,7 @@ public class ProtocolManager {
                     callEvent(PrepareAnvil);
                     return PrepareAnvil.isCancelled();
                 }
-            } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick") || packetName.contains("ContainerClickPacket")) {
+            } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick") || packetName.contains("ContainerClickPacket")) { // yeeted in Minecraft 1.21+, thanks Microsoft...
                 if (packetContainer.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
                     final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) packetContainer.read(3).getData() : (int) packetContainer.read(1).getData());
                     if (slot >= 0) {
