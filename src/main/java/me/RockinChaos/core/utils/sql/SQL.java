@@ -121,8 +121,9 @@ public class SQL {
      * Removes the table data for the specified Object.
      *
      * @param object - The Object being accessed.
+     * @param ignoreValues - If the entire table should be purged regardless of values.
      */
-    public void removeData(final @Nonnull Object object) {
+    public void removeData(final @Nonnull Object object, final @Nullable boolean... ignoreValues) {
         try {
             final String tableName = (String) object.getClass().getMethod("getTableName").invoke(object);
             if (this.databaseData.get(tableName) != null && !this.databaseData.get(tableName).isEmpty()) {
@@ -134,16 +135,17 @@ public class SQL {
                     final String tableRemovals = (String) dataObject.getClass().getMethod("getRemovalValues").invoke(dataObject);
                     if (tableName.equals(dataSetName)) {
                         final Boolean equalsDate = (Boolean) object.getClass().getMethod("equalsData", Object.class, Object.class).invoke(object, object, dataObject);
-                        if (equalsDate) {
+                        final boolean requireData = ignoreValues == null || ignoreValues.length == 0 || !ignoreValues[0];
+                        if (equalsDate || !requireData) {
                             if (Core.getCore().getPlugin().isEnabled()) {
                                 SchedulerUtils.runSingleAsync(() -> {
                                     synchronized ("CC_SQL") {
-                                        Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")");
+                                        Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + (requireData ? " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")" : ""));
                                     }
                                 });
                             } else {
                                 synchronized ("CC_SQL") {
-                                    Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")");
+                                    Database.getDatabase().executeStatement("DELETE FROM " + Core.getCore().getData().getTablePrefix() + dataSetName + (requireData ? " WHERE (" + tableRemoval + ") = (" + tableRemovals + ")" : ""));
                                 }
                             }
                             dataSet.remove();
