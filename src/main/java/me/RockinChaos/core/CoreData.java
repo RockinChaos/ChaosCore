@@ -337,7 +337,7 @@ public class CoreData {
      * @return The database table prefix.
      */
     public @Nonnull String getTablePrefix() {
-        return this.tablePrefix;
+        return this.tablePrefix != null && !this.tablePrefix.isEmpty() && !this.tablePrefix.equalsIgnoreCase("NULL") ? this.tablePrefix : "";
     }
 
     /**
