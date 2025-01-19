@@ -43,6 +43,7 @@ public class PlaceHolder {
      * @return The PlaceHolder instance.
      */
     public PlaceHolder with(final @Nonnull Holder holder, final @Nonnull String key) {
+        if (this.keys.containsKey(holder) && this.keys.get(holder) != null && !this.keys.get(holder).trim().isEmpty()) { return this; }
         this.keys.put(holder, key);
         return this;
     }
