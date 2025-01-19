@@ -191,6 +191,8 @@ public class LanguageAPI {
             this.langType = Lang.POLISH;
         } else if (lang.equalsIgnoreCase("it")) {
             this.langType = Lang.ITALIAN;
+        } else if (lang.equalsIgnoreCase("de")) {
+            this.langType = Lang.GERMAN;
         }
     }
 
@@ -248,6 +250,8 @@ public class LanguageAPI {
                     this.setLanguage("pl");
                 } else if (lang.equalsIgnoreCase("Italian")) {
                     this.setLanguage("it");
+                } else if (lang.equalsIgnoreCase("German")) {
+                    this.setLanguage("de");
                 } else {
                     this.setLanguage("en");
                 }
@@ -274,7 +278,18 @@ public class LanguageAPI {
      * Defines the Lang type for the Language.
      */
     private enum Lang {
-        DEFAULT("en-lang.yml", 0), ENGLISH("en-lang.yml", 1), SPANISH("es-lang.yml", 2), TWCHINESE("tw-lang.yml", 3), CNCHINESE("cn-lang.yml", 4), RUSSIAN("ru-lang.yml", 5), FRENCH("fr-lang.yml", 6), DUTCH("nl-lang.yml", 7), PORTUGUESE("pt-lang.yml", 8), POLISH("pl-lang.yml", 8), ITALIAN("it-lang.yml", 10);
+        DEFAULT("en-lang.yml", 0),
+        ENGLISH("en-lang.yml", 1),
+        SPANISH("es-lang.yml", 2),
+        TWCHINESE("tw-lang.yml", 3),
+        CNCHINESE("cn-lang.yml", 4),
+        RUSSIAN("ru-lang.yml", 5),
+        FRENCH("fr-lang.yml", 6),
+        DUTCH("nl-lang.yml", 7),
+        PORTUGUESE("pt-lang.yml", 8),
+        POLISH("pl-lang.yml", 9),
+        ITALIAN("it-lang.yml", 10),
+        GERMAN("de-lang.yml", 11);
 
         private final String nodeLocation;
 
