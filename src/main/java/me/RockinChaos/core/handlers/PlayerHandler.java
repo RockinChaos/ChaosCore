@@ -695,21 +695,34 @@ public class PlayerHandler {
      */
     public static @Nonnull String getNearbyPlayer(final @Nonnull Player player, final int range) {
         if (SchedulerUtils.isMainThread()) {
-            ArrayList<Location> sight = new ArrayList<>();
-            ArrayList<Entity> entities = (ArrayList<Entity>) player.getNearbyEntities(range, range, range);
-            Location origin = player.getEyeLocation();
-            sight.add(origin.clone().add(origin.getDirection()));
-            sight.add(origin.clone().add(origin.getDirection().multiply(range)));
-            sight.add(origin.clone().add(origin.getDirection().multiply(range + 3)));
-            for (Location location : sight) {
-                for (Entity entity : entities) {
-                    if (Math.abs(entity.getLocation().getX() - location.getX()) < 1.3) {
-                        if (Math.abs(entity.getLocation().getY() - location.getY()) < 1.5) {
-                            if (Math.abs(entity.getLocation().getZ() - location.getZ()) < 1.3) {
-                                if (entity instanceof Player) {
-                                    return entity.getName();
-                                }
+            if (ServerUtils.hasSpecificUpdate("1_14")) { // raytrace doesn't exist in versions below 1.14.
+                final Location eyeLocation = player.getEyeLocation();
+                final org.bukkit.util.Vector direction = eyeLocation.getDirection().normalize();
+                double closestDistanceSquared = Double.MAX_VALUE;
+                Player targetPlayer = null;
+                for (Entity entity : player.getNearbyEntities(range, range, range)) {
+                    if (entity instanceof Player) {
+                        Player nearbyPlayer = (Player) entity;
+                        if (nearbyPlayer.equals(player)) continue;
+                        final org.bukkit.util.RayTraceResult result = nearbyPlayer.getBoundingBox().rayTrace(eyeLocation.toVector(), direction, range);
+                        if (result != null) {
+                            double distanceSquared = eyeLocation.distanceSquared(result.getHitPosition().toLocation(player.getWorld()));
+                            if (distanceSquared < closestDistanceSquared) {
+                                closestDistanceSquared = distanceSquared;
+                                targetPlayer = nearbyPlayer;
                             }
+                        }
+                    }
+                }
+                if (targetPlayer != null) return targetPlayer.getName();
+            } else {
+                final List<Block> lineOfSight = player.getLineOfSight(null, range);
+                for (final Block block : lineOfSight) {
+                    final Location blockLocation = block.getLocation();
+                    for (Entity entity : player.getWorld().getNearbyEntities(blockLocation, 0.5, 0.5, 0.5)) {
+                        if (entity instanceof Player) {
+                            final Player nearbyPlayer = (Player) entity;
+                            if (!nearbyPlayer.equals(player)) return nearbyPlayer.getName();
                         }
                     }
                 }

@@ -750,7 +750,7 @@ public class StringUtils {
                             .with(Holder.PLAYER_HEALTH, String.valueOf(player.getHealth()))
                             .with(Holder.PLAYER_LEVEL,String.valueOf(player.getLevel()))
                             .with(Holder.PLAYER_LOCATION, player.getLocation().getBlockX() + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ())
-                            .with(Holder.PLAYER_INTERACT, PlayerHandler.getNearbyPlayer(player, 3));
+                            .with(Holder.PLAYER_INTERACT, PlayerHandler.getNearbyPlayer(player, 5));
                 } catch (Exception e) {
                     ServerUtils.sendDebugTrace(e);
                 }
