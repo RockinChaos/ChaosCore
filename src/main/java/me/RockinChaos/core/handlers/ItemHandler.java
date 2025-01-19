@@ -352,7 +352,11 @@ public class ItemHandler {
         }
         if (ServerUtils.hasSpecificUpdate("1_13")) {
             final Material bukkitMaterial = getMaterial(material, null);
-            tempItem = new ItemStack(bukkitMaterial != Material.AIR ? bukkitMaterial : Material.STONE, count);
+            try {
+                tempItem = new ItemStack(bukkitMaterial != Material.AIR ? bukkitMaterial : Material.STONE, count);
+            } catch (IllegalArgumentException e) { // catch any "isn't an item" errors thrown by paper in MC 1.21+.
+                return new ItemStack(Material.AIR);
+            }
         } else {
             short dataValue = 0;
             if (material.contains(":")) {
