@@ -73,12 +73,7 @@ public class SQL {
                     }
                 }
             }
-            {
-                this.databaseData.clear();
-                {
-                    this.createTables();
-                }
-            }
+            this.databaseData.clear();
         });
     }
 

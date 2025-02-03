@@ -19,9 +19,9 @@ package me.RockinChaos.core.utils.sql;
 
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.CoreData;
-import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -102,9 +102,9 @@ public class Database extends Controller {
         Connection conn = null;
         Statement ps = null;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            ps.executeUpdate(statement);
+            final Object[] executed = executeStatement(statement, false);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
         } catch (Exception e) {
             ServerUtils.logSevere("{SQL} [1] Failed to execute database statement.");
             if (conn != null) {
@@ -134,9 +134,10 @@ public class Database extends Controller {
         ResultSet rs = null;
         Object returnValue = null;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            rs = ps.executeQuery(statement);
+            final Object[] executed = executeStatement(statement, true);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
+            rs = (ResultSet) executed[2];
             if (rs.next()) {
                 returnValue = rs.getObject(row);
             }
@@ -170,9 +171,10 @@ public class Database extends Controller {
         Statement ps = null;
         ResultSet rs = null;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            rs = ps.executeQuery(statement);
+            final Object[] executed = executeStatement(statement, true);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
+            rs = (ResultSet) executed[2];
             while (rs.next()) {
                 objects.add(rs.getObject(row));
             }
@@ -206,13 +208,14 @@ public class Database extends Controller {
         Statement ps = null;
         ResultSet rs = null;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            rs = ps.executeQuery(statement);
+            final Object[] executed = executeStatement(statement, true);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
+            rs = (ResultSet) executed[2];
             while (rs.next()) {
                 final HashMap<String, String> columnData = new HashMap<>();
                 for (final String singleRow : rows.split(", ")) {
-                    if (this.isClosed(rs) && !this.isClosed(conn)) {
+                    if (!this.isClosed(rs) && !this.isClosed(conn)) {
                         columnData.put(singleRow, rs.getString(singleRow));
                     }
                 }
@@ -249,9 +252,10 @@ public class Database extends Controller {
         Statement ps = null;
         ResultSet rs = null;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            rs = ps.executeQuery(statement);
+            final Object[] executed = executeStatement(statement, true);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
+            rs = (ResultSet) executed[2];
             while (rs.next()) {
                 for (final String singleRow : row) {
                     objects.add(rs.getObject(singleRow));
@@ -289,12 +293,13 @@ public class Database extends Controller {
         ResultSet rs = null;
         boolean columnExists = false;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            rs = ps.executeQuery(statement);
+            final Object[] executed = executeStatement(statement, true);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
+            rs = (ResultSet) executed[2];
             columnExists = true;
         } catch (Exception e) {
-            if (!(StringUtils.containsIgnoreCase(e.getMessage(), "no such column") || StringUtils.containsIgnoreCase(e.getMessage(), "unknown column") || StringUtils.containsIgnoreCase(e.getMessage(), "unknown error"))) {
+            if (!(StringUtils.containsIgnoreCase(e.getCause().getMessage(), "no such column") || StringUtils.containsIgnoreCase(e.getCause().getMessage(), "unknown column") || StringUtils.containsIgnoreCase(e.getCause().getMessage(), "unknown error"))) {
                 ServerUtils.logSevere("{SQL} [6] Failed to execute database statement.");
                 if (conn != null) {
                     try {
@@ -326,7 +331,7 @@ public class Database extends Controller {
             conn = this.getConnection();
             rs = conn.getMetaData().getTables(null, null, tableName, null);
             while (rs.next()) {
-                if (this.isClosed(rs) && !this.isClosed(conn)) {
+                if (!this.isClosed(rs) && !this.isClosed(conn)) {
                     final String tName = rs.getString("TABLE_NAME");
                     if (tName != null && tName.equals(tableName)) {
                         tExists = true;
@@ -355,9 +360,10 @@ public class Database extends Controller {
         ResultSet rs = null;
         boolean dataExists = false;
         try {
-            conn = this.getConnection();
-            ps = conn.createStatement();
-            rs = ps.executeQuery(statement);
+            final Object[] executed = executeStatement(statement, true);
+            conn = (Connection) executed[0];
+            ps = (Statement) executed[1];
+            rs = (ResultSet) executed[2];
             if (rs != null && !rs.isBeforeFirst()) {
                 ServerUtils.logDebug("{SQL} Result set is empty.");
             } else {
@@ -371,6 +377,43 @@ public class Database extends Controller {
             this.close(ps, rs, conn, false);
         }
         return dataExists;
+    }
+
+    /**
+     * Attempts to execute a SQL statement with retry logic for failed connections.
+     *
+     * @param statement - the SQL statement to be executed.
+     * @param isQuery   - whether the statement is a query (select) or update.
+     * @return An array containing the Connection, Statement, and ResultSet (if applicable).
+     */
+    private Object[] executeStatement(final @Nonnull String statement, final boolean isQuery, final boolean...retry) {
+        Connection conn = null;
+        Statement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = this.getConnection(retry.length > 0 && retry[0]);
+            ps = conn.createStatement();
+            if (isQuery) {
+                rs = ps.executeQuery(statement);
+            } else {
+                ps.executeUpdate(statement);
+            }
+            return new Object[] { conn, ps, rs };
+        } catch (SQLException e) {
+            if (e instanceof SQLNonTransientConnectionException || e instanceof CommunicationsException || StringUtils.containsIgnoreCase(e.getMessage(), "The database has been closed") || StringUtils.containsIgnoreCase(e.getMessage(), "Communications link failure")) {
+                ServerUtils.logDebug("{SQL} Failed to execute statement: " + statement);
+                ServerUtils.logDebug("{SQL} Attempting to restart database connection and retry...");
+                if (retry.length == 0) {
+                    this.close(ps, rs, conn, true);
+                    return executeStatement(statement, isQuery, true);
+                } else {
+                    ServerUtils.logSevere("{SQL} [Retry] An attempt was made to restart the connection but failed, this is likely a connection issue!");
+                    throw new IllegalStateException("{SQL} [Retry] Failed to execute statement: " + statement);
+                }
+            } else {
+                throw new IllegalStateException("{SQL} Failed to execute statement: " + statement, e);
+            }
+        }
     }
 
     /**
@@ -388,67 +431,67 @@ public class Database extends Controller {
 abstract class Controller {
     protected Connection connection;
     protected String dataFolder;
-    protected boolean stopConnection = false;
 
     /**
      * Gets the proper SQL connection.
      *
      * @return The SQL connection.
      */
-    protected @Nonnull Connection getConnection() {
+    protected @Nonnull Connection getConnection(final boolean...force) throws SQLException {
         synchronized ("CC_SQL") {
-            if (this.isClosed(this.connection) && !this.stopConnection) {
-                if (this.isClosed(this.connection)) {
-                    if (Core.getCore().getData().sqlEnabled()) {
+            if (this.isClosed(this.connection) || (force.length > 0 && force[0])) {
+                ServerUtils.logDebug("{SQL} Connection was detected as being closed, initializing... isClosed: " + this.connection + " " + (this.connection == null || this.connection.isClosed()) + " forced: " + (force.length > 0 && force[0]));
+                if (Core.getCore().getData().sqlEnabled()) {
+                    ServerUtils.logDebug("{SQL} Detected MySQL configuration, setting up!");
+                    try {
+                        final CoreData data = Core.getCore().getData();
+                        String database = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "/" + data.getSQLDatabase() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=20000&socketTimeout=20000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
+                        Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
                         try {
-                            final CoreData data = Core.getCore().getData();
-                            String database = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "/" + data.getSQLDatabase() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=10000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
-                            Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
-                            try {
-                                connection = DriverManager.getConnection(database, data.getSQLUser(), data.getSQLPass());
-                                final Statement statement = connection.createStatement();
-                                statement.executeUpdate("SET NAMES 'utf8'");
-                                statement.close();
-                            } catch (Exception e) {
-                                if (e.getMessage().toLowerCase().contains("unknown database")) {
-                                    Statement ps = null;
-                                    try {
-                                        final String newDatabase = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=10000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
-                                        this.connection = DriverManager.getConnection(newDatabase, data.getSQLUser(), data.getSQLPass());
-                                        ps = this.connection.createStatement();
-                                        ps.executeUpdate("CREATE DATABASE IF NOT EXISTS " + data.getSQLDatabase() + ";");
-                                    } catch (Exception e2) {
-                                        ServerUtils.logSevere("{SQL} [1] Failed create the database, please manually create the database defined in your config.yml Database settings.");
-                                        ServerUtils.sendSevereTrace(e);
-                                    } finally {
-                                        this.close(ps, null, this.connection, true);
-                                        {
-                                            this.getConnection();
-                                        }
+                            this.connection = DriverManager.getConnection(database, data.getSQLUser(), data.getSQLPass());
+                            final Statement statement = this.connection.createStatement();
+                            statement.executeUpdate("SET NAMES 'utf8'");
+                            statement.close();
+                        } catch (Exception e) {
+                            if (StringUtils.containsIgnoreCase(e.getMessage(), "unknown database")) {
+                                Statement ps = null;
+                                try {
+                                    final String newDatabase = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=20000&socketTimeout=20000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
+                                    this.connection = DriverManager.getConnection(newDatabase, data.getSQLUser(), data.getSQLPass());
+                                    ps = this.connection.createStatement();
+                                    ps.executeUpdate("CREATE DATABASE IF NOT EXISTS " + data.getSQLDatabase() + ";");
+                                } catch (Exception e2) {
+                                    ServerUtils.logSevere("{SQL} [1] Failed create the database, please manually create the database defined in your config.yml Database settings.");
+                                    ServerUtils.sendSevereTrace(e);
+                                } finally {
+                                    this.close(ps, null, this.connection, true);
+                                    {
+                                        this.getConnection();
                                     }
                                 }
                             }
-                        } catch (Exception e) {
-                            ServerUtils.logSevere("{SQL} Unable to connect to the defined MySQL database, check your settings.");
-                            ServerUtils.sendSevereTrace(e);
                         }
-                    } else {
-                        try {
-                            final File dataFolder = new File(Core.getCore().getPlugin().getDataFolder(), this.dataFolder + ".db");
-                            {
-                                final String database = "jdbc:sqlite:" + dataFolder.getAbsolutePath();
-                                Class.forName("org.sqlite.JDBC");
-                                connection = DriverManager.getConnection(database);
-                            }
-                        } catch (Exception e) {
-                            ServerUtils.logSevere("{SQL} SQLite exception on initialize.");
-                            ServerUtils.sendSevereTrace(e);
+                    } catch (Exception e) {
+                        ServerUtils.logSevere("{SQL} Unable to connect to the defined MySQL database, check your settings.");
+                        ServerUtils.sendSevereTrace(e);
+                    }
+                } else {
+                    try {
+                        ServerUtils.logDebug("{SQL} Detected SQLite configuration, setting up!");
+                        final File dataFolder = new File(Core.getCore().getPlugin().getDataFolder(), this.dataFolder + ".db");
+                        {
+                            final String database = "jdbc:sqlite:" + dataFolder.getAbsolutePath();
+                            Class.forName("org.sqlite.JDBC");
+                            this.connection = DriverManager.getConnection(database);
                         }
+                    } catch (Exception e) {
+                        ServerUtils.logSevere("{SQL} SQLite exception on initialize.");
+                        ServerUtils.sendSevereTrace(e);
                     }
                 }
             }
+            return this.connection;
         }
-        return this.connection;
     }
 
     /**
@@ -462,9 +505,9 @@ abstract class Controller {
                 return true;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
-            return false;
+            return true;
         } catch (SQLException e) {
-            ServerUtils.logSevere("{SQL} [11] Failed to close database connection.");
+            ServerUtils.logSevere("{SQL} [11] Failed to check if the Statement connection is closed.");
             ServerUtils.sendDebugTrace(e);
             return true;
         }
@@ -479,16 +522,16 @@ abstract class Controller {
     protected boolean isClosed(final @Nonnull ResultSet object) {
         try {
             if (object.isClosed()) {
-                return false;
+                return true;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
             return true;
         } catch (SQLException e) {
-            ServerUtils.logSevere("{SQL} [11] Failed to close database connection.");
+            ServerUtils.logSevere("{SQL} [11] Failed to check if the ResultSet connection is closed.");
             ServerUtils.sendDebugTrace(e);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -502,9 +545,9 @@ abstract class Controller {
                 return true;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
-            return false;
+            return true;
         } catch (SQLException e) {
-            ServerUtils.logSevere("{SQL} [11] Failed to close database connection.");
+            ServerUtils.logSevere("{SQL} [11] Failed to check if the Database connection is closed.");
             ServerUtils.sendDebugTrace(e);
             return true;
         }
@@ -524,49 +567,20 @@ abstract class Controller {
             if (ps != null && !this.isClosed(ps)) {
                 ps.close();
             }
-            if (rs != null && this.isClosed(rs)) {
+            if (rs != null && !this.isClosed(rs)) {
                 rs.close();
             }
-            if (!this.stopConnection && (conn != null && !this.isClosed(conn) && (!Core.getCore().getData().sqlEnabled() || force))) {
-                this.closeLater(conn, force);
-            }
-        } catch (SQLException e) {
-            ServerUtils.logSevere("{SQL} [10] Failed to close database connection.");
-            ServerUtils.sendDebugTrace(e);
-        }
-    }
-
-    /**
-     * Closes the specified connection after 5 second(s) if the database is left IDLE.
-     * Prevents Database closed and/or locked errors.
-     *
-     * @param conn  - the Connection being closed.
-     * @param force - If the connection should be forced to close.
-     */
-    protected void closeLater(final @Nonnull Connection conn, final boolean force) {
-        this.stopConnection = true;
-        if (Core.getCore().getPlugin().isEnabled()) {
-            SchedulerUtils.runLater(100L, () -> {
+            if (conn != null && !this.isClosed(conn) && force) {
                 try {
-                    if (!this.isClosed(conn) && (!Core.getCore().getData().sqlEnabled() || force)) {
-                        conn.close();
-                        this.stopConnection = false;
-                    }
+                    conn.close();
                 } catch (SQLException e) {
                     ServerUtils.logSevere("{SQL} [10] Failed to close database connection.");
-                    ServerUtils.sendDebugTrace(e);
+                   ServerUtils.sendDebugTrace(e);
                 }
-            });
-        } else {
-            try {
-                if (!this.isClosed(conn) && (!Core.getCore().getData().sqlEnabled() || force)) {
-                    conn.close();
-                    this.stopConnection = false;
-                }
-            } catch (SQLException e) {
-                ServerUtils.logSevere("{SQL} [10] Failed to close database connection.");
-                ServerUtils.sendDebugTrace(e);
             }
+        } catch (SQLException e) {
+            ServerUtils.logSevere("{SQL} [10] Failed to close database connection(s).");
+            ServerUtils.sendDebugTrace(e);
         }
     }
 }
