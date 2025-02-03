@@ -382,7 +382,8 @@ public class ItemHandler {
             ArrayList<String> loreList = new ArrayList<>();
             for (String loreString : lores) {
                 if (!loreString.isEmpty()) {
-                    if (loreString.contains("/n")) {
+                    loreString = loreString.replace("//n", "/n").replace("\\n", "/n").replace("\n", "/n");
+                    if (loreString.contains(" /n ")) {
                         String[] loreSplit = loreString.split(" /n ");
                         for (String loreStringSplit : loreSplit) {
                             loreList.add(StringUtils.colorFormat(loreStringSplit));
