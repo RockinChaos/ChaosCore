@@ -24,6 +24,7 @@ import org.bukkit.plugin.Plugin;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -35,6 +36,7 @@ public class SchedulerUtils {
     private final static Object globalScheduler = isFolia ? ReflectionUtils.invokeMethod("getGlobalRegionScheduler", Bukkit.class, Bukkit.getServer()) : null;
     private final static Object asyncScheduler = isFolia ? ReflectionUtils.invokeMethod("getAsyncScheduler", Bukkit.class, Bukkit.getServer()) : null;
 
+    private static final HashMap<Integer, Object> scheduledTasks = new HashMap<>();
     private static final List<Runnable> SINGLE_QUEUE = new ArrayList<>();
     private static boolean SINGLE_ACTIVE = false;
 
@@ -113,7 +115,7 @@ public class SchedulerUtils {
             if (isFolia) {
                 try {
                     final Method runAtFixedRateMethod = globalScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class);
-                    runAtFixedRateMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval);
+                    runAtFixedRateMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run repeating task.");
                     ServerUtils.sendSevereTrace(e);
@@ -169,30 +171,6 @@ public class SchedulerUtils {
     }
 
     /**
-     * Runs the task timer on the another thread.
-     *
-     * @param runnable - The task to be performed.
-     * @param delay    - The ticks to wait before performing the task.
-     * @param interval - The interval in which to run the task.
-     */
-    public static void runAsyncTimer(final long delay, final long interval, final @Nonnull Runnable runnable) {
-        if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
-                try {
-                    final Method runAtFixedRateMethod = asyncScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
-                    runAtFixedRateMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval), TimeUnit.MILLISECONDS);
-                } catch (Exception e) {
-                    ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run task timer asynchronously.");
-                    ServerUtils.sendSevereTrace(e);
-                }
-                return;
-            }
-            Bukkit.getScheduler().runTaskTimerAsynchronously(Core.getCore().getPlugin(), runnable, delay, interval);
-        }
-    }
-
-
-    /**
      * Runs the task repeating on the another thread.
      *
      * @param runnable - The task to be performed.
@@ -205,8 +183,14 @@ public class SchedulerUtils {
             if (isFolia) {
                 try {
                     final Method runAtFixedRateMethod = asyncScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
-                    final Object uniqueTask = runAtFixedRateMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval), TimeUnit.MILLISECONDS);
-                    return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
+                    final Object uniqueTask = runAtFixedRateMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval == 0 ? 1 : interval), TimeUnit.MILLISECONDS);
+                    try {
+                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
+                    } catch (NoSuchMethodException e) {
+                        final int id = StringUtils.getRandom(0, 100000000);
+                        scheduledTasks.put(id, uniqueTask);
+                        return id;
+                    }
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run interval task asynchronously.");
                     ServerUtils.sendSevereTrace(e);
@@ -269,10 +253,19 @@ public class SchedulerUtils {
     public static void cancelTask(final int taskId) {
         if (isFolia) {
             try {
-                final Method cancelTaskMethod = globalScheduler.getClass().getMethod("cancelTask", int.class);
-                final Method cancelAsyncTaskMethod = asyncScheduler.getClass().getMethod("cancelTask", int.class);
-                cancelTaskMethod.invoke(globalScheduler, taskId);
-                cancelAsyncTaskMethod.invoke(asyncScheduler, taskId);
+                try {
+                    final Method cancelTaskMethod = globalScheduler.getClass().getMethod("cancelTask", int.class);
+                    final Method cancelAsyncTaskMethod = asyncScheduler.getClass().getMethod("cancelTask", int.class);
+                    cancelTaskMethod.invoke(globalScheduler, taskId);
+                    cancelAsyncTaskMethod.invoke(asyncScheduler, taskId);
+                } catch (NoSuchMethodException e) {
+                    final Object uniqueTask = scheduledTasks.remove(taskId);
+                    if (uniqueTask != null) {
+                        final Method cancelMethod = uniqueTask.getClass().getDeclaredMethod("cancel");
+                        cancelMethod.setAccessible(true);
+                        cancelMethod.invoke(uniqueTask);
+                    }
+                }
             } catch (Exception e) {
                 ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to cancel scheduled task with the id " + taskId + ".");
                 ServerUtils.sendSevereTrace(e);

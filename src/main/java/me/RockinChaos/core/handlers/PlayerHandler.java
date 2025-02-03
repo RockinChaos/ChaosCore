@@ -646,7 +646,7 @@ public class PlayerHandler {
      * Constantly cycles through the players crafting slots saving them to a HashMap for later use.
      */
     public static void cycleCrafting() {
-        SchedulerUtils.runAsyncTimer(15L, 0L, () -> forOnlinePlayers(player -> {
+        SchedulerUtils.runAsyncAtInterval(15L, 0L, () -> forOnlinePlayers(player -> {
             if (player.isOnline() && PlayerHandler.isCraftingInv(player)) {
                 ItemStack[] contents = getTopContents(player);
                 craftingItems.put(PlayerHandler.getPlayerID(player), contents);
