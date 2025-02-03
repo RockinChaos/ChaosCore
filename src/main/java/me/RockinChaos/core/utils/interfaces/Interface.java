@@ -17,6 +17,7 @@
  */
 package me.RockinChaos.core.utils.interfaces;
 
+import me.RockinChaos.core.Core;
 import me.RockinChaos.core.handlers.ItemHandler;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
@@ -36,6 +37,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class Interface implements InventoryHolder {
@@ -256,25 +259,35 @@ public class Interface implements InventoryHolder {
         if (this.isPaged) {
             if (this.getCurrentPage() > 1) {
                 ItemStack backItem;
-                backItem = ItemHandler.getItem("ARROW", 1, false, false, "&3&n&lPrevious Page", "&7", "&7*Previous page &a&l" + (this.getCurrentPage() - 1) + "&7 / &c&l" + this.getPageAmount());
+                backItem = ItemHandler.getItem("ARROW", 1, false, false, "&3" + (!Core.getCore().getLang().getString("menus.general.items.prevPage.name").isEmpty() ? Core.getCore().getLang().getString("menus.general.items.prevPage.name").replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount())) : "&n&lPrevious Page"),
+                        Stream.concat(Core.getCore().getLang().getStringList("menus.general.items.prevPage.lore").stream().filter(s -> !s.isEmpty()).map(lore -> lore.replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount()))),
+                        Stream.of(Core.getCore().getLang().getStringList("menus.general.items.prevPage.lore").isEmpty() || Core.getCore().getLang().getStringList("menus.general.items.prevPage.lore").stream().allMatch(String::isEmpty) ? "&7*Previous page &a&l" + (this.getCurrentPage() + 1) + "&7 / &c&l" + this.getPageAmount() : "")).toArray(String[]::new));
                 this.controlBack = new Button(backItem, event -> this.selectPage(this.currentIndex - 1));
                 inventory.setItem(inventory.getSize() - 8, backItem);
             } else {
                 ItemStack backItem;
-                backItem = ItemHandler.getItem("LEVER", 1, false, false, "&c&n&lPrevious Page", "&7", "&7*You are already at the first page.");
+                backItem = ItemHandler.getItem("LEVER", 1, false, false, "&c" + (!Core.getCore().getLang().getString("menus.general.items.prevPage.name").isEmpty() ? Core.getCore().getLang().getString("menus.general.items.prevPage.name").replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount())) : "&n&lPrevious Page"),
+                        Stream.concat(Core.getCore().getLang().getStringList("menus.general.items.prevPage.firstLore").stream().filter(s -> !s.isEmpty()).map(lore -> lore.replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount()))),
+                        Stream.of(Core.getCore().getLang().getStringList("menus.general.items.prevPage.firstLore").isEmpty() || Core.getCore().getLang().getStringList("menus.general.items.prevPage.firstLore").stream().allMatch(String::isEmpty) ? "&7*You are already at the first page." : "")).toArray(String[]::new));
                 inventory.setItem(inventory.getSize() - 8, backItem);
             }
             if (this.getCurrentPage() < this.getPageAmount()) {
                 ItemStack nextItem;
-                nextItem = ItemHandler.getItem("ARROW", 1, false, false, "&3&n&lNext Page", "&7", "&7*Next page &a&l" + (this.getCurrentPage() + 1) + "&7 / &c&l" + this.getPageAmount());
+                nextItem = ItemHandler.getItem("ARROW", 1, false, false, "&3" + (!Core.getCore().getLang().getString("menus.general.items.nextPage.name").isEmpty() ? Core.getCore().getLang().getString("menus.general.items.nextPage.name").replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount())) : "&n&lNext Page"),
+                        Stream.concat(Core.getCore().getLang().getStringList("menus.general.items.nextPage.lore").stream().filter(s -> !s.isEmpty()).map(lore -> lore.replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount()))),
+                        Stream.of(Core.getCore().getLang().getStringList("menus.general.items.nextPage.lore").isEmpty() || Core.getCore().getLang().getStringList("menus.general.items.nextPage.lore").stream().allMatch(String::isEmpty) ? "&7*Next page &a&l" + (this.getCurrentPage() + 1) + "&7 / &c&l" + this.getPageAmount() : "")).toArray(String[]::new));
                 this.controlNext = new Button(nextItem, event -> this.selectPage(this.getCurrentPage()));
                 inventory.setItem(inventory.getSize() - 2, nextItem);
             } else {
                 ItemStack nextItem;
-                nextItem = ItemHandler.getItem("LEVER", 1, false, false, "&c&n&lNext Page", "&7", "&7*You are already at the last page.");
+                nextItem = ItemHandler.getItem("LEVER", 1, false, false, "&c" + (!Core.getCore().getLang().getString("menus.general.items.nextPage.name").isEmpty() ? Core.getCore().getLang().getString("menus.general.items.nextPage.name").replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount())) : "&n&lNext Page"),
+                        Stream.concat(Core.getCore().getLang().getStringList("menus.general.items.nextPage.lastLore").stream().filter(s -> !s.isEmpty()).map(lore -> lore.replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount()))),
+                        Stream.of(Core.getCore().getLang().getStringList("menus.general.items.nextPage.lastLore").isEmpty() || Core.getCore().getLang().getStringList("menus.general.items.nextPage.lastLore").stream().allMatch(String::isEmpty) ? "&7*You are already at the last page." : "")).toArray(String[]::new));
                 inventory.setItem(inventory.getSize() - 2, nextItem);
             }
-            inventory.setItem(inventory.getSize() - 5, ItemHandler.getItem("BOOK", 1, false, false, "&3&lPage &a&l" + this.getCurrentPage() + "&7 / &c&l" + this.getPageAmount(), "&7You are on page &a&l" + this.getCurrentPage() + "&7 / &c&l" + this.getPageAmount()));
+            inventory.setItem(inventory.getSize() - 5, ItemHandler.getItem("BOOK", 1, false, false, !Core.getCore().getLang().getString("menus.general.items.page.name").isEmpty() ? Core.getCore().getLang().getString("menus.general.items.page.name").replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount())) : "&3&lPage &a&l" + this.getCurrentPage() + "&7 / &c&l" + this.getPageAmount(),
+                         Stream.concat(Core.getCore().getLang().getStringList("menus.general.items.page.lore").stream().filter(s -> !s.isEmpty()).map(lore -> lore.replace("%page%", String.valueOf(this.getCurrentPage())).replace("%total_pages%", String.valueOf(this.getPageAmount()))),
+                         Stream.of(Core.getCore().getLang().getStringList("menus.general.items.page.lore").isEmpty() || Core.getCore().getLang().getStringList("menus.general.items.page.lore").stream().allMatch(String::isEmpty) ? "&7You are on page &a&l" + this.getCurrentPage() + "&7 / &c&l" + this.getPageAmount() : "")).toArray(String[]::new)));
             ItemStack exitItem = ItemHandler.getItem("BARRIER", 1, false, false, "&c&l&nMain Menu", "&7", "&7*Returns you to the main menu.");
             if (this.controlExit == null) {
                 this.controlExit = this.exitButton;

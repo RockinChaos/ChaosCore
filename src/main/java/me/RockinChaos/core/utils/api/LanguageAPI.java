@@ -31,6 +31,9 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
@@ -143,6 +146,37 @@ public class LanguageAPI {
     public @Nonnull String getLangMessage(final @Nonnull String nodeLocation) {
         String message = Core.getCore().getConfig(this.langType.nodeLocation()).getString(nodeLocation);
         return (message != null && !message.isEmpty() ? message : "");
+    }
+
+    /**
+     * Gets the string at the node location.
+     *
+     * @param nodeLocation - The String location of the Language Translation.
+     */
+    public @Nonnull String getString(final @Nonnull String nodeLocation) {
+        return getLangMessage(nodeLocation);
+    }
+
+    /**
+     * Gets the string list at the node location.
+     *
+     * @param nodeLocation - The String List location of the Language Translation.
+     */
+    public @Nonnull List<String> getStringList(final @Nonnull String nodeLocation) {
+        final Object value = Core.getCore().getConfig(this.langType.nodeLocation()).get(nodeLocation);
+        if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            List<String> result = new ArrayList<>();
+            for (Object obj : list) {
+                if (obj instanceof String) {
+                    result.add((String) obj);
+                }
+            }
+            return result.isEmpty() ? Collections.singletonList("") : result;
+        } else if (value instanceof String) {
+            return Collections.singletonList((String) value);
+        }
+        return Collections.singletonList("");
     }
 
     /**
