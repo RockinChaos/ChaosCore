@@ -21,7 +21,6 @@ import me.RockinChaos.core.Core;
 import me.RockinChaos.core.CoreData;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
-import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -400,7 +399,7 @@ public class Database extends Controller {
             }
             return new Object[] { conn, ps, rs };
         } catch (SQLException e) {
-            if (e instanceof SQLNonTransientConnectionException || e instanceof CommunicationsException || StringUtils.containsIgnoreCase(e.getMessage(), "The database has been closed") || StringUtils.containsIgnoreCase(e.getMessage(), "Communications link failure")) {
+            if (StringUtils.containsIgnoreCase(e.getMessage(), "SQLNonTransientConnectionException") || StringUtils.containsIgnoreCase(e.getMessage(), "CommunicationsException") || StringUtils.containsIgnoreCase(e.getMessage(), "The database has been closed") || StringUtils.containsIgnoreCase(e.getMessage(), "Communications link failure")) {
                 ServerUtils.logDebug("{SQL} Failed to execute statement: " + statement);
                 ServerUtils.logDebug("{SQL} Attempting to restart database connection and retry...");
                 if (retry.length == 0) {
