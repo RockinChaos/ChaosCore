@@ -181,15 +181,12 @@ public class ConfigHandler {
             }
             if (source != null) {
                 String[] namePart = configFile.split("\\.");
-                String renameFile = namePart[0] + "-old-" + StringUtils.getRandom(1, 50000) + namePart[1];
+                String renameFile = namePart[0] + "-old-" + StringUtils.getRandom(1, 50000) + "." + namePart[1];
                 File renamedFile = new File(Core.getCore().getPlugin().getDataFolder(), renameFile);
                 if (!renamedFile.exists()) {
                     if (File.renameTo(renamedFile)) {
-                        File copyFile = new File(Core.getCore().getPlugin().getDataFolder(), configFile);
-                        if (copyFile.delete()) {
-                            this.getSource(configFile);
-                            ServerUtils.logWarn("Your " + configFile + " is out of date and new options are available, generating a new one!");
-                        }
+                        this.getSource(configFile);
+                        ServerUtils.logWarn("Your " + configFile + " is out of date and new options are available, generating a new one!");
                     }
                 }
             }
