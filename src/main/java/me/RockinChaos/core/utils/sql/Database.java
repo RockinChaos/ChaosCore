@@ -19,6 +19,7 @@ package me.RockinChaos.core.utils.sql;
 
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.CoreData;
+import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
 
@@ -445,7 +446,7 @@ abstract class Controller {
                     try {
                         final CoreData data = Core.getCore().getData();
                         String database = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "/" + data.getSQLDatabase() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=20000&socketTimeout=20000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
-                        Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
+                        ReflectionUtils.getCanonicalClass("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
                         try {
                             this.connection = DriverManager.getConnection(database, data.getSQLUser(), data.getSQLPass());
                             final Statement statement = this.connection.createStatement();
@@ -480,7 +481,7 @@ abstract class Controller {
                         final File dataFolder = new File(Core.getCore().getPlugin().getDataFolder(), this.dataFolder + ".db");
                         {
                             final String database = "jdbc:sqlite:" + dataFolder.getAbsolutePath();
-                            Class.forName("org.sqlite.JDBC");
+                            ReflectionUtils.getCanonicalClass("org.sqlite.JDBC");
                             this.connection = DriverManager.getConnection(database);
                         }
                     } catch (Exception e) {

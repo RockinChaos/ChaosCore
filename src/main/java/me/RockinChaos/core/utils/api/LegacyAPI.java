@@ -260,7 +260,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<Enchantment> getEnchants() {
         try {
-            return Arrays.asList((Enchantment[]) Class.forName("org.bukkit.enchantments.Enchantment").getMethod("values").invoke(null));
+            return Arrays.asList((Enchantment[]) ReflectionUtils.getCanonicalClass("org.bukkit.enchantments.Enchantment").getMethod("values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Enchantment#values", e);
@@ -297,7 +297,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<PotionEffectType> getEffects() {
         try {
-            return Arrays.asList((PotionEffectType[]) Class.forName("org.bukkit.potion.PotionEffectType").getMethod("values").invoke(null));
+            return Arrays.asList((PotionEffectType[]) ReflectionUtils.getCanonicalClass("org.bukkit.potion.PotionEffectType").getMethod("values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting PotionEffectType#values", e);
@@ -311,7 +311,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<Attribute> getAttributes() {
         try {
-            return Arrays.asList((Attribute[]) Class.forName("org.bukkit.attribute.Attribute").getMethod("values").invoke(null));
+            return Arrays.asList((Attribute[]) ReflectionUtils.getCanonicalClass("org.bukkit.attribute.Attribute").getMethod("values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Attribute#values", e);
@@ -326,7 +326,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<Sound> getSounds() {
         try {
-            return Arrays.asList((Sound[]) Class.forName("org.bukkit.Sound").getMethod("values").invoke(null));
+            return Arrays.asList((Sound[]) ReflectionUtils.getCanonicalClass("org.bukkit.Sound").getMethod("values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Sound#values", e);
@@ -636,10 +636,9 @@ public class LegacyAPI {
      */
     public static boolean legacySk89q() {
         try {
-            Class.forName("com.sk89q.worldedit.Vector");
+            ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.Vector");
             return true;
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return false;
     }
 
@@ -702,7 +701,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<PatternType> getPatterns() {
         try {
-            return Arrays.asList((PatternType[]) Class.forName("org.bukkit.block.banner.PatternType").getMethod("values").invoke(null));
+            return Arrays.asList((PatternType[]) ReflectionUtils.getCanonicalClass("org.bukkit.block.banner.PatternType").getMethod("values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Pattern#values", e);

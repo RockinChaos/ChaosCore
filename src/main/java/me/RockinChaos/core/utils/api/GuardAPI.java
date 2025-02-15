@@ -22,6 +22,7 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.RockinChaos.core.Core;
+import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.StringUtils;
@@ -80,7 +81,7 @@ public class GuardAPI {
                 if (Bukkit.getServer().getPluginManager().getPlugin("WorldGuard") instanceof WorldGuardPlugin) {
                     this.worldGuardPlugin = (WorldGuardPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
                     try {
-                        Class<?> worldGuard = Class.forName("com.sk89q.worldguard.WorldGuard");
+                        Class<?> worldGuard = ReflectionUtils.getCanonicalClass("com.sk89q.worldguard.WorldGuard");
                         Method getInstance = worldGuard.getMethod("getInstance");
                         this.worldGuard = getInstance.invoke(null);
                     } catch (Exception ignored) {
@@ -92,8 +93,8 @@ public class GuardAPI {
                         Object platform = getPlatForm.invoke(this.worldGuard);
                         Method getRegionContainer = platform.getClass().getMethod("getRegionContainer");
                         this.regionContainer = getRegionContainer.invoke(platform);
-                        Class<?> getWorldEditWorld = Class.forName("com.sk89q.worldedit.world.World");
-                        Class<?> getWorldEditAdapter = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
+                        Class<?> getWorldEditWorld = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.world.World");
+                        Class<?> getWorldEditAdapter = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.bukkit.BukkitAdapter");
                         this.getWorldAdapter = getWorldEditAdapter.getMethod("adapt", World.class);
                         this.getRegionContainer = this.regionContainer.getClass().getMethod("get", getWorldEditWorld);
                     } catch (Exception e) {
@@ -115,12 +116,12 @@ public class GuardAPI {
                     }
                 }
                 try {
-                    Class<?> vectorClass = Class.forName("com.sk89q.worldedit.Vector");
+                    Class<?> vectorClass = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.Vector");
                     this.vectorConstructor = vectorClass.getConstructor(Double.TYPE, Double.TYPE, Double.TYPE);
                     this.getRegionManager = RegionManager.class.getMethod("getApplicableRegions", vectorClass);
                 } catch (Exception e) {
                     try {
-                        Class<?> vectorClass = Class.forName("com.sk89q.worldedit.math.BlockVector3");
+                        Class<?> vectorClass = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.math.BlockVector3");
                         this.getVector = vectorClass.getMethod("at", Double.TYPE, Double.TYPE, Double.TYPE);
                         this.getRegionManager = RegionManager.class.getMethod("getApplicableRegions", vectorClass);
                     } catch (Exception e2) {

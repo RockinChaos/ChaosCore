@@ -80,9 +80,9 @@ public class ServerUtils {
      */
     public static boolean isFolia() {
         try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            ReflectionUtils.getCanonicalClass("io.papermc.paper.threadedregions.RegionizedServer");
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
@@ -94,9 +94,9 @@ public class ServerUtils {
      */
     public static boolean isPaper() {
         try {
-            Class.forName("com.destroystokyo.paper.Title");
+            ReflectionUtils.getCanonicalClass("com.destroystokyo.paper.Title");
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
@@ -135,7 +135,7 @@ public class ServerUtils {
     }
 
     /**
-     * Sends a error message as the plugin header.
+     * Sends an error message as the plugin header.
      *
      * @param message - The un-formatted message text to be sent.
      */

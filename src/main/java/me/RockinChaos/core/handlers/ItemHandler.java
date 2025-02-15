@@ -1102,11 +1102,11 @@ public class ItemHandler {
      */
     public static boolean usesOwningPlayer() {
         try {
-            Class.forName("org.bukkit.inventory.meta.SkullMeta");
+            ReflectionUtils.getCanonicalClass("org.bukkit.inventory.meta.SkullMeta");
             return true;
-        } catch (Exception ignored) {
+        } catch (IllegalArgumentException e) {
+            return false;
         }
-        return false;
     }
 
     /**

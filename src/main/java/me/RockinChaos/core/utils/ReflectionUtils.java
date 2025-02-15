@@ -29,14 +29,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * A utility class that simplifies reflection in Bukkit plugins.
  */
-@SuppressWarnings({"unused", "JavaReflectionMemberAccess", "JavaReflectionInvocation"})
+@SuppressWarnings({"unused"})
 public class ReflectionUtils {
+    private static final Map<String, Class<?>> CLASS_CACHE = new ConcurrentHashMap<>();
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String MC_PREFIX = "net.minecraft";
@@ -378,16 +381,24 @@ public class ReflectionUtils {
     }
 
     /**
-     * Retrieve a class by its canonical name.
+     * Retrieve a class by its canonical name, using a cache to avoid repeated lookups.
      *
      * @param canonicalName - the canonical name.
      * @return The class.
+     * @throws IllegalArgumentException If the class doesn't exist.
      */
     public static @Nonnull Class<?> getCanonicalClass(final @Nonnull String canonicalName) {
-        try {
-            return Class.forName(canonicalName);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Cannot find " + canonicalName, e);
+        final Class<?> clazz = CLASS_CACHE.computeIfAbsent(canonicalName, key -> {
+            try {
+                return Class.forName(key);
+            } catch (ClassNotFoundException e) {
+                return null;
+            }
+        });
+        if (clazz != null) {
+            return clazz;
+        } else {
+            throw new IllegalArgumentException("Cannot find " + canonicalName);
         }
     }
 
@@ -399,11 +410,11 @@ public class ReflectionUtils {
      */
     public static void setBasePotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType) {
         try {
-            Class<?> potionDataClass = Class.forName("org.bukkit.potion.PotionData");
-            Constructor<?> potionDataConstructor = potionDataClass.getConstructor(Class.forName("org.bukkit.potion.PotionType"));
-            Object potionData = potionDataConstructor.newInstance(potionType);
-            Class<?> itemMetaClass = Class.forName("org.bukkit.inventory.meta.PotionMeta");
-            Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
+            final Class<?> potionDataClass = getCanonicalClass("org.bukkit.potion.PotionData");
+            final Constructor<?> potionDataConstructor = potionDataClass.getConstructor(getCanonicalClass("org.bukkit.potion.PotionType"));
+            final Object potionData = potionDataConstructor.newInstance(potionType);
+            final Class<?> itemMetaClass = getCanonicalClass("org.bukkit.inventory.meta.PotionMeta");
+            final Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
             setBasePotionDataMethod.invoke(tempMeta, potionData);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
@@ -420,11 +431,11 @@ public class ReflectionUtils {
      */
     public static void setBasePotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType, final boolean extended, final boolean upgraded) {
         try {
-            Class<?> potionDataClass = Class.forName("org.bukkit.potion.PotionData");
-            Constructor<?> potionDataConstructor = potionDataClass.getConstructor(Class.forName("org.bukkit.potion.PotionType"), boolean.class, boolean.class);
-            Object potionData = potionDataConstructor.newInstance(potionType, extended, upgraded);
-            Class<?> itemMetaClass = Class.forName("org.bukkit.inventory.meta.ItemMeta");
-            Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
+            final Class<?> potionDataClass = getCanonicalClass("org.bukkit.potion.PotionData");
+            final Constructor<?> potionDataConstructor = potionDataClass.getConstructor(getCanonicalClass("org.bukkit.potion.PotionType"), boolean.class, boolean.class);
+            final Object potionData = potionDataConstructor.newInstance(potionType, extended, upgraded);
+            final Class<?> itemMetaClass = getCanonicalClass("org.bukkit.inventory.meta.ItemMeta");
+            final Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
             setBasePotionDataMethod.invoke(tempMeta, potionData);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
@@ -439,8 +450,8 @@ public class ReflectionUtils {
      * @param index  - The slot to have the item sent.
      */
     public static void sendPacketPlayOutSetSlot(final @Nonnull Player player, final @Nullable ItemStack item, int index, int windowId) throws Exception {
-        Class<?> itemStack = getMinecraftClass("ItemStack");
-        Object nms = getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+        final Class<?> itemStack = getMinecraftClass("ItemStack");
+        final Object nms = getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
         final Class<?> playOutSlot = getMinecraftClass("PacketPlayOutSetSlot");
         Object packet;
         if (MC_REMAPPED) {
@@ -462,7 +473,7 @@ public class ReflectionUtils {
      * @param packet - The Packet Object being sent.
      */
     public static void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) throws Exception {
-        Object nmsPlayer = getEntity(player);
+        final Object nmsPlayer = getEntity(player);
         if (nmsPlayer != null) {
             Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
             Class<?> packetClass = getMinecraftClass("Packet");
@@ -526,15 +537,15 @@ public class ReflectionUtils {
      * @return The expanded string.
      */
     private static @Nonnull String expandVariables(final @Nonnull String name) {
-        StringBuffer output = new StringBuffer();
-        Matcher matcher = MATCH_VARIABLE.matcher(name);
+        final StringBuffer output = new StringBuffer();
+        final Matcher matcher = MATCH_VARIABLE.matcher(name);
         while (matcher.find()) {
-            String variable = matcher.group(1);
+            final String variable = matcher.group(1);
             String replacement;
             if ("nms".equalsIgnoreCase(variable)) {
                 if (MC_REMAPPED) {
                     try {
-                        String forClass = getMinecraftClass("PlayerConnection").getCanonicalName();
+                        final String forClass = getMinecraftClass("PlayerConnection").getCanonicalName();
                         if (forClass != null) {
                             replacement = MC_PREFIX;
                         } else {
@@ -795,5 +806,12 @@ public class ReflectionUtils {
          * @return TRUE if it does, FALSE otherwise.
          */
         boolean hasField(final Object target);
+    }
+
+    /**
+     * Refreshes the caches.
+     */
+    public static void refresh() {
+        CLASS_CACHE.clear();
     }
 }

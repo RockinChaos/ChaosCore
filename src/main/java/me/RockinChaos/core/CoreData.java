@@ -17,6 +17,8 @@
  */
 package me.RockinChaos.core;
 
+import me.RockinChaos.core.utils.ReflectionUtils;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -453,6 +455,7 @@ public class CoreData {
      * Refreshes the DataHandler cached instance.
      */
     public void refresh() {
+        ReflectionUtils.refresh();
         data = new CoreData();
     }
 }
