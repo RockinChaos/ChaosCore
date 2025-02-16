@@ -618,18 +618,23 @@ public class ReflectionUtils {
      * Searchable methods that no longer require NBT Reflections.
      */
     public enum MinecraftMethod {
+        valueOf("valueOf", "valueOf", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "valueOf")),
         add("add", "add", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "add")),
         set("set", "set", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "set")),
         get("get", "get", "a"),
+        getBase("get", "get", "c"),
         of("of", "of", "a"),
         setInt("setInt", "setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
         getPage("a", "a", "a"),
         getTag("getTag", "getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
         setTag("setTag", "setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
         setCompound("setCompound", "setCompound", "a"),
+        getKeys((ServerUtils.hasSpecificUpdate("1_13") ? "getKeys": "c"), "getAllKeys", (ServerUtils.hasSpecificUpdate("1_20") ? "e" : "d")),
+        getTypeId("getTypeId", "getId", (ServerUtils.hasSpecificUpdate("1_20") ? "b" : "a")),
         setString("setString", "putString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
         getString("getString", "getString", (ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString")),
         setDouble("setDouble", "setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
+        put("set", "put", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "put")),
         build("build", "build", "a"),
         builder("builder", "builder", "a"),
         copyTag("copyTag", "copyTag", ServerUtils.hasPreciseUpdate("1_21_4") ? "d" : "c"),
