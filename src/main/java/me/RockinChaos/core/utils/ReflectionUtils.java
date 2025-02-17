@@ -392,10 +392,10 @@ public class ReflectionUtils {
             try {
                 return Class.forName(key);
             } catch (ClassNotFoundException e) {
-                return null;
+                return ReflectionUtils.class;
             }
         });
-        if (clazz != null) {
+        if (clazz != ReflectionUtils.class) {
             return clazz;
         } else {
             throw new IllegalArgumentException("Cannot find " + canonicalName);
