@@ -434,7 +434,7 @@ public class ReflectionUtils {
             final Class<?> potionDataClass = getCanonicalClass("org.bukkit.potion.PotionData");
             final Constructor<?> potionDataConstructor = potionDataClass.getConstructor(getCanonicalClass("org.bukkit.potion.PotionType"), boolean.class, boolean.class);
             final Object potionData = potionDataConstructor.newInstance(potionType, extended, upgraded);
-            final Class<?> itemMetaClass = getCanonicalClass("org.bukkit.inventory.meta.ItemMeta");
+            final Class<?> itemMetaClass = getCanonicalClass("org.bukkit.inventory.meta.PotionMeta");
             final Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
             setBasePotionDataMethod.invoke(tempMeta, potionData);
         } catch (Exception e) {
