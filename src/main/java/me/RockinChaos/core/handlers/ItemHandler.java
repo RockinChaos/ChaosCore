@@ -131,7 +131,7 @@ public class ItemHandler {
         if (!ServerUtils.hasSpecificUpdate("1_13")) {
             return LegacyAPI.getEnchantName(enchant);
         } else {
-            return enchant.getKey().getKey();
+            return CompatUtils.getKey(enchant).getKey();
         }
     }
 

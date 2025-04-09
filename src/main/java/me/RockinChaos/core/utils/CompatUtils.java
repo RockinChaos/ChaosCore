@@ -279,6 +279,32 @@ public class CompatUtils {
     }
 
     /**
+     * Attempts to get the NamespacedKey of the Object.
+     *
+     * @param object The object to have its NamespacedKey fetched.
+     * @return The NamespacedKey of the Object.
+     */
+    public static NamespacedKey getKey(final @Nonnull Object object) {
+        return ((NamespacedKey) resolveByVersion("1_21_4", () -> {
+            try {
+                return (object.getClass().getMethod("getKeyOrThrow").invoke(object));
+            } catch (Exception e) {
+                try {
+                    return (object.getClass().getMethod("getKey").invoke(object));
+                } catch (Exception ex) {
+                    throw new RuntimeException("{CompatUtils} Unable to #getKeyOrThrow for class: " + object.getClass().getName());
+                }
+            }
+        }, () -> {
+            try {
+                return (object.getClass().getMethod("getKey").invoke(object));
+            } catch (Exception e) {
+                throw new RuntimeException("{CompatUtils} Unable to #getKey for class: " + object.getClass().getName());
+            }
+        }));
+    }
+
+    /**
      * Attempts to get the Name of the Object.
      * Currently Supported:
      * Attribute#name deprecated in 1.21.
@@ -293,17 +319,17 @@ public class CompatUtils {
      */
     public static String getName(final @Nonnull Object object) {
         if (ServerUtils.hasSpecificUpdate("1_9") && object instanceof Attribute) {
-            return ((String) resolveByVersion("1_21", () -> ((Attribute) object).getKey().getKey(), () -> LegacyAPI.getAttributeName(object))).toUpperCase();
+            return ((String) resolveByVersion("1_21", () -> getKey(object).getKey(), () -> LegacyAPI.getAttributeName(object))).toUpperCase();
         } else if (object instanceof Sound) {
-            return ((String) resolveByVersion("1_21", () -> ((Sound) object).getKey().getKey(), () -> LegacyAPI.getSoundName(object))).toUpperCase();
+            return ((String) resolveByVersion("1_21", () -> getKey(object).getKey(), () -> LegacyAPI.getSoundName(object))).toUpperCase();
         } else if (object instanceof Pattern) {
-            return ((String) resolveByVersion( "1_21", () -> ((Pattern) object).getPattern().getKey().getKey(), () -> LegacyAPI.getPatternName(((Pattern) object).getPattern()))).toUpperCase();
+            return ((String) resolveByVersion( "1_21", () -> getKey(((Pattern) object).getPattern()).getKey(), () -> LegacyAPI.getPatternName(((Pattern) object).getPattern()))).toUpperCase();
         } else if (object instanceof PatternType) {
-            return ((String) resolveByVersion("1_21", () -> ((PatternType) object).getKey().getKey(), () -> LegacyAPI.getPatternName(object))).toUpperCase();
+            return ((String) resolveByVersion("1_21", () -> getKey(object).getKey(), () -> LegacyAPI.getPatternName(object))).toUpperCase();
         } else if (object instanceof PotionEffect) {
-            return ((String) resolveByVersion("1_20_3", () -> ((PotionEffect) object).getType().getKey().getKey(), () -> LegacyAPI.getEffectName(((PotionEffect) object).getType()))).toUpperCase();
+            return ((String) resolveByVersion("1_20_3", () -> getKey(((PotionEffect) object).getType()).getKey(), () -> LegacyAPI.getEffectName(((PotionEffect) object).getType()))).toUpperCase();
         } else if (object instanceof PotionEffectType) {
-            return ((String) resolveByVersion( "1_20_3", () -> ((PotionEffectType) object).getKey().getKey(), () -> LegacyAPI.getEffectName(object))).toUpperCase();
+            return ((String) resolveByVersion( "1_20_3", () -> getKey(object).getKey(), () -> LegacyAPI.getEffectName(object))).toUpperCase();
         }
         throw new RuntimeException("{CompatUtils} Unable to get name of an unknown class: " + object.getClass().getName());
     }
