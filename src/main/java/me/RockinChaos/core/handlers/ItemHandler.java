@@ -1338,35 +1338,4 @@ public class ItemHandler {
             return ItemHandler.getMaterial(this.name, null);
         }
     }
-
-    /**
-     * Trim Pattern types.
-     */
-    public enum TrimPattern {
-        COAST("COAST_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        DUNE("DUNE_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        EYE("EYE_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        HOST("HOST_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        RAISER("RAISER_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        RIB("RIB_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        SENTRY("SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        SHAPER("SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        SILENCE("SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        SNOUT("SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        SPIRE("SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        TIDE("TIDE_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        VEX("VEX_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        WARD("WARD_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        WAYFINDER("WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE"),
-        WILD("WILD_ARMOR_TRIM_SMITHING_TEMPLATE");
-        private final String name;
-
-        TrimPattern(@Nonnull String name) {
-            this.name = name;
-        }
-
-        public Material getMaterial() {
-            return ItemHandler.getMaterial(this.name, null);
-        }
-    }
 }
