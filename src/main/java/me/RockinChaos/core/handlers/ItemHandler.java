@@ -1029,7 +1029,7 @@ public class ItemHandler {
                     if (ServerUtils.hasPreciseUpdate("1_20_5")) {
                         Object componentMap = ReflectionUtils.getMethod(itemClass, MinecraftMethod.getComponents.getMethod()).invoke(nms);
                         Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
-                        Object customDataOptional = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("DataComponentMap"), MinecraftMethod.get.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType")).invoke(componentMap, customDataType);
+                        Object customDataOptional = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass(ServerUtils.hasPreciseUpdate("1_21_5") ? "DataComponentGetter" : "DataComponentMap"), MinecraftMethod.get.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType")).invoke(componentMap, customDataType);
                         if (customDataOptional != null) {
                             tag = ReflectionUtils.getMethod(customDataOptional.getClass(), MinecraftMethod.copyTag.getMethod()).invoke(customDataOptional);
                         }
@@ -1039,7 +1039,7 @@ public class ItemHandler {
                     if (tag != null) {
                         StringBuilder returnData = new StringBuilder();
                         for (String dataString : dataList) {
-                            String data = (String) tag.getClass().getMethod(MinecraftMethod.getString.getMethod(), String.class).invoke(tag, dataString);
+                            String data =  (String) (ServerUtils.hasPreciseUpdate("1_21_5") ? tag.getClass().getMethod(MinecraftMethod.getString.getMethod(), String.class, String.class).invoke(tag, dataString, null) : tag.getClass().getMethod(MinecraftMethod.getString.getMethod(), String.class).invoke(tag, dataString));
                             if (data != null && !data.isEmpty()) {
                                 returnData.append(data).append(" ");
                             }
