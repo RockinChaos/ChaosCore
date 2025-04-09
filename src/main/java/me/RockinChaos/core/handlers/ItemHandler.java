@@ -1326,7 +1326,8 @@ public class ItemHandler {
         LAPIS("LAPIS_LAZULI"),
         NETHERITE("NETHERITE_INGOT"),
         QUARTZ("QUARTZ"),
-        REDSTONE("REDSTONE");
+        REDSTONE("REDSTONE"),
+        RESIN("RESIN_BRICK");
         private final String name;
 
         TrimMaterial(@Nonnull String name) {
