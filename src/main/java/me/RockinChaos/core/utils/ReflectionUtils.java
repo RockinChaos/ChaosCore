@@ -632,7 +632,7 @@ public class ReflectionUtils {
         getKeys((ServerUtils.hasSpecificUpdate("1_13") ? "getKeys": "c"), "getAllKeys", (ServerUtils.hasSpecificUpdate("1_20") ? "e" : "d")),
         getTypeId("getTypeId", "getId", (ServerUtils.hasSpecificUpdate("1_20") ? "b" : "a")),
         setString("setString", "putString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
-        getString("getString", "getString", ServerUtils.hasPreciseUpdate("1_21_5") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString"),
+        getString("getString", ServerUtils.hasPreciseUpdate("1_21_5") ? "getStringOr" : "getString", ServerUtils.hasPreciseUpdate("1_21_5") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString"),
         setDouble("setDouble", "setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
         put("set", "put", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "put")),
         build("build", "build", "a"),
