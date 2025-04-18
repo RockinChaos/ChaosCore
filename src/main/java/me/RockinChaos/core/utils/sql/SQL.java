@@ -29,17 +29,19 @@ import java.util.*;
 public class SQL {
 
     private static SQL data;
+    private static boolean initialized = false;
     private Map<String, List<Object>> databaseData = new HashMap<>();
 
     /**
      * Creates a new SQLData instance.
      */
     public SQL() {
+        initialized = false;
         Database.kill();
-        {
-            this.createTables();
-            ServerUtils.logDebug("{SQL} Database Connected.");
-        }
+        Database.getDatabase();
+        this.createTables();
+        initialized = true;
+        ServerUtils.logDebug("{SQL} Database Connected.");
     }
 
     /**
@@ -237,9 +239,7 @@ public class SQL {
      */
     public void createTables() {
         Core.getCore().getData().getCreateTables().run();
-        {
-            Core.getCore().getData().getAlterTables().run();
-        }
+        Core.getCore().getData().getAlterTables().run();
     }
 
     /**
@@ -255,5 +255,14 @@ public class SQL {
             ServerUtils.sendSevereTrace(e);
             return false;
         }
+    }
+
+    /**
+     * Checks if the SQL Database has been fully initialized.
+     *
+     * @return If the SQL Database has been fully initialized.
+     */
+    public static boolean initialized() {
+        return initialized;
     }
 }

@@ -445,32 +445,41 @@ abstract class Controller {
                     ServerUtils.logDebug("{SQL} Detected MySQL configuration, setting up!");
                     try {
                         final CoreData data = Core.getCore().getData();
-                        String database = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "/" + data.getSQLDatabase() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=20000&socketTimeout=20000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
-                        ReflectionUtils.getCanonicalClass("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
+                        final String database = jdbc(data, true);
+                        Class<?> driverClass;
+                        try {
+                            driverClass = Class.forName("com.mysql.cj.jdbc.Driver");
+                        } catch (ClassNotFoundException e) {
+                            driverClass = Class.forName("com.mysql.jdbc.Driver");
+                        }
+                        final Driver driver = (Driver) driverClass.getDeclaredConstructor().newInstance();
+                        ServerUtils.logInfo("Loading SQL driver: " + driver.getMajorVersion() + "." + driver.getMinorVersion() + " (" + driverClass.getName() + ")");
+                        long start = System.nanoTime();
                         try {
                             this.connection = DriverManager.getConnection(database, data.getSQLUser(), data.getSQLPass());
-                            final Statement statement = this.connection.createStatement();
-                            statement.executeUpdate("SET NAMES 'utf8'");
-                            statement.close();
+                            try (Statement statement = this.connection.createStatement()) {
+                                statement.executeUpdate("SET NAMES 'utf8'");
+                            }
                         } catch (Exception e) {
                             if (StringUtils.containsIgnoreCase(e.getMessage(), "unknown database")) {
                                 Statement ps = null;
                                 try {
-                                    final String newDatabase = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort() + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=20000&socketTimeout=20000&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true&rewriteBatchedStatements=true&maintainTimeStats=false";
+                                    final String newDatabase = jdbc(data, false);
                                     this.connection = DriverManager.getConnection(newDatabase, data.getSQLUser(), data.getSQLPass());
                                     ps = this.connection.createStatement();
                                     ps.executeUpdate("CREATE DATABASE IF NOT EXISTS " + data.getSQLDatabase() + ";");
                                 } catch (Exception e2) {
-                                    ServerUtils.logSevere("{SQL} [1] Failed create the database, please manually create the database defined in your config.yml Database settings.");
+                                    ServerUtils.logSevere("{SQL} [1] Failed to create the database, please manually create the database defined in your config.yml Database settings.");
                                     ServerUtils.sendSevereTrace(e);
                                 } finally {
                                     this.close(ps, null, this.connection, true);
-                                    {
-                                        this.getConnection();
-                                    }
                                 }
+                                return this.getConnection();
                             }
                         }
+                        long end = System.nanoTime();
+                        double durationMs = (end - start) / 1_000_000.0;
+                        ServerUtils.logInfo(String.format("Connected to MySQL database successfully (%.1f ms).", durationMs));
                     } catch (Exception e) {
                         ServerUtils.logSevere("{SQL} Unable to connect to the defined MySQL database, check your settings.");
                         ServerUtils.sendSevereTrace(e);
@@ -492,6 +501,19 @@ abstract class Controller {
             }
             return this.connection;
         }
+    }
+
+    /**
+     * Constructs a MySQL JDBC connection URL using the provided {@link CoreData} configuration.
+     *
+     * @param data      The core configuration data containing SQL host, port, and database name.
+     * @param database  If {@code true}, includes the database name in the JDBC URL; otherwise, constructs the URL without it.
+     * @return A full JDBC connection string with MySQL connection parameters for performance and compatibility.
+     */
+    private String jdbc(final CoreData data, final boolean database) {
+        String base = "jdbc:mysql://" + data.getSQLHost() + ":" + data.getSQLPort();
+        if (database) base += "/" + data.getSQLDatabase();
+        return base + "?useUnicode=true&characterEncoding=utf-8&connectTimeout=20000&socketTimeout=20000" + "&useSSL=false&allowPublicKeyRetrieval=true&useCursorFetch=true&useLocalSessionState=true" + "&rewriteBatchedStatements=true&maintainTimeStats=false";
     }
 
     /**
