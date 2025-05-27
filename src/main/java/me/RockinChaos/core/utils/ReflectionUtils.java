@@ -683,6 +683,7 @@ public class ReflectionUtils {
         HasItem("hasItem", "hasItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "h" : ServerUtils.hasSpecificUpdate("1_18") ? "f" : "hasItem")),
         GetItem("getItem", "getItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "g" : ServerUtils.hasSpecificUpdate("1_18") ? "e" : "getItem")),
         CustomData("CUSTOM_DATA", "CUSTOM_DATA", "b"),
+        windowId("windowId", "windowId", ServerUtils.hasPreciseUpdate("1_21_3") ? "l" : "j"),
         WrittenBookContent("WRITTEN_BOOK_CONTENT", "WRITTEN_BOOK_CONTENT", "J"),
         NetworkManager("networkManager", "networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
 

@@ -405,6 +405,23 @@ public class PlayerHandler {
                             ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getInventory().getItem(i + 36), (8 - i), 0);
                         }
                     }
+                } else { // Update Top Inventory.
+                    try {
+                        final Object handle = ReflectionUtils.getEntity(player);
+                        if (handle != null) {
+                            final Object container = handle.getClass().getField(ReflectionUtils.MinecraftField.ActiveContainer.getField()).get(handle);
+                            if (container != null) {
+                                for (int i = CompatUtils.getTopInventory(player).getSize() - 1; i >= 0; i--) {
+                                    final ItemStack invItem = CompatUtils.getTopInventory(player).getItem(i);
+                                    if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
+                                        ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i, (int) container.getClass().getField(ReflectionUtils.MinecraftField.windowId.getField()).get(container));
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        ServerUtils.sendDebugTrace(e);
+                    }
                 }
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
