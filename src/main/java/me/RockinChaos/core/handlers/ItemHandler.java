@@ -891,6 +891,19 @@ public class ItemHandler {
     }
 
     /**
+     * Restores the specified ItemStack contents to the given inventory.
+     *
+     * @param inventory The inventory to restore the contents to.
+     * @param contents  The contents to be restored.
+     */
+    public static void restoreContents(@Nonnull Inventory inventory, @Nonnull ItemStack[] contents) {
+        int size = Math.min(inventory.getSize(), contents.length);
+        for (int i = 0; i < size; i++) {
+            inventory.setItem(i, contents[i] == null ? null : contents[i].clone());
+        }
+    }
+
+    /**
      * Checks if the ItemStack contents are NULL or empty.
      *
      * @param contents - The ItemStack contents to be checked.
