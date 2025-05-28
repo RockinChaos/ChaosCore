@@ -674,7 +674,6 @@ public class LegacyAPI {
         try {
             return (PatternType) PatternType.class.getDeclaredMethod("valueOf", String.class).invoke(null, patternName.toUpperCase());
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the PatternType: " + patternName, e);
         }
     }
@@ -689,7 +688,6 @@ public class LegacyAPI {
         try {
             return (String) pattern.getClass().getMethod("name").invoke(pattern);
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Pattern Name", e);
         }
     }
@@ -703,7 +701,6 @@ public class LegacyAPI {
         try {
             return Arrays.asList((PatternType[]) ReflectionUtils.getCanonicalClass("org.bukkit.block.banner.PatternType").getMethod("values").invoke(null));
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Pattern#values", e);
         }
     }
@@ -718,7 +715,6 @@ public class LegacyAPI {
         try {
             return (String) type.getClass().getMethod("getName").invoke(type);
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the PotionEffectType Name", e);
         }
     }
@@ -733,7 +729,6 @@ public class LegacyAPI {
         try {
             return (String) attribute.getClass().getMethod("name").invoke(attribute);
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute Name", e);
         }
     }
@@ -748,7 +743,6 @@ public class LegacyAPI {
         try {
             return (Attribute) Attribute.class.getDeclaredMethod("valueOf", String.class).invoke(null, attributeName.toUpperCase());
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute: " + attributeName, e);
         }
     }
@@ -763,7 +757,6 @@ public class LegacyAPI {
         try {
             return (String) sound.getClass().getMethod("name").invoke(sound);
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Sound Name", e);
         }
     }
@@ -778,7 +771,6 @@ public class LegacyAPI {
         try {
             return (Sound) Sound.class.getDeclaredMethod("valueOf", String.class).invoke(null, soundName.toUpperCase());
         } catch (Exception e) {
-            ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Sound: " + soundName, e);
         }
     }
