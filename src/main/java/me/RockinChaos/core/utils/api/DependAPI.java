@@ -281,7 +281,7 @@ public class DependAPI {
      * @param cause - The Throwable reference to fetch the cause message.
      */
     private void isSkinsProxy(final @Nonnull Throwable cause) {
-        if (!this.proxySkins && (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorer API is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode"))) {
+        if (!this.proxySkins && (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorer API is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not enabled!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorer API is not enabled!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxymode") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode"))) {
             ServerUtils.sendSevereThrowable(cause);
         } else {
             this.proxySkins = true;
