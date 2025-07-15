@@ -158,8 +158,28 @@ public class DependAPI {
      * @return If the Player is Authenticated with AuthMe.
      */
     public boolean isAuthenticated(final Player player) {
-        return !authMeEnabled() || (authMeEnabled() && (fr.xephi.authme.api.v3.AuthMeApi.getInstance().isAuthenticated(player) || (fr.xephi.authme.api.v3.AuthMeApi.getInstance().getPlugin().getConfig().getString("settings.registration.force") != null && !fr.xephi.authme.api.v3.AuthMeApi.getInstance().getPlugin().getConfig().getBoolean("settings.registration.force"))));
+        return !authMeEnabled() || (authMeEnabled() && (fr.xephi.authme.api.v3.AuthMeApi.getInstance().isAuthenticated(player) || this.isRegistrationForced()));
     }
+
+    /**
+     * Checks if forced registration is enabled in AuthMe.
+     * This is important because if registration isn't forced then the restrictions imposed by forced registration do not apply.
+     *
+     * @return If forced registration is enabled.
+     */
+    private boolean isRegistrationForced() {
+        if (registrationForced) {
+            return true;
+        } else {
+            try {
+                return (fr.xephi.authme.api.v3.AuthMeApi.getInstance().getPlugin().getConfig().getString("settings.registration.force") != null && !fr.xephi.authme.api.v3.AuthMeApi.getInstance().getPlugin().getConfig().getBoolean("settings.registration.force"));
+            } catch (Throwable ignored) {
+                registrationForced = true;
+                return true;
+            }
+        }
+    }
+    private boolean registrationForced = false;
 
     /**
      * Checks if My Worlds is Enabled.
