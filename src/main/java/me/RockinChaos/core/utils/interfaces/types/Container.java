@@ -110,10 +110,16 @@ public class Container {
      * @param player The player that needs their current inventory closed.
      */
     public void handleInventoryCloseEvent(final @Nonnull Player player) {
+        final Object entityPlayer = ReflectionUtils.getEntity(player);
         try {
-            ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory").getMethod("handleInventoryCloseEvent", this.humanEntity).invoke(null, ReflectionUtils.getEntity(player));
-        } catch (Exception e) {
-            ServerUtils.sendSevereTrace(e);
+            ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory").getMethod("handleInventoryCloseEvent", this.humanEntity).invoke(null, entityPlayer);
+        } catch (Exception e1) {
+            try { // Likely PaperSpigot
+                ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory").getMethod("handleInventoryCloseEvent", this.humanEntity, Class.forName("org.bukkit.event.inventory.InventoryCloseEvent$Reason")).invoke(null, entityPlayer, null);
+            } catch (Exception e2) {
+                ServerUtils.sendSevereTrace(e1);
+                ServerUtils.sendSevereTrace(e2);
+            }
         }
     }
 

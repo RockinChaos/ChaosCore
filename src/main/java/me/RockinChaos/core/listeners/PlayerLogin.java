@@ -51,7 +51,7 @@ public class PlayerLogin implements Listener {
      * @param event - PlayerLoginEvent
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerLogin(PlayerLoginEvent event) {
+    public void onPlayerLogin(PlayerLoginEvent event) { // >= 1.21.7 PaperSpigot WARN: [HorriblePlayerLoginEventHack] - Zero intent to fix this, no better option to silence a pointless warning.
         final Player player = event.getPlayer();
         if ((Core.getCore().getData().sqlEnabled() && !SQL.initialized()) || !Core.getCore().isStarted()) {
             ServerUtils.logDebug("Denied login for " + player.getUniqueId() + " - " + player.getName() + ", server is still starting!");
