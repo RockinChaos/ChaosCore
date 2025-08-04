@@ -732,7 +732,7 @@ public class ReflectionUtils {
         MinecraftServer(".server"),
         ServerConnection(".server.network"),
         IChatBaseComponent(".network.chat"),
-        IChatBaseComponent$ChatSerializer(".network.chat"),
+        IChatBaseComponent$ChatSerializer(".network.chat"), // < 1.21.6, no longer exists.
         HolderLookup$a(".core"),
         PacketPlayOutChat(".network.protocol.game"),
         ClientboundSystemChatPacket(".network.protocol.game"),

@@ -53,16 +53,20 @@ public abstract class ChatComponent {
      */
     public static void sendTo(final @Nonnull TextSection text, final Player player) {
         try {
-            final Object craftPlayer = ReflectionUtils.getEntity(player);
-            if (craftPlayer != null) {
-                final Object connection = ReflectionUtils.getFieldValue(craftPlayer, MinecraftField.PlayerConnection.getField());
-                final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), ReflectionUtils.getMinecraftClass("Packet"));
-                final Object textComponent = getComponent(text, player);
-                final Object packet = createPacket(textComponent, player);
-                sendPacket.invoke(connection, packet);
+            if (ServerUtils.hasPreciseUpdate("1_21_6")) { // IChatBaseComponent$ChatSerializer no longer exists in 1.21.6 and there is no feasible option for parsing JSON now. There's no real point in continuing to write reflections for this.
+                player.spigot().sendMessage(net.md_5.bungee.chat.ComponentSerializer.parse(text.toString()));
+            } else {
+                final Object craftPlayer = ReflectionUtils.getEntity(player);
+                if (craftPlayer != null) {
+                    final Object connection = ReflectionUtils.getFieldValue(craftPlayer, MinecraftField.PlayerConnection.getField());
+                    final Method sendPacket = connection.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), ReflectionUtils.getMinecraftClass("Packet"));
+                    final Object textComponent = getComponent(text, player);
+                    final Object packet = createPacket(textComponent, player);
+                    sendPacket.invoke(connection, packet);
+                }
             }
         } catch (Exception e) {
-            ServerUtils.sendSevereTrace(e);
+            player.sendMessage(text.getText());
         }
     }
 
