@@ -29,7 +29,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.AuthorNagException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
@@ -37,6 +36,7 @@ import org.bukkit.plugin.RegisteredListener;
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class ProtocolManager {
@@ -90,19 +90,28 @@ public class ProtocolManager {
         if (permissionTask == 0) {
             final Map<Player, List<String>> playerPermissions = new HashMap<>();
             permissionTask = SchedulerUtils.runAsyncAtInterval(5L, 0L, () -> PlayerHandler.forOnlinePlayers(player -> {
-                final Iterator<PermissionAttachmentInfo> iterator = player.getEffectivePermissions().iterator();
-                final List<String> currentPermissions = new ArrayList<>();
-                while (iterator.hasNext()) {
-                    final PermissionAttachmentInfo it = iterator.next();
-                    currentPermissions.add(it.getPermission() + ":" + it.getValue());
-                }
-                if (!playerPermissions.containsKey(player) || (playerPermissions.containsKey(player) && !(new HashSet<>(playerPermissions.get(player)).containsAll(currentPermissions)))) {
-                    final List<String> changedPermissions = new ArrayList<>(currentPermissions);
-                    if (playerPermissions.containsKey(player)) {
-                        changedPermissions.removeAll(playerPermissions.get(player));
+                final List<String> currentPermissions = player.getEffectivePermissions().stream().map(p -> p.getPermission() + ":" + p.getValue()).sorted().collect(Collectors.toList());
+                final List<String> previousPermissions = playerPermissions.get(player);
+                if (!currentPermissions.equals(previousPermissions)) {
+                    final List<String> changedPermissions = new ArrayList<>();
+                    if (previousPermissions != null) {
+                        final List<String> addedPermissions = new ArrayList<>(currentPermissions);
+                        addedPermissions.removeAll(previousPermissions);
+                        List<String> removedPermissions = new ArrayList<>(previousPermissions);
+                        removedPermissions.removeAll(currentPermissions);
+                        removedPermissions = removedPermissions.stream().map(r -> {
+                            int idx = r.indexOf(':');
+                            return (idx > -1 ? r.substring(0, idx) : r) + ":false";
+                        }).collect(Collectors.toList());
+                        final Set<String> toggledNames = removedPermissions.stream().map(r -> r.substring(0, r.indexOf(':'))).filter(name -> addedPermissions.stream().anyMatch(a -> a.startsWith(name + ":"))).collect(Collectors.toSet());
+                        final List<String> changes = new ArrayList<>(addedPermissions);
+                        removedPermissions.stream().filter(r -> !toggledNames.contains(r.substring(0, r.indexOf(':')))).forEach(changes::add);
+                        changedPermissions.addAll(changes);
+                    }
+                    playerPermissions.put(player, currentPermissions);
+                    if (!changedPermissions.isEmpty()) {
                         callEvent(new PermissionChangedEvent(player, changedPermissions));
                     }
-                    playerPermissions.put(player, new ArrayList<>(currentPermissions));
                 }
             }));
         }
