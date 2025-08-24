@@ -634,7 +634,7 @@ public class ReflectionUtils {
         getPage("a", "a", "a"),
         getTag("getTag", "getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
         setTag("setTag", "setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
-        setCompound("setCompound", "setCompound", "a"),
+        setCompound("setCompound", "put", "a"),
         getKeys((ServerUtils.hasSpecificUpdate("1_13") ? "getKeys": "c"), (ServerUtils.hasPreciseUpdate("1_21_7") ? "keySet" : "getAllKeys"), (ServerUtils.hasSpecificUpdate("1_20") ? "e" : "d")),
         getTypeId("getTypeId", "getId", (ServerUtils.hasSpecificUpdate("1_20") ? "b" : "a")),
         setString("setString", "putString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
