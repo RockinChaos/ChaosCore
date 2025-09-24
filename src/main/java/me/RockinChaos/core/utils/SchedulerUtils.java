@@ -87,7 +87,14 @@ public class SchedulerUtils {
      * @param delay    - The ticks to wait before performing the task.
      */
     public static void runLater(final long delay, final @Nonnull Runnable runnable) {
-        if (delay <= 0) { run(runnable); return; }
+        if (delay <= 0) {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                run(runnable);
+            }
+            return;
+        }
         if (Core.getCore().getPlugin().isEnabled()) {
             if (isFolia) {
                 try {
