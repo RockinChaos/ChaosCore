@@ -578,9 +578,7 @@ public class ItemHandler {
             } else {
                 GameProfile gameProfile;
                 if (!gameProfiles.containsKey(skullTexture)) {
-                    final UUID uuid = UUID.randomUUID();
-                    gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16));
-                    gameProfile.getProperties().put("textures", new Property("textures", skullTexture));
+                    gameProfile = CompatUtils.newGameProfile(UUID.randomUUID(), skullTexture);
                     gameProfiles.put(skullTexture, gameProfile);
                 } else {
                     gameProfile = (GameProfile) gameProfiles.get(skullTexture);
@@ -610,7 +608,7 @@ public class ItemHandler {
             final Field field = real.getClass().getDeclaredField("profile");
             field.setAccessible(true);
             final GameProfile profile = (GameProfile) field.get(real);
-            final Collection<Property> props = profile.getProperties().get("textures");
+            final Collection<Property> props = CompatUtils.getProperties(profile).get("textures");
             for (final Property property : props) {
                 try {
                     if (propertyClass.getMethod("getName").invoke(property).equals("textures")) {
@@ -644,7 +642,7 @@ public class ItemHandler {
             final Field field = skull.getClass().getDeclaredField("profile");
             field.setAccessible(true);
             final GameProfile profile = (GameProfile) field.get(skull);
-            final Collection<Property> props = profile.getProperties().get("textures");
+            final Collection<Property> props = CompatUtils.getProperties(profile).get("textures");
             for (final Property property : props) {
                 try {
                     if (propertyClass.getMethod("getName").invoke(property).equals("textures")) {

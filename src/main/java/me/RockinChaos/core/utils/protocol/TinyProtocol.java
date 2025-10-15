@@ -22,6 +22,7 @@ import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.*;
 import me.RockinChaos.core.handlers.PlayerHandler;
+import me.RockinChaos.core.utils.CompatUtils;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ReflectionUtils.FieldAccessor;
 import me.RockinChaos.core.utils.ReflectionUtils.MethodInvoker;
@@ -495,7 +496,7 @@ public abstract class TinyProtocol {
                 } else {
                     profile = ReflectionUtils.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0).get(packet);
                 }
-                channelLookup.put(profile.getName(), channel);
+                channelLookup.put(CompatUtils.getName(profile), channel);
             }
         }
     }

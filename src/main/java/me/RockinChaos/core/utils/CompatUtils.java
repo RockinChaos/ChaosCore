@@ -19,6 +19,10 @@ package me.RockinChaos.core.utils;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import me.RockinChaos.core.utils.api.LegacyAPI;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -38,8 +42,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -313,8 +319,9 @@ public class CompatUtils {
      * PatternType#name deprecated in 1.21.
      * PotionEffect#getName deprecated in 1.20.3.
      * PotionEffectType#getName deprecated in 1.20.3.
+     * GameProfile#getName removed in 1.21.9.
      *
-     * @param object The object to have its name fetched, can be an Attribute, Sound, Pattern, PatternType, PotionEffect, or PotionEffectType.
+     * @param object The object to have its name fetched, can be an Attribute, Sound, Pattern, PatternType, PotionEffect, PotionEffectType, or GameProfile.
      * @return The name of the Object.
      */
     public static String getName(final @Nonnull Object object) {
@@ -330,8 +337,49 @@ public class CompatUtils {
             return ((String) resolveByVersion("1_20_3", () -> getKey(((PotionEffect) object).getType()).getKey(), () -> LegacyAPI.getEffectName(((PotionEffect) object).getType()))).toUpperCase();
         } else if (object instanceof PotionEffectType) {
             return ((String) resolveByVersion( "1_20_3", () -> getKey(object).getKey(), () -> LegacyAPI.getEffectName(object))).toUpperCase();
+        } else if (object instanceof GameProfile) {
+            return ((String) resolveByVersion("1_21_9", () -> {
+                try {
+                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("name").invoke(object);
+                } catch (Exception e) {
+                    throw new RuntimeException("{CompatUtils} Unable to get name of GameProfile: " + object);
+                }
+            }, () -> {
+                try {
+                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("getName").invoke(object);
+                } catch (Exception e) {
+                    throw new RuntimeException("{CompatUtils} Unable to get legacy name of GameProfile: " + object);
+                }
+            }));
         }
         throw new RuntimeException("{CompatUtils} Unable to get name of an unknown class: " + object.getClass().getName());
+    }
+
+    /**
+     * Attempts to get the Properties of the Object.
+     * Currently Supported:
+     * GameProfile#getProperties removed in 1.21.9.
+     *
+     * @param object The object to have its properties fetched, can be a GameProfile.
+     * @return The Properties of the Object.
+     */
+    public static PropertyMap getProperties(final @Nonnull Object object) {
+        if (object instanceof GameProfile) {
+            return ((PropertyMap) resolveByVersion("1_21_9", () -> {
+                try {
+                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("properties").invoke(object);
+                } catch (Exception e) {
+                    throw new RuntimeException("{CompatUtils} Unable to get properties of GameProfile: " + object);
+                }
+            }, () -> {
+                try {
+                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("getProperties").invoke(object);
+                } catch (Exception e) {
+                    throw new RuntimeException("{CompatUtils} Unable to get legacy properties of GameProfile: " + object);
+                }
+            }));
+        }
+        throw new RuntimeException("{CompatUtils} Unable to get properties of an unknown class: " + object.getClass().getName());
     }
 
     /**
@@ -402,6 +450,25 @@ public class CompatUtils {
             }
         }
         return true;
+    }
+
+    /**
+     * Creates a new GameProfile Object.
+     *
+     * @param uuid The UUID that will define the GameProfile.
+     * @param texture The (optional) skull texture to set to the GameProfile.
+     * @return The new GameProfile.
+     */
+    public static GameProfile newGameProfile(final @Nonnull UUID uuid, final @Nullable String texture) {
+        return (GameProfile) resolveByVersion("1_21_9", () -> {
+            ImmutableListMultimap.Builder<String, Property> propertyBuilder = ImmutableListMultimap.builder();
+            propertyBuilder.put("textures", new Property("textures", texture));
+            return new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16), new PropertyMap(propertyBuilder.build()));
+        }, () -> {
+            GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16));
+            CompatUtils.getProperties(gameProfile).put("textures", new Property("textures", texture));
+            return gameProfile;
+        });
     }
 
     /**
