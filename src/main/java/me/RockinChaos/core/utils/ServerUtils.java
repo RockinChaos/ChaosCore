@@ -43,6 +43,9 @@ public class ServerUtils {
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
     private static boolean devListening = false;
 
+    public static boolean isFolia = isFolia();
+    public static boolean isPaper = isPaper();
+
     /**
      * Gets the current server version.
      *
@@ -92,7 +95,7 @@ public class ServerUtils {
      *
      * @return true if the server is running Paper, false otherwise.
      */
-    public static boolean isPaper() {
+    private static boolean isPaper() {
         try {
             ReflectionUtils.getCanonicalClass("com.destroystokyo.paper.Title");
             return true;

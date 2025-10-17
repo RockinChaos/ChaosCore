@@ -475,7 +475,7 @@ public class ReflectionUtils {
     public static void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) throws Exception {
         final Object nmsPlayer = getEntity(player);
         if (nmsPlayer == null) return;
-        if (ServerUtils.hasPreciseUpdate("1_21_7") && ServerUtils.isPaper()) {
+        if (ServerUtils.hasPreciseUpdate("1_21_7") && ServerUtils.isPaper) {
             final Object connection = nmsPlayer.getClass().getField("connection").get(nmsPlayer);
             final Class<?> packetClass = getMinecraftClass("Packet");
             final Method sendMethod = connection.getClass().getMethod("send", packetClass);

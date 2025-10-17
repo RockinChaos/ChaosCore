@@ -31,10 +31,8 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class SchedulerUtils {
-
-    private final static boolean isFolia = ServerUtils.isFolia();
-    private final static Object globalScheduler = isFolia ? ReflectionUtils.invokeMethod("getGlobalRegionScheduler", Bukkit.class, Bukkit.getServer()) : null;
-    private final static Object asyncScheduler = isFolia ? ReflectionUtils.invokeMethod("getAsyncScheduler", Bukkit.class, Bukkit.getServer()) : null;
+    private final static Object globalScheduler = ServerUtils.isFolia ? ReflectionUtils.invokeMethod("getGlobalRegionScheduler", Bukkit.class, Bukkit.getServer()) : null;
+    private final static Object asyncScheduler = ServerUtils.isFolia ? ReflectionUtils.invokeMethod("getAsyncScheduler", Bukkit.class, Bukkit.getServer()) : null;
 
     private static final HashMap<Integer, Object> scheduledTasks = new HashMap<>();
     private static final List<Runnable> SINGLE_QUEUE = new ArrayList<>();
@@ -46,7 +44,7 @@ public class SchedulerUtils {
      * @return If the current thread is synchronous.
      */
     public static boolean isMainThread() {
-        if (isFolia) {
+        if (ServerUtils.isFolia) {
             try {
                 final boolean isRegionThread = Thread.currentThread().getName().contains("Region Scheduler");
                 return isRegionThread != (boolean) ReflectionUtils.invokeMethod("isGlobalTickThread", Bukkit.class, Bukkit.getServer());
@@ -66,7 +64,7 @@ public class SchedulerUtils {
      */
     public static void run(final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
+            if (ServerUtils.isFolia) {
                 try {
                     final Method runMethod = globalScheduler.getClass().getMethod("run", Plugin.class, Consumer.class);
                     runMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run());
@@ -96,7 +94,7 @@ public class SchedulerUtils {
             return;
         }
         if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
+            if (ServerUtils.isFolia) {
                 try {
                     final Method runDelayedMethod = globalScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class);
                     runDelayedMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay);
@@ -119,7 +117,7 @@ public class SchedulerUtils {
      */
     public static void runRepeatingTask(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
+            if (ServerUtils.isFolia) {
                 try {
                     final Method runAtFixedRateMethod = globalScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class);
                     runAtFixedRateMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
@@ -140,7 +138,7 @@ public class SchedulerUtils {
      */
     public static void runAsync(final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
+            if (ServerUtils.isFolia) {
                 try {
                     final Method runMethod = asyncScheduler.getClass().getMethod("runNow", Plugin.class, Consumer.class);
                     runMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run());
@@ -163,7 +161,7 @@ public class SchedulerUtils {
     public static void runAsyncLater(final long delay, final @Nonnull Runnable runnable) {
         if (delay <= 0) { runAsync(runnable); return; }
         if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
+            if (ServerUtils.isFolia) {
                 try {
                     Method runDelayedMethod = asyncScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class, TimeUnit.class);
                     runDelayedMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), TimeUnit.MILLISECONDS);
@@ -187,7 +185,7 @@ public class SchedulerUtils {
      */
     public static int runAsyncAtInterval(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            if (isFolia) {
+            if (ServerUtils.isFolia) {
                 try {
                     final Method runAtFixedRateMethod = asyncScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
                     final Object uniqueTask = runAtFixedRateMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval == 0 ? 1 : interval), TimeUnit.MILLISECONDS);
@@ -235,7 +233,7 @@ public class SchedulerUtils {
                     SINGLE_QUEUE.remove(runnable);
                     cycleAsync();
                 };
-                if (isFolia) {
+                if (ServerUtils.isFolia) {
                     try {
                         final Method runNowMethod = asyncScheduler.getClass().getMethod("runNow", Plugin.class, Consumer.class);
                         runNowMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), runnableConsumer);
@@ -258,7 +256,7 @@ public class SchedulerUtils {
      * @param taskId - The scheduled task to be canceled.
      */
     public static void cancelTask(final int taskId) {
-        if (isFolia) {
+        if (ServerUtils.isFolia) {
             try {
                 try {
                     final Method cancelTaskMethod = globalScheduler.getClass().getMethod("cancelTask", int.class);
@@ -286,7 +284,7 @@ public class SchedulerUtils {
      * Cancels all scheduled tasks for the plugin.
      */
     public static void cancelTasks() {
-        if (isFolia) {
+        if (ServerUtils.isFolia) {
             try {
                 final Method cancelTasksMethod = globalScheduler.getClass().getMethod("cancelTasks", Plugin.class);
                 final Method cancelAsyncTasksMethod = asyncScheduler.getClass().getMethod("cancelTasks", Plugin.class);

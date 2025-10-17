@@ -481,7 +481,7 @@ public class CompatUtils {
      * @param itemMeta The {@link ItemMeta} to modify.
      */
     public static void setDummyAttributes(final ItemMeta itemMeta) {
-        if (ServerUtils.hasPreciseUpdate("1_20_5") && ServerUtils.isPaper() && itemMeta.getAttributeModifiers() == null) {
+        if (ServerUtils.hasPreciseUpdate("1_20_5") && ServerUtils.isPaper && itemMeta.getAttributeModifiers() == null) {
             itemMeta.setAttributeModifiers(HashMultimap.create());
         }
     }
