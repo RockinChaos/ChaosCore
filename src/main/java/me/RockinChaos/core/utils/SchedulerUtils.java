@@ -114,21 +114,30 @@ public class SchedulerUtils {
      * @param runnable - The task to be performed.
      * @param delay    - The ticks to wait before performing the task.
      * @param interval - The interval in which to run the task.
+     * @return The repeating task identifier.
      */
-    public static void runRepeatingTask(final long delay, final long interval, final @Nonnull Runnable runnable) {
+    public static int runAtInterval(final long delay, final long interval, final @Nonnull Runnable runnable) {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
                     final Method runAtFixedRateMethod = globalScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class);
-                    runAtFixedRateMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
+                    final Object uniqueTask = runAtFixedRateMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
+                    try {
+                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
+                    } catch (NoSuchMethodException e) {
+                        final int id = StringUtils.getRandom(0, 100000000);
+                        scheduledTasks.put(id, uniqueTask);
+                        return id;
+                    }
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run repeating task.");
                     ServerUtils.sendSevereTrace(e);
+                    return 0;
                 }
-                return;
             }
-            Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getCore().getPlugin(), runnable, delay, interval);
+            return Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getCore().getPlugin(), runnable, delay, interval);
         }
+        return 0;
     }
 
     /**
