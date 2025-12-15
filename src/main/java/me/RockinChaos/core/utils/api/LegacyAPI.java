@@ -110,8 +110,12 @@ public class LegacyAPI {
      * @return The boolean value of the gamerule.
      */
     public static boolean hasGameRule(final @Nonnull World world, final @Nonnull String gamerule) {
-        String value = world.getGameRuleValue(gamerule);
-        return value.isEmpty() || Boolean.parseBoolean(value);
+        try {
+            final String value = (String) world.getClass().getMethod("getGameRuleValue", String.class).invoke(world, gamerule);
+            return value.isEmpty() || Boolean.parseBoolean(value);
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     /**
