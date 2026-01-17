@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @SuppressWarnings({"unused", "CallToPrintStackTrace"})
 public class ServerUtils {
@@ -215,7 +216,7 @@ public class ServerUtils {
      * @param prefix - If the plugin prefix should be added to the message.
      */
     public static void messageSender(final @Nonnull CommandSender sender, @Nonnull String message, boolean prefix) {
-        String pluginPrefix = (prefix  ? Core.getCore().getData().getPluginPrefix() + " " : "");
+        String pluginPrefix = (prefix ? Core.getCore().getData().getPluginPrefix() + " " : "");
         message = pluginPrefix + message;
         message = ChatColor.translateAlternateColorCodes('&', message);
         if (message.contains("blankmessage") || message.isEmpty()) {
@@ -224,7 +225,11 @@ public class ServerUtils {
         if (sender instanceof ConsoleCommandSender) {
             message = ChatColor.stripColor(message);
         }
-        sender.sendMessage(message);
+        message = message.replace(" \\n ", " \\n").replace(" /n ", " \\n").replace(" /n", " \\n");
+        String[] messageLines = message.split(Pattern.quote(" \\" + "n"));
+        for (String messageLine : messageLines) {
+            sender.sendMessage(messageLine);
+        }
     }
 
     /**

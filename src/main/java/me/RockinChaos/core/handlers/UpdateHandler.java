@@ -94,15 +94,19 @@ public class UpdateHandler {
     public void forceUpdates(final @Nonnull CommandSender sender) {
         final Update update = this.updateNeeded(sender, true);
         if (update.updateNeeded) {
-            ServerUtils.messageSender(sender, "&aAn update has been found!", true);
+            ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.updateFound", "%prefix% &aAn update has been found!"), false);
             String updateSuccess;
             String uri;
             if (update == Update.BETA) {
-                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.latestDev + "&a.", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.attemptingUpdate", "%prefix% &aAttempting to update from &ev%current_version% &ato the new &ev%new_version%&a.")
+                        .replace("%current_version%", this.versionExact)
+                        .replace("%new_version%", this.latestDev), false);
                 updateSuccess = this.latestDev;
                 uri = this.DEV_HOST + "/artifact/" +  this.artifactPath + "?_=" + System.currentTimeMillis();
             } else {
-                ServerUtils.messageSender(sender, "&aAttempting to update from " + "&ev" + this.versionExact + " &ato the new " + "&ev" + this.latestVersion + "-RELEASE" + "&a.", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.attemptingUpdate", "%prefix% &aAttempting to update from &ev%current_version% &ato the new &ev%new_version%&a.")
+                        .replace("%current_version%", this.versionExact)
+                        .replace("%new_version%", this.latestVersion + "-RELEASE"), false);
                 updateSuccess = this.latestVersion + "-RELEASE";
                 uri = this.HOST.replace("repos/", "").replace("api.", "").replace("latest", "download/" + "v" + this.latestVersion + "/" + this.NAME.toLowerCase() + ".jar") + "?_=" + System.currentTimeMillis();
             }
@@ -132,7 +136,7 @@ public class UpdateHandler {
                             final int updateProgress = (int) (((double) fetchedSize / (double) hostFileSize) * 30);
                             if ((((fetchedSize * 100) / hostFileSize) % 25) == 0 && updateProgress > 10) {
                                 if (currentProgress != updateProgress) {
-                                    ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), true);
+                                    ServerUtils.messageSender(sender, "&c" + progressBar.substring(0, updateProgress + 2), false);
                                 }
                                 currentProgress = updateProgress;
                             }
@@ -156,11 +160,11 @@ public class UpdateHandler {
                             ServerUtils.logSevere("Failed to delete upgrade file " + upgradeFile.getAbsolutePath());
                         }
                     }
-                    ServerUtils.messageSender(sender, "&aSuccessfully updated to &ev" + updateSuccess + "&a!", true);
-                    ServerUtils.messageSender(sender, "&aYou must restart your server for this to take effect.", true);
+                    ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.updateSuccess", "%prefix% &aSuccessfully updated to &ev%new_version%&a! \n%prefix% &aYou must restart your server for this to take effect.")
+                            .replace("%new_version%", updateSuccess), false);
                 } catch (Exception e) {
-                    ServerUtils.messageSender(sender, "&cAn error has occurred while trying to update the plugin " + jarRef.getName() + ".", true);
-                    ServerUtils.messageSender(sender, "&cPlease try again later. If you continue to see this, please contact the plugin developer.", true);
+                    ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.updateError", "%prefix% &cAn error has occurred while trying to update the plugin %plugin_name%. \n%prefix% &cPlease try again later. If you continue to see this, please contact the plugin developer.")
+                            .replace("%plugin_name%", jarRef.getName()), false);
                     ServerUtils.logSevere("An error has occurred while trying to update the plugin " + jarRef.getName() + ".");
                     ServerUtils.sendDebugTrace(e);
                     if (upgradeFile.exists()) {
@@ -172,10 +176,10 @@ public class UpdateHandler {
             });
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
-                ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
-                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.runningVersion", "%prefix% &aYou are running a %version_type%! \n%prefix% &aIf you find any bugs please report them!")
+                        .replace("%version_type%", "SNAPSHOT"), false);
             }
-            ServerUtils.messageSender(sender, "&aYou are up to date!", true);
+            ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.upToDate", "%prefix% &aYou are up to date!"), false);
         }
     }
 
@@ -189,32 +193,36 @@ public class UpdateHandler {
         final Update update = this.updateNeeded(sender, messages);
         if (update.updateNeeded && this.updatesAllowed) {
             if (update == Update.BETA) {
-                ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.versionExact, true);
-                ServerUtils.messageSender(sender, "&cA new snapshot build is available: " + "&av" + this.latestDev, true);
-                ServerUtils.messageSender(sender, "&aGet it from: " + this.DEV_HOST, true);
-                ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.betaUpdateAvailable", "%prefix% &cYour current version: &bv%current_version% \n%prefix% &cA new snapshot build is available: &av%new_version% \n%prefix% &aGet it from: %download_url% \n%prefix% &aIf you wish to auto update, please type /%plugin_name% Upgrade")
+                        .replace("%current_version%", this.versionExact)
+                        .replace("%new_version%", this.latestDev)
+                        .replace("%download_url%", this.DEV_HOST)
+                        .replace("%plugin_name%", this.NAME), false);
             } else {
                 if (this.betaVersion) {
-                    ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-SNAPSHOT", true);
-                    ServerUtils.messageSender(sender, "&cThis &bSNAPSHOT &cis outdated and a release version is now available.", true);
+                    ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.snapshotOutdated", "%prefix% &cYour current version: &bv%current_version% \n%prefix% &cThis &bSNAPSHOT &cis outdated and a release version is now available. \n%prefix% &cA new version is available: &av%new_version% \n%prefix% &aGet it from: %download_url% \n%prefix% &aIf you wish to auto update, please type /%plugin_name% Upgrade")
+                            .replace("%current_version%", this.localeVersion + "-SNAPSHOT")
+                            .replace("%new_version%", this.latestVersion + "-RELEASE")
+                            .replace("%download_url%", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest")
+                            .replace("%plugin_name%", this.NAME), false);
                 } else {
-                    ServerUtils.messageSender(sender, "&cYour current version: &bv" + this.localeVersion + "-RELEASE", true);
+                    ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.releaseUpdateAvailable", "%prefix% &cYour current version: &bv%current_version% \n%prefix% &cA new version is available: &av%new_version% \n%prefix% &aGet it from: %download_url% \n%prefix% &aIf you wish to auto update, please type /%plugin_name% Upgrade")
+                            .replace("%current_version%", this.localeVersion + "-RELEASE")
+                            .replace("%new_version%", this.latestVersion + "-RELEASE")
+                            .replace("%download_url%", "https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest")
+                            .replace("%plugin_name%", this.NAME), false);
                 }
-                ServerUtils.messageSender(sender, "&cA new version is available: " + "&av" + this.latestVersion + "-RELEASE", true);
-                ServerUtils.messageSender(sender, "&aGet it from: https://github.com/RockinChaos/" + this.NAME.toLowerCase() + "/releases/latest", true);
-                ServerUtils.messageSender(sender, "&aIf you wish to auto update, please type /" + this.NAME + " Upgrade", true);
             }
             this.sendNotifications(update);
         } else if (this.updatesAllowed) {
             if (this.betaVersion) {
-                ServerUtils.messageSender(sender, "&aYou are running a SNAPSHOT!", true);
-                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.runningVersion", "%prefix% &aYou are running a %version_type%! \n%prefix% &aIf you find any bugs please report them!")
+                        .replace("%version_type%", "SNAPSHOT"), false);
             } else if (this.devVersion) {
-                ServerUtils.messageSender(sender, "&aYou are running a DEVELOPER SNAPSHOT!", true);
-                ServerUtils.messageSender(sender, "&aIf you find any bugs please report them!", true);
-                ServerUtils.messageSender(sender, "&aYou will not receive any updates requiring you to manually update.", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.runningDevVersion", "%prefix% &aYou are running a %version_type%! \n%prefix% &aIf you find any bugs please report them! \n%prefix% &aYou will not receive any updates requiring you to manually update.")
+                        .replace("%version_type%", "DEVELOPER SNAPSHOT"), false);
             }
-            ServerUtils.messageSender(sender, "&aYou are up to date!", true);
+            ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.upToDate", "%prefix% &aYou are up to date!"), false);
         }
     }
 
@@ -228,7 +236,7 @@ public class UpdateHandler {
     public Update updateNeeded(final @Nonnull CommandSender sender, final boolean messages) {
         if (this.updatesAllowed) {
             if (messages) {
-                ServerUtils.messageSender(sender, "&aChecking for updates...", true);
+                ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.checking", "%prefix% &aChecking for updates..."), false);
             }
             try {
                 URLConnection connection = new URL(this.HOST + "?_=" + System.currentTimeMillis()).openConnection();
@@ -266,7 +274,7 @@ public class UpdateHandler {
                             }
                             reader.close();
                         } catch (Exception e) {
-                            ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, Craftation Labs has detected too many access requests, try again later.", true);
+                            ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.tooManyRequests", "%prefix% &c&l[403] &cFailed to check for updates, the update server has detected too many access requests, try again later."), false);
                             ServerUtils.sendDebugTrace(e);
                         }
                     }
@@ -275,14 +283,13 @@ public class UpdateHandler {
                 return Update.UP_TO_DATE;
             } catch (Exception e) {
                 if (messages) {
-                    ServerUtils.messageSender(sender, "&c&l[403] &cFailed to check for updates, GitHub has detected too many access requests, try again later.", true);
+                    ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.tooManyRequests", "%prefix% &c&l[403] &cFailed to check for updates, the update server has detected too many access requests, try again later."), false);
                 }
                 ServerUtils.sendDebugTrace(e);
                 return Update.UP_TO_DATE;
             }
         } else if (messages) {
-            ServerUtils.messageSender(sender, "&cUpdate checking is currently disabled in the config.yml", true);
-            ServerUtils.messageSender(sender, "&cIf you wish to use the auto update feature, you will need to enable it.", true);
+            ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.updatesDisabled", "%prefix% &cUpdate checking is currently disabled in the config.yml \n%prefix% &cIf you wish to use the auto update feature, you will need to enable it."), false);
         }
         return Update.UP_TO_DATE;
     }
@@ -305,6 +312,21 @@ public class UpdateHandler {
                 }
             }
         });
+    }
+
+    /**
+     * Gets a language message with fallback to default.
+     *
+     * @param path - The language file path.
+     * @param defaultMessage - The default message if not found.
+     * @return The language message.
+     */
+    private String getLangMessage(final String path, final String defaultMessage) {
+        String message = Core.getCore().getLang().getLangMessage(path);
+        if (message.isEmpty()) {
+            message = defaultMessage;
+        }
+        return message.replace("%prefix%", Core.getCore().getLang().getPrefix());
     }
 
     /**
