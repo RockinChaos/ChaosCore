@@ -527,7 +527,9 @@ abstract class Controller {
                 return true;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
-            return true;
+            // Older Java versions required by older Minecraft versions do not implement #isClosed() so we can't feasibly check this.
+            // Receiver class xxxxxx does not define or inherit an implementation of the resolved method 'abstract boolean isClosed()' of interface xxxxxx.
+            return false;
         } catch (SQLException e) {
             ServerUtils.logSevere("{SQL} [11] Failed to check if the Statement connection is closed.");
             ServerUtils.sendDebugTrace(e);
@@ -547,7 +549,9 @@ abstract class Controller {
                 return true;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
-            return true;
+            // Older Java versions required by older Minecraft versions do not implement #isClosed() so we can't feasibly check this.
+            // Receiver class xxxxxx does not define or inherit an implementation of the resolved method 'abstract boolean isClosed()' of interface xxxxxx.
+            return false;
         } catch (SQLException e) {
             ServerUtils.logSevere("{SQL} [11] Failed to check if the ResultSet connection is closed.");
             ServerUtils.sendDebugTrace(e);
@@ -567,7 +571,9 @@ abstract class Controller {
                 return true;
             }
         } catch (AbstractMethodError | NoClassDefFoundError e) {
-            return true;
+            // Older Java versions required by older Minecraft versions do not implement #isClosed() so we can't feasibly check this.
+            // Receiver class xxxxxx does not define or inherit an implementation of the resolved method 'abstract boolean isClosed()' of interface xxxxxx.
+            return false;
         } catch (SQLException e) {
             ServerUtils.logSevere("{SQL} [11] Failed to check if the Database connection is closed.");
             ServerUtils.sendDebugTrace(e);
@@ -597,7 +603,7 @@ abstract class Controller {
                     conn.close();
                 } catch (SQLException e) {
                     ServerUtils.logSevere("{SQL} [10] Failed to close database connection.");
-                   ServerUtils.sendDebugTrace(e);
+                    ServerUtils.sendDebugTrace(e);
                 }
             }
         } catch (SQLException e) {
