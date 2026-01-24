@@ -24,6 +24,7 @@ import me.RockinChaos.core.utils.*;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.api.LegacyAPI;
+import me.RockinChaos.core.utils.types.Monster;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -32,6 +33,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Skull;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
@@ -458,6 +461,77 @@ public class ItemHandler {
             existingItem = CompatUtils.getTopInventory(player).getItem(craftSlot);
         }
         return (existingItem != null && existingItem.getType() != Material.AIR ? existingItem : new ItemStack(Material.AIR));
+    }
+
+    /**
+     * Converts an entity to its corresponding item.
+     *
+     * @param entity - The entity to convert
+     * @return The item representing the entity
+     */
+    public static @Nonnull ItemStack getEntityItem(Entity entity) {
+        ItemStack item;
+        String entityType = entity.getType().name();
+        if (entityType.equals("ARMOR_STAND")) {
+            item = new ItemStack(ItemHandler.getMaterial("ARMOR_STAND", null));
+        } else if (entityType.contains("MINECART")) {
+            switch (entityType) {
+                case "FURNACE_MINECART":
+                case "POWERED_MINECART":
+                    item = new ItemStack(ItemHandler.getMaterial("FURNACE_MINECART", null));
+                    break;
+                case "CHEST_MINECART":
+                case "STORAGE_MINECART":
+                    item = new ItemStack(ItemHandler.getMaterial("CHEST_MINECART", null));
+                    break;
+                case "HOPPER_MINECART":
+                    item = new ItemStack(ItemHandler.getMaterial("HOPPER_MINECART", null));
+                    break;
+                case "TNT_MINECART":
+                case "EXPLOSIVE_MINECART":
+                    item = new ItemStack(ItemHandler.getMaterial("TNT_MINECART", null));
+                    break;
+                case "COMMAND_MINECART":
+                case "COMMAND_BLOCK_MINECART":
+                    item = new ItemStack(ItemHandler.getMaterial("COMMAND_BLOCK_MINECART", null));
+                    break;
+                case "SPAWNER_MINECART":
+                    item = new ItemStack(ItemHandler.getMaterial("SPAWNER_MINECART", null));
+                    break;
+                default:
+                    item = new ItemStack(ItemHandler.getMaterial("MINECART", null));
+                    break;
+            }
+        } else if (entityType.contains("BOAT")) {
+            if (ServerUtils.hasSpecificUpdate("1_13")) {
+                try {
+                    String woodType = ((Boat) entity).getWoodType().name();
+                    item = new ItemStack(ItemHandler.getMaterial(woodType + "_BOAT", null));
+                } catch (Exception e) {
+                    item = new ItemStack(ItemHandler.getMaterial("OAK_BOAT", null));
+                }
+            } else {
+                item = new ItemStack(ItemHandler.getMaterial("BOAT", null));
+            }
+        } else if (entityType.equals("GLOW_ITEM_FRAME")) {
+            item = new ItemStack(ItemHandler.getMaterial("GLOW_ITEM_FRAME", null));
+        } else if (entityType.equals("ITEM_FRAME")) {
+            item = new ItemStack(ItemHandler.getMaterial("ITEM_FRAME", null));
+        } else if (entityType.equals("PAINTING")) {
+            item = new ItemStack(ItemHandler.getMaterial("PAINTING", null));
+        } else if (entityType.contains("LEASH")) {
+            item = new ItemStack(ItemHandler.getMaterial("LEAD", null));
+        } else if (entityType.equals("END_CRYSTAL") || entityType.equals("ENDER_CRYSTAL")) {
+            item = new ItemStack(ItemHandler.getMaterial("END_CRYSTAL", null));
+        } else {
+            final Material spawnEgg = ItemHandler.getMaterial(entityType + "_SPAWN_EGG", null);
+            if (spawnEgg != Material.AIR) {
+                item = new ItemStack(spawnEgg);
+            } else {
+                item = LegacyAPI.newItemStack(ItemHandler.getMaterial("MONSTER_EGG", null), 1, (short) Monster.getId(entity.getType()));
+            }
+        }
+        return item;
     }
 
     /**
