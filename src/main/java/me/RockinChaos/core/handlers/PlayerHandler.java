@@ -216,6 +216,25 @@ public class PlayerHandler {
     }
 
     /**
+     * Gets the next empty hotbar slot, looping right from the current slot.
+     *
+     * @param inventory - The player's inventory
+     * @param currentSlot - The starting slot index
+     * @return The next empty slot index, or first empty inventory slot if hotbar is full
+     */
+    public static int getNextBestSlot(final PlayerInventory inventory, final int currentSlot) {
+        for (int i = 1; i <= 9; i++) {
+            int checkSlot = (currentSlot + i) % 9;
+            if (checkSlot == currentSlot) return inventory.firstEmpty();
+            ItemStack item = inventory.getItem(checkSlot);
+            if (item == null || item.getType() == Material.AIR) {
+                return checkSlot;
+            }
+        }
+        return inventory.firstEmpty();
+    }
+
+    /**
      * Gets the current ItemStack in the players Main Hand,
      * If it is empty it will get the ItemStack in the Offhand,
      * If the server version is below MC 1.9 it will use the
@@ -369,43 +388,36 @@ public class PlayerHandler {
     public static void updateInventory(final @Nonnull Player player, final @Nullable ItemStack item, final long delay) {
         SchedulerUtils.runAsyncLater(delay, () -> {
             try {
-                /*
-                    Updates Main Inventory Slot(s)
-                 */
+                /* Updates Main Inventory Slot(s) */
                 for (int i = 0; i < 36; i++) {
                     final ItemStack invItem = player.getInventory().getItem(i);
                     if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
                         ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, (i < 9 ? (i + 36) : i), 0);
                     }
                 }
-                /*
-                    Updates Offhand Slot.
-                 */
+                /* Updates Offhand Slot. */
                 if (ServerUtils.hasSpecificUpdate("1_9")) {
                     if (item == null || (getOffHandItem(player).clone().isSimilar(item))) {
                         ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45, 0);
                     }
                 }
                 if (isCraftingInv(player)) {
-                    /*
-                        Updates Crafting Slot(s)
-                     */
+                    /* Updates Crafting Slot(s) */
                     for (int i = 4; i >= 0; i--) {
                         final ItemStack invItem = CompatUtils.getTopInventory(player).getItem(i);
                         if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
                             ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i, 0);
                         }
                     }
-                    /*
-                        Updates Armor Slot(s)
-                     */
+                    /* Updates Armor Slot(s) */
                     for (int i = 0; i <= 3; i++) {
                         final ItemStack invItem = player.getInventory().getItem(i);
                         if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
                             ReflectionUtils.sendPacketPlayOutSetSlot(player, player.getInventory().getItem(i + 36), (8 - i), 0);
                         }
                     }
-                } else { // Update Top Inventory.
+                } else {
+                    /* Update Top Inventory. */
                     try {
                         final Object handle = ReflectionUtils.getEntity(player);
                         if (handle != null) {
@@ -464,8 +476,7 @@ public class PlayerHandler {
         Player args = null;
         try {
             args = Bukkit.getPlayer(UUID.fromString(playerName));
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         if (Core.getCore().getDependencies().nickAPIEnabled()) {
             if (xyz.haoshoku.nick.api.NickAPI.isNicked(xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName))) {
                 return xyz.haoshoku.nick.api.NickAPI.getPlayerOfNickedName(playerName);
@@ -474,6 +485,29 @@ public class PlayerHandler {
             }
         } else if (args == null) {
             return LegacyAPI.getPlayer(playerName);
+        }
+        return args;
+    }
+
+    /**
+     * Gets the Player instance from their String name.
+     *
+     * @param playerName - The player name to be transformed.
+     * @return The fetched Player instance.
+     */
+    public static @Nullable OfflinePlayer getOfflinePlayer(final @Nonnull String playerName) {
+        OfflinePlayer args = null;
+        try {
+            args = Bukkit.getOfflinePlayer(UUID.fromString(playerName));
+        } catch (Exception ignored) {}
+        if (args == null) {
+            final OfflinePlayer[] result = { null };
+            PlayerHandler.forOfflinePlayers(player -> {
+                if (getOfflinePlayerID(player).equals(playerName)) {
+                    result[0] = player;
+                }
+            });
+            args = result[0];
         }
         return args;
     }
