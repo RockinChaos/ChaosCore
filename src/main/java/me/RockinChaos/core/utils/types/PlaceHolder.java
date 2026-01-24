@@ -99,6 +99,8 @@ public class PlaceHolder {
         PLAYER_INTERACT("%player_interact%"),
         PLAYER_HIT("%player_hit%"),
         TARGET_PLAYER("%target_player%"),
+        OWNER("%owner%"),
+        OBJECT("%object%"),
         WORLD("%world%"),
         targetWorld("%target_world%"),
         MOB_KILLS("%mob_kills%"),
@@ -118,6 +120,7 @@ public class PlaceHolder {
         GAMEMODE("%gamemode%"),
         HOTBAR("%hotbar%"),
         STATE("%state%"),
+        ACTION("%action%"),
         PREFIX("%prefix%");
         private final String name;
 
