@@ -20,6 +20,7 @@ package me.RockinChaos.core.utils.interfaces.types;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.interfaces.Query;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -144,7 +145,11 @@ public class Button {
      */
     public void onClick(final @Nonnull InventoryClickEvent event) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            SchedulerUtils.run(() -> this.clickAction.accept(event));
+            if (Bukkit.isPrimaryThread()) {
+                this.clickAction.accept(event);
+            } else {
+                SchedulerUtils.run(() -> this.clickAction.accept(event));
+            }
         }
     }
 
@@ -156,7 +161,11 @@ public class Button {
      */
     public void onChat(final @Nonnull AsyncPlayerChatEvent event) {
         if (Core.getCore().getPlugin().isEnabled()) {
-            SchedulerUtils.run(() -> this.chatAction.accept(event));
+            if (Bukkit.isPrimaryThread()) {
+                this.chatAction.accept(event);
+            } else {
+                SchedulerUtils.run(() -> this.chatAction.accept(event));
+            }
         }
     }
 
@@ -169,12 +178,16 @@ public class Button {
     public void onTyping(final @Nonnull Player player) {
         if (Core.getCore().getPlugin().isEnabled()) {
             final Query.Builder builder = new Query.Builder().text(" ");
-            SchedulerUtils.run(() -> {
+            if (Bukkit.isPrimaryThread()) {
                 this.typingAction.accept(builder);
-                {
+                this.activeQuery = builder.open(player);
+            } else {
+                SchedulerUtils.run(() -> {
+                    this.typingAction.accept(builder);
                     this.activeQuery = builder.open(player);
-                }
-            });
+                });
+            }
+
         }
     }
 

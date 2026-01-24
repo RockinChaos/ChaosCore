@@ -37,7 +37,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
@@ -337,7 +336,7 @@ public class Interface implements InventoryHolder {
      * @param index - The page to become the current page.
      */
     private void selectPage(final int index) {
-        if (index == this.currentIndex) {
+        if (index == this.currentIndex || index >= this.pages.size()) {
             return;
         }
         this.currentIndex = index;
@@ -376,10 +375,15 @@ public class Interface implements InventoryHolder {
      * @param player - The player to have the current inventory page opened.
      */
     public void open(final @Nonnull Player player) {
+        if (Bukkit.isPrimaryThread()) {
+            this.renderPage();
+            player.openInventory(this.getInventory());
+        } else {
         SchedulerUtils.run(() -> {
             this.renderPage();
             player.openInventory(this.getInventory());
         });
+        }
     }
 
     /**

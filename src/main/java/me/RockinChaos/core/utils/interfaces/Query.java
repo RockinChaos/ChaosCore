@@ -848,10 +848,8 @@ public class Query {
                 {
                     SchedulerUtils.runAsync(() -> {
                         event.setResult(container.getResult(event.getPlayer(), renameText));
-                        {
-                            container.setAction(false);
-                            LegacyAPI.updateInventory(event.getPlayer());
-                        }
+                        container.setAction(false);
+                        LegacyAPI.updateInventory(event.getPlayer());
                     });
                 }
             }
