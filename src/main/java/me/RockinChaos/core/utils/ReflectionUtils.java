@@ -458,10 +458,10 @@ public class ReflectionUtils {
             try {
                 packet = playOutSlot.getConstructor(int.class, int.class, int.class, itemStack).newInstance(windowId, 0, index, itemStack.cast(nms));
             } catch (NoSuchMethodException e) {
-                packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(0, index, itemStack.cast(nms));
+                packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(windowId, index, itemStack.cast(nms));
             }
         } else {
-            packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(0, index, itemStack.cast(nms));
+            packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(windowId, index, itemStack.cast(nms));
         }
         sendPacket(player, packet);
     }

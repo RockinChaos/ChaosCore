@@ -423,10 +423,11 @@ public class PlayerHandler {
                         if (handle != null) {
                             final Object container = handle.getClass().getField(ReflectionUtils.MinecraftField.ActiveContainer.getField()).get(handle);
                             if (container != null) {
+                                final int windowId = (int) container.getClass().getField(ReflectionUtils.MinecraftField.windowId.getField()).get(container);
                                 for (int i = CompatUtils.getTopInventory(player).getSize() - 1; i >= 0; i--) {
                                     final ItemStack invItem = CompatUtils.getTopInventory(player).getItem(i);
                                     if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
-                                        ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i, (int) container.getClass().getField(ReflectionUtils.MinecraftField.windowId.getField()).get(container));
+                                        ReflectionUtils.sendPacketPlayOutSetSlot(player, invItem, i, windowId);
                                     }
                                 }
                             }
