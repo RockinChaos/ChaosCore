@@ -39,8 +39,10 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -348,12 +350,32 @@ public class LegacyAPI {
     }
 
     /**
+     * Gets the current SkullType of the Skull.
+     *
+     * @param skull - The Skull to fetch the SkullType.
+     * @return The found SkullType.
+     */
+    public static @Nonnull SkullType getSkullType(final @Nonnull Skull skull) {
+        return skull.getSkullType();
+    }
+
+    /**
+     * Gets the current Skull Owner of the Skull.
+     *
+     * @param skull - The Skull to have its owner fetched.
+     * @return The found Skull Owner.
+     */
+    public static @Nullable String getSkullOwner(final @Nonnull Skull skull) {
+        return skull.getOwner();
+    }
+
+    /**
      * Gets the current Skull Owner of the SkullMeta.
      *
      * @param skullMeta - The SkullMeta to have its owner fetched.
      * @return The found Skull Owner.
      */
-    public static @Nullable String getSkullOwner(final @Nonnull org.bukkit.inventory.meta.SkullMeta skullMeta) {
+    public static @Nullable String getSkullOwner(final @Nonnull SkullMeta skullMeta) {
         return skullMeta.getOwner();
     }
 
@@ -365,7 +387,7 @@ public class LegacyAPI {
      * @param owner     - The owner to be set to the SkullMeta.
      * @return The newly set SkullMeta.
      */
-    public static @Nonnull org.bukkit.inventory.meta.ItemMeta setSkullOwner(final @Nonnull Player player, final @Nonnull org.bukkit.inventory.meta.SkullMeta skullMeta, final @Nonnull String owner) {
+    public static @Nonnull ItemMeta setSkullOwner(final @Nonnull Player player, final @Nonnull SkullMeta skullMeta, final @Nonnull String owner) {
         skullMeta.setOwner(owner);
         SchedulerUtils.run(() -> {
             if (!ServerUtils.hasSpecificUpdate("1_13")) {
