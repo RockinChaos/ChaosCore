@@ -709,6 +709,24 @@ public class PlayerHandler {
     }
 
     /**
+     * Checks if the player is in the air by detecting if there's a solid block
+     * within the specified distance below their feet.
+     *
+     * @param player - The player to check
+     * @param maxDistance - Maximum distance to check for ground (in blocks)
+     * @return true if no solid block found within distance, false otherwise
+     */
+    public static boolean isAirborne(final Player player, final double maxDistance) {
+        final Location location = player.getLocation();
+        for (double y = 0.1; y <= maxDistance; y += 0.5) {
+            if (location.clone().subtract(0, y, 0).getBlock().getType().isSolid()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Attempts to get the Block that the Player is targeting.
      * Excludes transparent.
      *
