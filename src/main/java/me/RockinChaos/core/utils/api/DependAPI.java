@@ -366,15 +366,6 @@ public class DependAPI {
     }
 
     /**
-     * Checks if ProtocolLib is Enabled.
-     *
-     * @return If ProtocolLib is Enabled.
-     */
-    public boolean protocolEnabled() {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled("ProtocolLib") && !StringUtils.containsIgnoreCase(this.getIgnoreList(), "ProtocolLib");
-    }
-
-    /**
      * Gets the GuardAPI instance.
      *
      * @return The current GuardAPI instance.
@@ -401,7 +392,7 @@ public class DependAPI {
                 + (this.myWorldsEnabled() ? "My Worlds, " : "") + (this.perInventoryEnabled() ? "PerWorldInventory, " : "")
                 + (this.perPluginsEnabled() ? "PerWorldPlugins, " : "") + (this.tokenEnchantEnabled() ? "TokenEnchant, " : "")
                 + (this.getGuard().guardEnabled() ? "WorldGuard, " : "") + (this.databaseEnabled() ? "HeadDatabase, " : "")
-                + (this.xInventoryEnabled() ? "xInventories, " : "") + (this.placeHolderEnabled() ? "PlaceholderAPI, " : "") + (this.protocolEnabled() ? "ProtocolLib, " : "") +
+                + (this.xInventoryEnabled() ? "xInventories, " : "") + (this.placeHolderEnabled() ? "PlaceholderAPI, " : "") +
                 (this.skinsRestorerEnabled() ? "SkinsRestorer, " : "") + (this.citizensEnabled() ? "Citizens, " : "") + (this.chestSortEnabled() ? "ChestSort, " : "")
                 + (this.getVault().vaultEnabled() ? "Vault, " : "");
         if (!enabledPlugins.isEmpty()) {
@@ -433,7 +424,6 @@ public class DependAPI {
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.perInventoryEnabled() ? "PerWorldInventory" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.perPluginsEnabled() ? "PerWorldPlugins" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.placeHolderEnabled() ? "PlaceholderAPI" : ""));
-        metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.protocolEnabled() ? "ProtocolLib" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.skinsRestorerEnabled() ? "SkinsRestorer" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.citizensEnabled() ? "Citizens" : ""));
         metrics.addCustomChart(new MetricsAPI.SimplePie("softDepend", () -> this.chestSortEnabled() ? "ChestSort" : ""));
