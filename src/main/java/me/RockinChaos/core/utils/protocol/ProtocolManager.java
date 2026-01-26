@@ -25,6 +25,7 @@ import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.protocol.events.*;
 import me.RockinChaos.core.utils.protocol.packet.PacketContainer;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -129,14 +130,13 @@ public class ProtocolManager {
     public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull PacketContainer packetContainer) {
         try {
             if (packetName.equalsIgnoreCase("PacketPlayInPickItem") || packetName.contains("PickItemFromBlockPacket")) {
-                final Matcher matcher = Pattern.compile("x=(-?\\d+), y=(-?\\d+), z=(-?\\d+)").matcher(packetContainer.read(0).getData().toString());
-                int x = -1, y = -1, z = -1;
-                if (matcher.find()) {
-                    x = Integer.parseInt(matcher.group(1));
-                    y = Integer.parseInt(matcher.group(2));
-                    z = Integer.parseInt(matcher.group(3));
-                }
-                final PlayerPickBlockEvent PickBlock = new PlayerPickBlockEvent(player, (x != -1 && y != -1 && z != -1) ? player.getWorld().getBlockAt(x, y, z) : null, player.getInventory().getHeldItemSlot(), player.getInventory());
+                Matcher matcher = null;
+                try {
+                    matcher = Pattern.compile("x=(-?\\d+), y=(-?\\d+), z=(-?\\d+)").matcher(packetContainer.read(0).getData().toString());
+                } catch (Exception ignored) {}
+                Block block = null;
+                if (matcher != null && matcher.find()) block = player.getWorld().getBlockAt(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)));
+                final PlayerPickBlockEvent PickBlock = new PlayerPickBlockEvent(player, block, player.getInventory().getHeldItemSlot(), player.getInventory());
                 callEvent(PickBlock);
                 return PickBlock.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInPickEntity") || packetName.contains("PickItemFromEntityPacket")) {
