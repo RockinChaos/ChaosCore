@@ -140,6 +140,9 @@ public class ProtocolManager {
                 callEvent(PickBlock);
                 return PickBlock.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInPickEntity") || packetName.contains("PickItemFromEntityPacket")) {
+                final PlayerPickEntityEvent PickEntity = new PlayerPickEntityEvent(player, (int) packetContainer.read(0).getData(), player.getInventory().getHeldItemSlot(), player.getInventory());
+                callEvent(PickEntity);
+                return PickEntity.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe") || packetName.contains("PlaceRecipePacket")) {
                 final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasPreciseUpdate("1_20_5") && packetContainer.read(3).getData() instanceof Boolean ? packetContainer.read(3) : packetContainer.read(2)).getData());
                 callEvent(AutoCraft);
