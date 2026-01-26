@@ -36,6 +36,8 @@ import org.bukkit.plugin.RegisteredListener;
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
@@ -127,9 +129,17 @@ public class ProtocolManager {
     public static boolean manageEvents(final @Nonnull Player player, final @Nonnull String packetName, final @Nonnull PacketContainer packetContainer) {
         try {
             if (packetName.equalsIgnoreCase("PacketPlayInPickItem") || packetName.contains("PickItemFromBlockPacket")) {
-                final PlayerPickItemEvent PickItem = new PlayerPickItemEvent(player, player.getInventory());
-                callEvent(PickItem);
-                return PickItem.isCancelled();
+                final Matcher matcher = Pattern.compile("x=(-?\\d+), y=(-?\\d+), z=(-?\\d+)").matcher(packetContainer.read(0).getData().toString());
+                int x = -1, y = -1, z = -1;
+                if (matcher.find()) {
+                    x = Integer.parseInt(matcher.group(1));
+                    y = Integer.parseInt(matcher.group(2));
+                    z = Integer.parseInt(matcher.group(3));
+                }
+                final PlayerPickBlockEvent PickBlock = new PlayerPickBlockEvent(player, (x != -1 && y != -1 && z != -1) ? player.getWorld().getBlockAt(x, y, z) : null, player.getInventory().getHeldItemSlot(), player.getInventory());
+                callEvent(PickBlock);
+                return PickBlock.isCancelled();
+            } else if (packetName.equalsIgnoreCase("PacketPlayInPickEntity") || packetName.contains("PickItemFromEntityPacket")) {
             } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe") || packetName.contains("PlaceRecipePacket")) {
                 final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasPreciseUpdate("1_20_5") && packetContainer.read(3).getData() instanceof Boolean ? packetContainer.read(3) : packetContainer.read(2)).getData());
                 callEvent(AutoCraft);
@@ -145,6 +155,10 @@ public class ProtocolManager {
                     final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(CompatUtils.getOpenInventory(player), renameText);
                     callEvent(PrepareAnvil);
                     return PrepareAnvil.isCancelled();
+                } else if (packetContainer.read(0).getData().toString().equalsIgnoreCase("MC|PickItem")) {
+                    final PlayerPickBlockEvent PickBlock = new PlayerPickBlockEvent(player, null, player.getInventory().getHeldItemSlot(), player.getInventory());
+                    callEvent(PickBlock);
+                    return PickBlock.isCancelled();
                 }
             } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick") || packetName.contains("ContainerClickPacket")) { // yeeted in Minecraft 1.21+, thanks Microsoft...
                 if (packetContainer.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {

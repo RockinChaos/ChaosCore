@@ -24,14 +24,16 @@ import me.RockinChaos.core.utils.*;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftField;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.api.LegacyAPI;
+import me.RockinChaos.core.utils.types.Altered;
 import me.RockinChaos.core.utils.types.Monster;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
+import org.bukkit.block.Banner;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
 import org.bukkit.block.banner.PatternType;
+import org.bukkit.block.data.type.PistonHead;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
@@ -41,6 +43,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.map.MapView;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.PistonExtensionMaterial;
 import org.bukkit.potion.PotionType;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
@@ -461,6 +465,110 @@ public class ItemHandler {
             existingItem = CompatUtils.getTopInventory(player).getItem(craftSlot);
         }
         return (existingItem != null && existingItem.getType() != Material.AIR ? existingItem : new ItemStack(Material.AIR));
+    }
+
+    /**
+     * Resolves the actual block type, handling special cases like pistons.
+     *
+     * @param block - The block to resolve
+     * @return The resolved material type
+     */
+    public static Material getBlockMaterial(final Block block) {
+        Material blockType = block.getType();
+        if (blockType.name().equals("PISTON_HEAD") || blockType.name().equals("PISTON_EXTENSION")) {
+            if (ServerUtils.hasSpecificUpdate("1_13")) {
+                blockType = ((PistonHead) block.getBlockData()).getType() == PistonHead.Type.STICKY ? Material.STICKY_PISTON : Material.PISTON;
+            } else {
+                final MaterialData data = block.getState().getData();
+                if (data instanceof PistonExtensionMaterial) {
+                    blockType = ((PistonExtensionMaterial) data).isSticky() ? Material.valueOf("PISTON_STICKY_BASE") : Material.valueOf("PISTON_BASE");
+                }
+            }
+        }
+        return blockType;
+    }
+
+    /**
+     * Creates an ItemStack from a block with all metadata preserved.
+     *
+     * @param block  - The block to create an item from
+     * @param player - The player reference
+     * @return The created ItemStack with metadata
+     */
+    public static ItemStack getItemStack(final Block block, final Player player) {
+        if (block == null) return null;
+        final Material blockType = getBlockMaterial(block);
+        ItemStack item;
+        if (ServerUtils.hasSpecificUpdate("1_13")) {
+            item = new ItemStack(Altered.getAlter(blockType));
+        } else {
+            Material itemMaterial = Altered.getAlter(blockType);
+            try {
+                final Material itemVariant = Material.valueOf(Altered.getAlter(blockType).name() + "_ITEM");
+                if (itemVariant != Material.AIR) {
+                    itemMaterial = itemVariant;
+                }
+            } catch (IllegalArgumentException ignored) {}
+            short durability = 0;
+            if (itemMaterial.name().equals("SKULL") || itemMaterial.name().equals("SKULL_ITEM")) {
+                final BlockState blockState = block.getState();
+                if (blockState instanceof Skull) {
+                    final Enum<?> skullType = LegacyAPI.getSkullType((Skull) blockState);
+                    durability = (short) skullType.ordinal();
+                }
+            }
+            item = LegacyAPI.newItemStack(itemMaterial, 1, durability);
+        }
+        try {
+            final BlockState blockState = block.getState();
+            final ItemMeta itemMeta = item.getItemMeta();
+            if (StringUtils.containsIgnoreCase(item.getType().name(), "BANNER") && blockState instanceof Banner) {
+                if (itemMeta instanceof BannerMeta) {
+                    final Banner bannerState = (Banner) blockState;
+                    final BannerMeta bannerMeta = (BannerMeta) itemMeta;
+                    if (ServerUtils.hasSpecificUpdate("1_12")) {
+                        bannerMeta.setPatterns(bannerState.getPatterns());
+                    } else {
+                        bannerMeta.setPatterns(bannerState.getPatterns());
+                        bannerMeta.getClass().getMethod("setBaseColor", DyeColor.class).invoke(bannerMeta, bannerState.getBaseColor());
+                    }
+                    item.setItemMeta(bannerMeta);
+                }
+            } else if (StringUtils.containsIgnoreCase(item.getType().name(), "SKULL") || StringUtils.containsIgnoreCase(item.getType().name(), "HEAD")) {
+                if (blockState instanceof Skull) {
+                    final Skull skullState = (Skull) blockState;
+                    if (itemMeta instanceof SkullMeta) {
+                        SkullMeta skullMeta = (SkullMeta) itemMeta;
+                        final String skullTexture = getSkullTexture(skullState);
+                        if (!skullTexture.isEmpty()) {
+                            setSkullTexture(skullMeta, skullTexture);
+                        } else if (skullState.hasOwner()) {
+                            if (ServerUtils.hasSpecificUpdate("1_12")) {
+                                if (ServerUtils.hasPreciseUpdate("1_18_2")) {
+                                    if (skullState.getOwnerProfile() != null && skullState.getOwnerProfile().getName() != null) {
+                                        setSkullOwner(skullMeta, player, skullState.getOwnerProfile().getName());
+                                    }
+                                } else if (skullState.getOwningPlayer() != null) {
+                                    skullMeta.setOwningPlayer(skullState.getOwningPlayer());
+                                }
+                            } else {
+                                final String skullOwner = LegacyAPI.getSkullOwner(skullState);
+                                if (skullOwner != null) {
+                                    LegacyAPI.setSkullOwner(skullMeta, skullOwner);
+                                }
+                            }
+                        }
+                        item.setItemMeta(skullMeta);
+                    }
+                }
+            } else {
+                if (itemMeta instanceof BlockStateMeta) {
+                    ((BlockStateMeta) itemMeta).setBlockState(blockState);
+                    item.setItemMeta(itemMeta);
+                }
+            }
+        } catch (Exception ignored) {}
+        return item;
     }
 
     /**
