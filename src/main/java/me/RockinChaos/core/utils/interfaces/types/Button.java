@@ -176,7 +176,7 @@ public class Button {
      * @param player - the player involved in the typing event.
      */
     public void onTyping(final @Nonnull Player player) {
-        if (Core.getCore().getPlugin().isEnabled()) {
+        if (Core.getCore().getPlugin().isEnabled() && this.typingAction != null) {
             final Query.Builder builder = new Query.Builder().text(" ");
             if (Bukkit.isPrimaryThread()) {
                 this.typingAction.accept(builder);

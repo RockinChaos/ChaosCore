@@ -138,12 +138,14 @@ public class Interface implements InventoryHolder {
      * @param player - the player involved in the typing event.
      */
     public void onTyping(final @Nonnull Player player) {
-        if (this.panePlayer.equals(player) && this.activeButton != -1) {
-            this.pages.get(this.currentIndex).handleTyping(player, this.activeButton);
-            this.pendingChat = false;
-        } else if (!canChat) {
-            this.pendingChat = false;
-        }
+        SchedulerUtils.run(() -> {
+            if (this.panePlayer.equals(player) && this.activeButton != -1) {
+                this.pages.get(this.currentIndex).handleTyping(player, this.activeButton);
+                this.pendingChat = false;
+            } else if (!canChat) {
+                this.pendingChat = false;
+            }
+        });
     }
 
     /**

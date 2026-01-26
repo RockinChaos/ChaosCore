@@ -154,9 +154,11 @@ public class Query {
             this.container.setActiveContainerDefault(this.player);
             this.container.sendPacketCloseWindow(this.player);
         }
-        if (this.closeListener != null) {
-            this.closeListener.accept(StateSnapshot.fromQuery(this));
-        }
+        SchedulerUtils.run(() -> {
+            if (this.closeListener != null) {
+                this.closeListener.accept(StateSnapshot.fromQuery(this));
+            }
+        });
     }
 
     /**
@@ -920,7 +922,7 @@ public class Query {
         @EventHandler
         public void onInventoryDrag(final InventoryDragEvent event) {
             if (event.getInventory().equals(inventory)) {
-                for (int slot : Slot.values()) {
+                for (final int slot : Slot.values()) {
                     if (event.getRawSlots().contains(slot)) {
                         event.setCancelled(!interactableSlots.contains(slot));
                         break;
@@ -937,16 +939,12 @@ public class Query {
         @EventHandler
         public void onInventoryClose(final InventoryCloseEvent event) {
             if (open && event.getInventory().equals(inventory)) {
-                closeInventory(false);
-                {
-                    for (ItemStack item : event.getInventory().getContents()) {
-                        event.getInventory().remove(item);
-                    }
+                for (final ItemStack item : event.getInventory().getContents()) {
+                    event.getInventory().remove(item);
                 }
-                {
-                    if (preventClose) {
-                        mainThreadExecutor.execute(Query.this::openInventory);
-                    }
+                closeInventory(false);
+                if (preventClose) {
+                    mainThreadExecutor.execute(Query.this::openInventory);
                 }
             }
         }

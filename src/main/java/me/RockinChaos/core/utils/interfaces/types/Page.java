@@ -124,7 +124,7 @@ public class Page {
      */
     public void render(final @Nonnull Inventory inventory) {
         for (int i = 0; i < this.buttons.size(); i++) {
-            Button button = this.buttons.get(i);
+            final Button button = this.buttons.get(i);
             inventory.setItem(i, button.getItemStack());
         }
     }
