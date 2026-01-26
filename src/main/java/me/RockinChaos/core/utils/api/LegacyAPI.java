@@ -382,12 +382,11 @@ public class LegacyAPI {
     /**
      * Sets the owner to the SkullMeta.
      *
-     * @param player    - The Player being referenced.
      * @param skullMeta - The SkullMeta to have its owner set.
      * @param owner     - The owner to be set to the SkullMeta.
      * @return The newly set SkullMeta.
      */
-    public static @Nonnull ItemMeta setSkullOwner(final @Nonnull Player player, final @Nonnull SkullMeta skullMeta, final @Nonnull String owner) {
+    public static @Nonnull ItemMeta setSkullOwner(final @Nonnull SkullMeta skullMeta, final @Nonnull String owner) {
         skullMeta.setOwner(owner);
         SchedulerUtils.run(() -> {
             if (!ServerUtils.hasSpecificUpdate("1_13")) {
@@ -401,7 +400,7 @@ public class LegacyAPI {
                     skull.update();
                     final String texture = ItemHandler.getSkullTexture(skull);
                     if (texture != null && !texture.isEmpty()) {
-                        ItemHandler.setSkullTexture(player, skullMeta, texture);
+                        ItemHandler.setSkullTexture(skullMeta, texture);
                     }
                 } catch (Exception ignored) {
                 }

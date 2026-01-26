@@ -300,7 +300,7 @@ public class ItemHandler {
             return new ItemStack(Material.AIR);
         }
         ItemStack item = new ItemStack(itemCopy);
-        if (((item.getAmount() > amount && item.getAmount() != amount) || item.getAmount() < amount) && !allItems) {
+        if ((item.getAmount() > amount || item.getAmount() < amount) && !allItems) {
             item.setAmount(item.getAmount() - amount);
         } else {
             item = new ItemStack(Material.AIR);
@@ -718,13 +718,12 @@ public class ItemHandler {
     /**
      * Sets the Skull Texture to the ItemStack.
      *
-     * @param player       - The player being referenced.
      * @param item         - The ItemStack to have its Skull Texture changed.
      * @param skullTexture - The Skull Texture to be added to the ItemStack.
      */
-    public static @Nonnull ItemStack setSkullTexture(final @Nonnull Player player, final @Nonnull ItemStack item, final @Nonnull String skullTexture) {
+    public static @Nonnull ItemStack setSkullTexture(final @Nonnull ItemStack item, final @Nonnull String skullTexture) {
         if (item.getItemMeta() != null) {
-            ItemMeta itemMeta = setSkullTexture(player, item.getItemMeta(), skullTexture);
+            ItemMeta itemMeta = setSkullTexture(item.getItemMeta(), skullTexture);
             item.setItemMeta(itemMeta);
         }
         return item;
@@ -733,11 +732,10 @@ public class ItemHandler {
     /**
      * Sets the Skull Texture to the ItemStack.
      *
-     * @param player       - The player being referenced.
      * @param itemMeta     - The ItemMeta to have its Skull Texture changed.
      * @param skullTexture - The Skull Texture to be added to the ItemStack.
      */
-    public static @Nonnull ItemMeta setSkullTexture(final @Nonnull Player player, final @Nonnull ItemMeta itemMeta, final @Nonnull String skullTexture) {
+    public static @Nonnull ItemMeta setSkullTexture(final @Nonnull ItemMeta itemMeta, final @Nonnull String skullTexture) {
         try {
             if (ServerUtils.hasPreciseUpdate("1_18_2")) {
                 PlayerProfile playerProfile;
@@ -806,8 +804,7 @@ public class ItemHandler {
                     }
                 }
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return "";
     }
 
@@ -868,17 +865,17 @@ public class ItemHandler {
     public static void setStoredSkull(final @Nonnull ItemMeta meta, final @Nonnull Player player, final @Nonnull String owner) {
         if (!owner.isEmpty()) {
             SkullMeta skullMeta = (SkullMeta) meta;
-            OfflinePlayer offPlayer = LegacyAPI.getOfflinePlayer(owner);
+            OfflinePlayer offPlayer = StringUtils.isUUID(owner) ? Bukkit.getOfflinePlayer(UUID.fromString(owner)) : LegacyAPI.getOfflinePlayer(owner);
             if (Core.getCore().getDependencies().skinsRestorerEnabled()) {
                 final String textureValue = Core.getCore().getDependencies().getSkinValue(player.getUniqueId(), owner);
                 if (textureValue != null) {
-                    setSkullTexture(player, meta, textureValue);
+                    setSkullTexture(meta, textureValue);
                 } else {
                     try {
                         skullMeta.setOwningPlayer(offPlayer);
                     } catch (Throwable t) {
                         if (offPlayer.getName() != null) {
-                            LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
+                            LegacyAPI.setSkullOwner(skullMeta, offPlayer.getName());
                         }
                     }
                 }
@@ -887,7 +884,7 @@ public class ItemHandler {
                     skullMeta.setOwningPlayer(offPlayer);
                 } catch (Throwable t) {
                     if (offPlayer.getName() != null) {
-                        LegacyAPI.setSkullOwner(player, skullMeta, offPlayer.getName());
+                        LegacyAPI.setSkullOwner(skullMeta, offPlayer.getName());
                     }
                 }
             }

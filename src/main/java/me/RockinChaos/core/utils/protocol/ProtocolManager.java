@@ -173,8 +173,7 @@ public class ProtocolManager {
                     }
                 }
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return false;
     }
 

@@ -347,6 +347,21 @@ public class StringUtils {
     }
 
     /**
+     * Checks if a string is a valid UUID format.
+     *
+     * @param string The string to check
+     * @return true if the string is a valid UUID, false otherwise
+     */
+    public static boolean isUUID(String string) {
+        try {
+            UUID.fromString(string);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
      * Gets the first found Integer from the specified String.
      *
      * @param str - The String to be checked.
