@@ -1088,12 +1088,12 @@ public class ItemHandler {
      */
     public static boolean isContentsEmpty(final @Nonnull ItemStack[] contents) {
         int size = 0;
-        for (ItemStack itemStack : contents) {
+        for (final ItemStack itemStack : contents) {
             if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
                 size++;
             }
         }
-        return (size != contents.length);
+        return (size == contents.length);
     }
 
     /**
