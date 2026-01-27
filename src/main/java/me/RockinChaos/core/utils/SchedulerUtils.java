@@ -84,28 +84,36 @@ public class SchedulerUtils {
      * @param runnable - The task to be performed.
      * @param delay    - The ticks to wait before performing the task.
      */
-    public static void runLater(final long delay, final @Nonnull Runnable runnable) {
+    public static int runLater(final long delay, final @Nonnull Runnable runnable) {
         if (delay <= 0) {
             try {
                 runnable.run();
             } catch (Exception e) {
                 run(runnable);
             }
-            return;
+            return 0;
         }
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
                     final Method runDelayedMethod = globalScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class);
-                    runDelayedMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay);
+                    final Object uniqueTask = runDelayedMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay);
+                    try {
+                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
+                    } catch (NoSuchMethodException e) {
+                        final int id = StringUtils.getRandom(0, 100000000);
+                        scheduledTasks.put(id, uniqueTask);
+                        return id;
+                    }
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run task later.");
                     ServerUtils.sendSevereTrace(e);
+                    return 0;
                 }
-                return;
             }
-            Bukkit.getScheduler().runTaskLater(Core.getCore().getPlugin(), runnable, delay);
+            return Bukkit.getScheduler().runTaskLater(Core.getCore().getPlugin(), runnable, delay).getTaskId();
         }
+        return 0;
     }
 
     /**
@@ -166,22 +174,31 @@ public class SchedulerUtils {
      *
      * @param runnable - The task to be performed.
      * @param delay    - The ticks to wait before performing the task.
+     * @return The task identifier.
      */
-    public static void runAsyncLater(final long delay, final @Nonnull Runnable runnable) {
-        if (delay <= 0) { runAsync(runnable); return; }
+    public static int runAsyncLater(final long delay, final @Nonnull Runnable runnable) {
+        if (delay <= 0) { runAsync(runnable); return 0; }
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    Method runDelayedMethod = asyncScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class, TimeUnit.class);
-                    runDelayedMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), TimeUnit.MILLISECONDS);
+                    final Method runDelayedMethod = asyncScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class, TimeUnit.class);
+                    final Object uniqueTask = runDelayedMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), TimeUnit.MILLISECONDS);
+                    try {
+                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
+                    } catch (NoSuchMethodException e) {
+                        final int id = StringUtils.getRandom(0, 100000000);
+                        scheduledTasks.put(id, uniqueTask);
+                        return id;
+                    }
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run task later asynchronously.");
                     ServerUtils.sendSevereTrace(e);
+                    return 0;
                 }
-                return;
             }
-            Bukkit.getScheduler().runTaskLaterAsynchronously(Core.getCore().getPlugin(), runnable, delay);
+            return Bukkit.getScheduler().runTaskLaterAsynchronously(Core.getCore().getPlugin(), runnable, delay).getTaskId();
         }
+        return 0;
     }
 
     /**
@@ -224,9 +241,7 @@ public class SchedulerUtils {
         SINGLE_QUEUE.add(runnable);
         if (!SINGLE_ACTIVE) {
             SINGLE_ACTIVE = true;
-            {
-                cycleAsync();
-            }
+            cycleAsync();
         }
     }
 
