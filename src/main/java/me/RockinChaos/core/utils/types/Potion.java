@@ -39,6 +39,12 @@ public enum Potion {
     INSTANT_DAMAGE(Arrays.asList(8268, 8236, 16460, 16428)),
     WATER_BREATHING(Arrays.asList(8237, 8269, 16429, 16461)),
     INVISIBILITY(Arrays.asList(8238, 8270, 16430, 16462));
+//  SLOW_FALLING(Arrays.asList(...)) - (1.13)
+//  TURTLE_MASTER(Arrays.asList(...)) - (1.13)
+//  WIND_CHARGED(Arrays.asList(...)) - (1.21)
+//  WEAVING(Arrays.asList(...)) - (1.21)
+//  OOZING(Arrays.asList(...)) - (1.21)
+//  INFESTED(Arrays.asList(...)) - (1.21)
 
     private final List<Integer> id;
 

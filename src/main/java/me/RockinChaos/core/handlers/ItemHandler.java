@@ -579,7 +579,7 @@ public class ItemHandler {
      */
     public static @Nonnull ItemStack getEntityItem(Entity entity) {
         ItemStack item;
-        String entityType = entity.getType().name();
+        final String entityType = entity.getType().name();
         if (entityType.equals("ARMOR_STAND")) {
             item = new ItemStack(ItemHandler.getMaterial("ARMOR_STAND", null));
         } else if (entityType.contains("MINECART")) {
@@ -635,8 +635,10 @@ public class ItemHandler {
             final Material spawnEgg = ItemHandler.getMaterial(entityType + "_SPAWN_EGG", null);
             if (spawnEgg != Material.AIR) {
                 item = new ItemStack(spawnEgg);
-            } else {
+            } else if (!ServerUtils.hasSpecificUpdate("1_13")) {
                 item = LegacyAPI.newItemStack(ItemHandler.getMaterial("MONSTER_EGG", null), 1, (short) Monster.getId(entity.getType()));
+            } else  {
+                item = new ItemStack(Material.AIR);
             }
         }
         return item;

@@ -35,7 +35,14 @@ public enum Brewing {
     GOLDEN_CARROT,
     FOOT,
     BREATH,
-    MEMBRANE;
+    MEMBRANE,
+    PUFFERFISH,
+    SHELL,
+    COBWEB,
+    SLIME_BLOCK,
+    STONE,
+    BREEZE_ROD,
+    BLAZE_ROD;
 
     /**
      * Checks if the Material is a Brewing type.

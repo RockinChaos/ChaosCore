@@ -115,7 +115,17 @@ public enum Decoration {
     HONEY_BLOCK,
     HONEYCOMB_BLOCK,
     LODESTONE,
-    ANCHOR;
+    ANCHOR,
+    SCULK,
+    MANGROVE,
+    CHERRY,
+    PINK_PETALS,
+    PITCHER,
+    TORCHFLOWER,
+    SNIFFER_EGG,
+    SUSPICIOUS,
+    PALE,
+    CREAKING;
 
     /**
      * Checks if the Material is a Decoration type.

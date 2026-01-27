@@ -61,6 +61,7 @@ public enum Miscellaneous {
     NUGGET,
     WART,
     EYE,
+    EXP_BOTTLE,
     EXPERIENCE_BOTTLE,
     CHARGE,
     EMERALD,
@@ -77,7 +78,12 @@ public enum Miscellaneous {
     MUSIC,
     SEA,
     PATTERN,
-    HONEYCOMB;
+    HONEYCOMB,
+    SMITHING_TEMPLATE,
+    POTTERY_SHERD,
+    DISC_FRAGMENT,
+    WIND_CHARGE,
+    BREEZE_ROD;
 
     /**
      * Checks if the Material is a Miscellaneous type.

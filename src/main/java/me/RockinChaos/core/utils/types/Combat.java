@@ -35,7 +35,9 @@ public enum Combat {
     SHIELD,
     TOTEM_OF_UNDYING,
     TRIDENT,
-    CROSSBOW;
+    CROSSBOW,
+    MACE,
+    WOLF_ARMOR;
 
     /**
      * Checks if the Material is a Combat type.

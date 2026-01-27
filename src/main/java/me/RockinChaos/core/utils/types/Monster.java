@@ -65,7 +65,42 @@ public enum Monster {
     POLAR_BEAR(102),
     LLAMA(103),
     PARROT(105),
-    VILLAGER(120);
+    VILLAGER(120),
+
+    // ids below are "make believe" with no substance, mobs introduced after 1.12 no longer have an assigned id.
+    PHANTOM(121),
+    DROWNED(122),
+    DOLPHIN(123),
+    COD(124),
+    SALMON(125),
+    PUFFERFISH(126),
+    TROPICAL_FISH(127),
+    TURTLE(128),
+    CAT(129),
+    PANDA(130),
+    PILLAGER(131),
+    RAVAGER(132),
+    FOX(133),
+    TRADER_LLAMA(134),
+    WANDERING_TRADER(135),
+    BEE(136),
+    HOGLIN(137),
+    PIGLIN(138),
+    PIGLIN_BRUTE(139),
+    ZOGLIN(140),
+    STRIDER(141),
+    AXOLOTL(142),
+    GLOW_SQUID(143),
+    GOAT(144),
+    ALLAY(145),
+    FROG(146),
+    TADPOLE(147),
+    CAMEL(148),
+    SNIFFER(149),
+    ARMADILLO(150),
+    BOGGED(151),
+    BREEZE(152),
+    WARDEN(153);
 
     public final int mobId;
 

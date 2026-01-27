@@ -36,7 +36,8 @@ public enum BuildingBlocks {
     STRUCTURE_BLOCK,
     JIGSAW,
     WART,
-    CAKE;
+    CAKE,
+    CRAFTER;
 
     /**
      * Checks if the Material is a Building Blocks type.

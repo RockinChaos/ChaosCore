@@ -50,7 +50,6 @@ public enum Redstone {
     TARGET,
     SENSOR,
     SHRIEKER,
-    LECTURN,
     STRING,
     WHITE_WOOL,
     AMETHYST_BLOCK,
@@ -66,7 +65,10 @@ public enum Redstone {
     CAULDRON,
     DECORATED_POT,
     CHISELED_BOOKSHELF,
-    BARREL;
+    BARREL,
+    CRAFTER,
+    BULB,
+    SCULK_SENSOR;
 
     /**
      * Checks if the Material is a Redstone type.

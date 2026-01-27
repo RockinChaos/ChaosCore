@@ -28,6 +28,7 @@ public enum Tools {
     PICKAXE,
     AXE,
     HOE,
+    MACE,
     COMPASS,
     FISHING_ROD,
     CLOCK,

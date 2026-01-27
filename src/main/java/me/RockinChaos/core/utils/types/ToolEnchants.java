@@ -31,7 +31,10 @@ public enum ToolEnchants {
     LUCK("LUCK_OF_THE_SEA"),
     LURE("LURE"),
     MENDING("MENDING"),
-    VANISHING_CURSE("VANISHING_CURSE");
+    VANISHING_CURSE("VANISHING_CURSE"),
+    DENSITY("DENSITY"),
+    BREACH("BREACH"),
+    WIND_BURST("WIND_BURST");
 
     final String key;
 
