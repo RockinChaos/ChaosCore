@@ -698,7 +698,7 @@ public class ReflectionUtils {
         UseCooldown("USE_COOLDOWN", "USE_COOLDOWN", "y"),
         Equippable("EQUIPPABLE", "EQUIPPABLE", "D"),
         Repairable("REPAIRABLE", "REPAIRABLE", "E"),
-        windowId("windowId", "windowId", ServerUtils.hasPreciseUpdate("1_21_3") ? "l" : "j"),
+        windowId("windowId", ServerUtils.hasSpecificUpdate("1_21") ? "containerId" : "windowId", ServerUtils.hasPreciseUpdate("1_21_3") ? "l" : "j"),
         WrittenBookContent("WRITTEN_BOOK_CONTENT", "WRITTEN_BOOK_CONTENT", "J"),
         NetworkManager("networkManager", "networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
 
