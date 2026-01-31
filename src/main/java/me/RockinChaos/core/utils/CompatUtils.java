@@ -43,7 +43,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -66,8 +65,7 @@ public class CompatUtils {
      */
     public static @Nonnull Object getOpenInventory(final @Nonnull Object object) {
         try {
-            final Method getOpenInventory = object.getClass().getMethod("getOpenInventory");
-            getOpenInventory.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getOpenInventory = ReflectionUtils.getMethod(object.getClass(), "getOpenInventory");
             return getOpenInventory.invoke(object);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with Player#getOpenInventory!");
@@ -89,8 +87,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method getTopInventory = view.getClass().getMethod("getTopInventory");
-            getTopInventory.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getTopInventory = ReflectionUtils.getMethod(view.getClass(), "getTopInventory");
             return (Inventory) getTopInventory.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getTopInventory!");
@@ -112,8 +109,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method getBottomInventory = view.getClass().getMethod("getBottomInventory");
-            getBottomInventory.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getBottomInventory = ReflectionUtils.getMethod(view.getClass(), "getBottomInventory");
             return (Inventory) getBottomInventory.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getBottomInventory!");
@@ -132,10 +128,9 @@ public class CompatUtils {
      */
     public static @Nonnull Player getPlayer(final @Nonnull Object object) {
         try {
-            final Object view = (object instanceof InventoryEvent ? object.getClass().getMethod("getView").invoke(object)
+            final Object view = (object instanceof InventoryEvent ? ReflectionUtils.getMethod(object.getClass(), "getView").invoke(object)
                     : object);
-            final Method getPlayer = view.getClass().getMethod("getPlayer");
-            getPlayer.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getPlayer = ReflectionUtils.getMethod(view.getClass(), "getPlayer");
             return (Player) getPlayer.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getPlayer!");
@@ -157,8 +152,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method getTitle = view.getClass().getMethod("getTitle");
-            getTitle.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getTitle = ReflectionUtils.getMethod(view.getClass(), "getTitle");
             return (String) getTitle.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getTitle!");
@@ -180,8 +174,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method getType = view.getClass().getMethod("getType");
-            getType.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getType = ReflectionUtils.getMethod(view.getClass(), "getType");
             return (InventoryType) getType.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getType!");
@@ -203,8 +196,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method getCursor = view.getClass().getMethod("getCursor");
-            getCursor.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getCursor = ReflectionUtils.getMethod(view.getClass(), "getCursor");
             return (ItemStack) getCursor.invoke(view);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getCursor!");
@@ -226,8 +218,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method setCursor = view.getClass().getMethod("setCursor", ItemStack.class);
-            setCursor.setAccessible(true);
+            final ReflectionUtils.MethodInvoker setCursor = ReflectionUtils.getMethod(view.getClass(), "setCursor", ItemStack.class);
             setCursor.invoke(view, itemStack);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#setCursor!");
@@ -250,8 +241,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method getCursor = view.getClass().getMethod("getItem", int.class);
-            getCursor.setAccessible(true);
+            final ReflectionUtils.MethodInvoker getCursor = ReflectionUtils.getMethod(view.getClass(), "getItem", int.class);
             return (ItemStack) getCursor.invoke(view, slot);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#getItem!");
@@ -274,8 +264,7 @@ public class CompatUtils {
             final Object view = (object instanceof Player ? getOpenInventory(object)
                     : object instanceof InventoryEvent ? ((InventoryEvent)object).getView()
                     : object);
-            final Method setItem = view.getClass().getMethod("setItem", int.class, ItemStack.class);
-            setItem.setAccessible(true);
+            final ReflectionUtils.MethodInvoker setItem = ReflectionUtils.getMethod(view.getClass(), "setItem", int.class, ItemStack.class);
             setItem.invoke(view, slot, itemStack);
         } catch (Exception e) {
             ServerUtils.logSevere("{CompatUtils} An error has occurred with InventoryView#setItem!");
@@ -293,17 +282,17 @@ public class CompatUtils {
     public static NamespacedKey getKey(final @Nonnull Object object) {
         return ((NamespacedKey) resolveByVersion("1_21_4", () -> {
             try {
-                return (object.getClass().getMethod("getKeyOrThrow").invoke(object));
+                return ReflectionUtils.getMethod(object.getClass(), "getKeyOrThrow").invoke(object);
             } catch (Exception e) {
                 try {
-                    return (object.getClass().getMethod("getKey").invoke(object));
+                    return ReflectionUtils.getMethod(object.getClass(), "getKey").invoke(object);
                 } catch (Exception ex) {
                     throw new RuntimeException("{CompatUtils} Unable to #getKeyOrThrow for class: " + object.getClass().getName());
                 }
             }
         }, () -> {
             try {
-                return (object.getClass().getMethod("getKey").invoke(object));
+                return ReflectionUtils.getMethod(object.getClass(), "getKey").invoke(object);
             } catch (Exception e) {
                 throw new RuntimeException("{CompatUtils} Unable to #getKey for class: " + object.getClass().getName());
             }
@@ -340,13 +329,13 @@ public class CompatUtils {
         } else if (object instanceof GameProfile) {
             return ((String) resolveByVersion("1_21_9", () -> {
                 try {
-                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("name").invoke(object);
+                    return ReflectionUtils.getMethod(ReflectionUtils.getClass("com.mojang.authlib.GameProfile"), "name").invoke(object);
                 } catch (Exception e) {
                     throw new RuntimeException("{CompatUtils} Unable to get name of GameProfile: " + object);
                 }
             }, () -> {
                 try {
-                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("getName").invoke(object);
+                    return ReflectionUtils.getMethod(ReflectionUtils.getClass("com.mojang.authlib.GameProfile"), "getName").invoke(object);
                 } catch (Exception e) {
                     throw new RuntimeException("{CompatUtils} Unable to get legacy name of GameProfile: " + object);
                 }
@@ -367,13 +356,13 @@ public class CompatUtils {
         if (object instanceof GameProfile) {
             return ((PropertyMap) resolveByVersion("1_21_9", () -> {
                 try {
-                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("properties").invoke(object);
+                    return ReflectionUtils.getMethod(ReflectionUtils.getClass("com.mojang.authlib.GameProfile"), "properties").invoke(object);
                 } catch (Exception e) {
                     throw new RuntimeException("{CompatUtils} Unable to get properties of GameProfile: " + object);
                 }
             }, () -> {
                 try {
-                    return ReflectionUtils.getClass("com.mojang.authlib.GameProfile").getMethod("getProperties").invoke(object);
+                    return ReflectionUtils.getMethod(ReflectionUtils.getClass("com.mojang.authlib.GameProfile"), "getProperties").invoke(object);
                 } catch (Exception e) {
                     throw new RuntimeException("{CompatUtils} Unable to get legacy properties of GameProfile: " + object);
                 }
@@ -437,10 +426,8 @@ public class CompatUtils {
      */
     public static boolean isInventoryEmpty(final @Nonnull Inventory inventory) {
         try {
-            final Method isEmpty = inventory.getClass().getMethod("isEmpty");
-            if (isEmpty != null) {
-                return (boolean) isEmpty.invoke(inventory);
-            }
+            final ReflectionUtils.MethodInvoker isEmpty = ReflectionUtils.getMethod(inventory.getClass(), "isEmpty");
+            return (boolean) isEmpty.invoke(inventory);
         } catch (Exception ignored) { }
 
         // Fallback method to check if inventory is empty

@@ -260,16 +260,16 @@ public class DependAPI {
         }
         if (this.skinsNetty != null) {
             try {
-                final Object skinsInstance = this.skinsNetty.getMethod("get").invoke(null);
-                this.skinsRestorer = skinsInstance.getClass().getMethod("getPlayerStorage").invoke(skinsInstance);
+                final Object skinsInstance = ReflectionUtils.getMethod(this.skinsNetty, "get").invoke(null);
+                this.skinsRestorer = ReflectionUtils.getMethod(skinsInstance.getClass(), "getPlayerStorage").invoke(skinsInstance);
             } catch (Exception e1) {
                 final String skinsVersion = Objects.requireNonNull(Bukkit.getServer().getPluginManager().getPlugin("SkinsRestorer")).getDescription().getVersion();
                 try {
-                    final Object skinsInstance = this.skinsNetty.getMethod("getInstance").invoke(null);
-                    this.skinsRestorer = skinsInstance.getClass().getMethod("getSkinsRestorerBukkitAPI").invoke(skinsInstance);
+                    final Object skinsInstance = ReflectionUtils.getMethod(this.skinsNetty, "getInstance").invoke(null);
+                    this.skinsRestorer = ReflectionUtils.getMethod(skinsInstance.getClass(), "getSkinsRestorerBukkitAPI").invoke(skinsInstance);
                 } catch (Exception e2) {
                     try {
-                        this.skinsRestorer = this.skinsNetty.getMethod("getApi").invoke(null);
+                        this.skinsRestorer = ReflectionUtils.getMethod(this.skinsNetty, "getApi").invoke(null);
                     } catch (Exception e3) {
                         try {
                             this.isSkinsProxy(e1.getCause());
@@ -316,22 +316,22 @@ public class DependAPI {
      */
     public String getSkinValue(final @Nonnull UUID uuid, final @Nonnull String owner) {
         try {
-            final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
-            final Object skinData = playerData.getClass().getMethod("get").invoke(playerData);
-            return ((String) skinData.getClass().getMethod("getValue").invoke(skinData));
+            final Object playerData = ReflectionUtils.getMethod(this.skinsRestorer.getClass(), "getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
+            final Object skinData = ReflectionUtils.getMethod(playerData.getClass(), "get").invoke(playerData);
+            return (String) ReflectionUtils.getMethod(skinData.getClass(), "getValue").invoke(skinData);
         } catch (Exception e1) {
             final String skinsVersion = Objects.requireNonNull(Bukkit.getServer().getPluginManager().getPlugin("SkinsRestorer")).getDescription().getVersion();
             try {
-                final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
+                final Object playerData = ReflectionUtils.getMethod(this.skinsRestorer.getClass(), "getSkinName", String.class).invoke(this.skinsRestorer, owner);
                 final String ownerData = (playerData != null ? (String) playerData : owner);
-                final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
-                return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
+                final Object skinData = ReflectionUtils.getMethod(this.skinsRestorer.getClass(), "getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
+                return (skinData != null ? (String) ReflectionUtils.getMethod(skinData.getClass(), "getValue").invoke(skinData) : null);
             } catch (Exception e2) {
                 try {
-                    final Object playerData = this.skinsRestorer.getClass().getMethod("getSkinName", String.class).invoke(this.skinsRestorer, owner);
+                    final Object playerData = ReflectionUtils.getMethod(this.skinsRestorer.getClass(), "getSkinName", String.class).invoke(this.skinsRestorer, owner);
                     final String ownerData = (playerData != null ? (String) playerData : owner);
-                    final Object skinData = this.skinsRestorer.getClass().getMethod("getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
-                    return (skinData != null ? (String) skinData.getClass().getMethod("getValue").invoke(skinData) : null);
+                    final Object skinData = ReflectionUtils.getMethod(this.skinsRestorer.getClass(), "getSkinData", String.class).invoke(this.skinsRestorer, ownerData);
+                    return (skinData != null ? (String) ReflectionUtils.getMethod(skinData.getClass(), "getValue").invoke(skinData) : null);
                 } catch (Exception e3) {
                     ServerUtils.logDebug("Start of the first trace.");
                     ServerUtils.sendDebugTrace(e1);

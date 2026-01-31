@@ -40,6 +40,13 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"unused"})
 public class ReflectionUtils {
     private static final Map<String, Class<?>> CLASS_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Field> FIELD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Constructor<?>> CONSTRUCTOR_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, FieldAccessor<?>> FIELD_ACCESSOR_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, MethodInvoker> METHOD_INVOKER_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Class<?>> METHOD_RETURN_TYPE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Field[]> DECLARED_FIELDS_CACHE = new ConcurrentHashMap<>();
+
     private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String MC_PREFIX = "net.minecraft";
@@ -115,11 +122,18 @@ public class ReflectionUtils {
      * @param index     - the number of compatible fields to skip.
      * @return The field accessor.
      */
+    @SuppressWarnings("unchecked")
     private static @Nonnull <T> FieldAccessor<T> getField(final @Nonnull Class<?> target, final @Nullable String name, @Nullable Class<T> fieldType, int index) {
+        final String cacheKey = target.getName() + "|" + name + "|" + (fieldType != null ? fieldType.getName() : "null") + "|" + index;
+        FieldAccessor<?> cached = FIELD_ACCESSOR_CACHE.get(cacheKey);
+        if (cached != null) {
+            return (FieldAccessor<T>) cached;
+        }
         for (final Field field : target.getDeclaredFields()) {
             if ((name == null || field.getName().equals(name)) && (fieldType == null || fieldType.isAssignableFrom(field.getType())) && index-- <= 0) {
                 field.setAccessible(true);
-                return new FieldAccessor<T>() {
+                FIELD_CACHE.put(cacheKey, field);
+                FieldAccessor<T> accessor = new FieldAccessor<T>() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public T get(Object target) {
@@ -129,7 +143,6 @@ public class ReflectionUtils {
                             throw new RuntimeException("Cannot access reflection.", e);
                         }
                     }
-
                     @Override
                     public void set(Object target, Object value) {
                         try {
@@ -138,12 +151,13 @@ public class ReflectionUtils {
                             throw new RuntimeException("Cannot access reflection.", e);
                         }
                     }
-
                     @Override
                     public boolean hasField(Object target) {
                         return field.getDeclaringClass().isAssignableFrom(target.getClass());
                     }
                 };
+                FIELD_ACCESSOR_CACHE.put(cacheKey, accessor);
+                return accessor;
             }
         }
         if (target.getSuperclass() != null) {
@@ -151,6 +165,50 @@ public class ReflectionUtils {
         } else {
             throw new IllegalArgumentException("Cannot find field with type " + fieldType);
         }
+    }
+
+    /**
+     * Retrieve a declared field for a class and name.
+     *
+     * @param clazz       - the target class.
+     * @param fieldName   - the name of the field, or NULL to ignore.
+     * @return The declared field.
+     */
+    public static @Nonnull Field getDeclaredField(final @Nonnull Class<?> clazz, final @Nonnull String fieldName) {
+        final String cacheKey = clazz.getName() + "|declared|" + fieldName;
+        Field cached = FIELD_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            Field field = clazz.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            FIELD_CACHE.put(cacheKey, field);
+            return field;
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException("Cannot find declared field: " + fieldName, e);
+        }
+    }
+
+    /**
+     * Retrieve declared fields for a class (cached).
+     * All fields are pre-set to accessible.
+     *
+     * @param clazz - the target class.
+     * @return The array of declared fields.
+     */
+    public static @Nonnull Field[] getDeclaredFields(final @Nonnull Class<?> clazz) {
+        final String cacheKey = clazz.getName();
+        final Field[] cached = DECLARED_FIELDS_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        final Field[] fields = clazz.getDeclaredFields();
+        for (final Field field : fields) {
+            field.setAccessible(true);
+        }
+        DECLARED_FIELDS_CACHE.put(cacheKey, fields);
+        return fields;
     }
 
     /**
@@ -195,6 +253,31 @@ public class ReflectionUtils {
     }
 
     /**
+     * Get the return type of method (cached).
+     *
+     * @param clazz      - the class containing the method.
+     * @param methodName - the method name.
+     * @param params     - the expected parameters.
+     * @return The return type of the method.
+     * @throws IllegalStateException If we cannot find this method.
+     */
+    public static @Nonnull Class<?> getReturnType(final @Nonnull Class<?> clazz, final @Nonnull String methodName, final @Nonnull Class<?>... params) {
+        final String cacheKey = clazz.getName() + "|returnType|" + methodName + "|" + Arrays.toString(params);
+        Class<?> cached = METHOD_RETURN_TYPE_CACHE.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            Method method = clazz.getMethod(methodName, params);
+            Class<?> returnType = method.getReturnType();
+            METHOD_RETURN_TYPE_CACHE.put(cacheKey, returnType);
+            return returnType;
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, Arrays.asList(params)), e);
+        }
+    }
+
+    /**
      * Search for the first publicly and privately defined method of the given name and parameter count.
      *
      * @param clazz      - a class to start with.
@@ -205,21 +288,43 @@ public class ReflectionUtils {
      * @throws IllegalStateException If we cannot find this method.
      */
     public static @Nonnull MethodInvoker getTypedMethod(final @Nonnull Class<?> clazz, final @Nonnull String methodName, final @Nullable Class<?> returnType, final @Nonnull Class<?>... params) {
-        for (final Method method : clazz.getDeclaredMethods()) {
-            if (method.getName().equals(methodName) && (returnType == null || method.getReturnType().equals(returnType)) && Arrays.equals(method.getParameterTypes(), params)) {
+        final String cacheKey = clazz.getName() + "|" + methodName + "|" + (returnType != null ? returnType.getName() : "null") + "|" + Arrays.toString(params);
+        final MethodInvoker cached = METHOD_INVOKER_CACHE.get(cacheKey);
+        if (cached != null) return cached;
+        if (returnType == null) {
+            try {
+                final Method method = clazz.getMethod(methodName, params);
                 method.setAccessible(true);
-                return (target, arguments) -> {
+                final MethodInvoker invoker = (target, arguments) -> {
                     try {
                         return method.invoke(target, arguments);
                     } catch (Exception e) {
                         throw new RuntimeException("Cannot invoke method " + method, e);
                     }
                 };
+                METHOD_INVOKER_CACHE.put(cacheKey, invoker);
+                return invoker;
+            } catch (NoSuchMethodException ignored) {}
+        }
+        for (final Method method : clazz.getDeclaredMethods()) {
+            if (method.getName().equals(methodName) && (returnType == null || method.getReturnType().equals(returnType)) && Arrays.equals(method.getParameterTypes(), params)) {
+                method.setAccessible(true);
+                final MethodInvoker invoker = (target, arguments) -> {
+                    try {
+                        return method.invoke(target, arguments);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Cannot invoke method " + method, e);
+                    }
+                };
+                METHOD_INVOKER_CACHE.put(cacheKey, invoker);
+                return invoker;
             }
         }
-        if (clazz.getSuperclass() != null)
-            return getMethod(clazz.getSuperclass(), methodName, params);
-        throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, Arrays.asList(params)));
+        if (clazz.getSuperclass() != null) {
+            return getTypedMethod(clazz.getSuperclass(), methodName, returnType, params);
+        } else {
+            throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, Arrays.asList(params)));
+        }
     }
 
     /**
@@ -232,7 +337,7 @@ public class ReflectionUtils {
     public static @Nonnull Object getPlayerField(final @Nonnull Player player, final @Nonnull String field) {
         try {
             final Object craftPlayer = getEntity(player);
-            return craftPlayer != null ? craftPlayer.getClass().getField(field).get(craftPlayer) : new Object();
+            return craftPlayer != null ? getField(craftPlayer.getClass(), field).get(craftPlayer) : new Object();
         } catch (Exception e) {
             throw new RuntimeException("Cannot invoke player field " + field, e);
         }
@@ -274,9 +379,33 @@ public class ReflectionUtils {
      * @throws IllegalStateException If we cannot find this method.
      */
     public static @Nonnull ConstructorInvoker getConstructor(final @Nonnull Class<?> clazz, final @Nonnull Class<?>... params) {
+        final String cacheKey = clazz.getName() + "|" + Arrays.toString(params);
+        Constructor<?> cached = CONSTRUCTOR_CACHE.get(cacheKey);
+        if (cached != null) {
+            return arguments -> {
+                try {
+                    return cached.newInstance(arguments);
+                } catch (Exception e) {
+                    throw new RuntimeException("Cannot invoke constructor " + cached, e);
+                }
+            };
+        }
+        try {
+            final Constructor<?> constructor = clazz.getConstructor(params);
+            constructor.setAccessible(true);
+            CONSTRUCTOR_CACHE.put(cacheKey, constructor);
+            return arguments -> {
+                try {
+                    return constructor.newInstance(arguments);
+                } catch (Exception e) {
+                    throw new RuntimeException("Cannot invoke constructor " + constructor, e);
+                }
+            };
+        } catch (NoSuchMethodException ignored) {}
         for (final Constructor<?> constructor : clazz.getDeclaredConstructors()) {
             if (Arrays.equals(constructor.getParameterTypes(), params)) {
                 constructor.setAccessible(true);
+                CONSTRUCTOR_CACHE.put(cacheKey, constructor);
                 return arguments -> {
                     try {
                         return constructor.newInstance(arguments);
@@ -411,11 +540,9 @@ public class ReflectionUtils {
     public static void setBasePotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType) {
         try {
             final Class<?> potionDataClass = getCanonicalClass("org.bukkit.potion.PotionData");
-            final Constructor<?> potionDataConstructor = potionDataClass.getConstructor(getCanonicalClass("org.bukkit.potion.PotionType"));
-            final Object potionData = potionDataConstructor.newInstance(potionType);
+            final Object potionData = getConstructor(potionDataClass, getCanonicalClass("org.bukkit.potion.PotionType")).invoke(potionType);
             final Class<?> itemMetaClass = getCanonicalClass("org.bukkit.inventory.meta.PotionMeta");
-            final Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
-            setBasePotionDataMethod.invoke(tempMeta, potionData);
+            getMethod(itemMetaClass, "setBasePotionData", potionDataClass).invoke(tempMeta, potionData);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -432,11 +559,9 @@ public class ReflectionUtils {
     public static void setBasePotionData(final @Nonnull PotionMeta tempMeta, final @Nonnull PotionType potionType, final boolean extended, final boolean upgraded) {
         try {
             final Class<?> potionDataClass = getCanonicalClass("org.bukkit.potion.PotionData");
-            final Constructor<?> potionDataConstructor = potionDataClass.getConstructor(getCanonicalClass("org.bukkit.potion.PotionType"), boolean.class, boolean.class);
-            final Object potionData = potionDataConstructor.newInstance(potionType, extended, upgraded);
+            final Object potionData = getConstructor(potionDataClass, getCanonicalClass("org.bukkit.potion.PotionType"), boolean.class, boolean.class).invoke(potionType, extended, upgraded);
             final Class<?> itemMetaClass = getCanonicalClass("org.bukkit.inventory.meta.PotionMeta");
-            final Method setBasePotionDataMethod = itemMetaClass.getMethod("setBasePotionData", potionDataClass);
-            setBasePotionDataMethod.invoke(tempMeta, potionData);
+            getMethod(itemMetaClass, "setBasePotionData", potionDataClass).invoke(tempMeta, potionData);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -451,17 +576,17 @@ public class ReflectionUtils {
      */
     public static void sendPacketPlayOutSetSlot(final @Nonnull Player player, final @Nullable ItemStack item, int index, int windowId) throws Exception {
         final Class<?> itemStack = getMinecraftClass("ItemStack");
-        final Object nms = getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+        final Object nms = getMethod(getCraftBukkitClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).invoke(null, item);
         final Class<?> playOutSlot = getMinecraftClass("PacketPlayOutSetSlot");
         Object packet;
         if (MC_REMAPPED) {
             try {
-                packet = playOutSlot.getConstructor(int.class, int.class, int.class, itemStack).newInstance(windowId, 0, index, itemStack.cast(nms));
-            } catch (NoSuchMethodException e) {
-                packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(windowId, index, itemStack.cast(nms));
+                packet = getConstructor(playOutSlot, int.class, int.class, int.class, itemStack).invoke(windowId, 0, index, itemStack.cast(nms));
+            } catch (Exception e) {
+                packet = getConstructor(playOutSlot, int.class, int.class, itemStack).invoke(windowId, index, itemStack.cast(nms));
             }
         } else {
-            packet = playOutSlot.getConstructor(int.class, int.class, itemStack).newInstance(windowId, index, itemStack.cast(nms));
+            packet = getConstructor(playOutSlot, int.class, int.class, itemStack).invoke(windowId, index, itemStack.cast(nms));
         }
         sendPacket(player, packet);
     }
@@ -476,14 +601,13 @@ public class ReflectionUtils {
         final Object nmsPlayer = getEntity(player);
         if (nmsPlayer == null) return;
         if (ServerUtils.hasPreciseUpdate("1_21_7") && ServerUtils.isPaper) {
-            final Object connection = nmsPlayer.getClass().getField("connection").get(nmsPlayer);
+            final Object connection = getField(nmsPlayer.getClass(), "connection").get(nmsPlayer);
             final Class<?> packetClass = getMinecraftClass("Packet");
-            final Method sendMethod = connection.getClass().getMethod("send", packetClass);
-            sendMethod.invoke(connection, packet);
+            getMethod(connection.getClass(), "send", packetClass).invoke(connection, packet);
         } else {
-            final Object playerHandle = nmsPlayer.getClass().getField(MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
+            final Object playerHandle = getField(nmsPlayer.getClass(), MinecraftField.PlayerConnection.getField()).get(nmsPlayer);
             final Class<?> packetClass = getMinecraftClass("Packet");
-            playerHandle.getClass().getMethod(MinecraftMethod.sendPacket.getMethod(), packetClass).invoke(playerHandle, packet);
+            getMethod(playerHandle.getClass(), MinecraftMethod.sendPacket.getMethod(), packetClass).invoke(playerHandle, packet);
         }
     }
 
@@ -496,9 +620,9 @@ public class ReflectionUtils {
     public static @Nullable Object literalChatComponent(final @Nonnull String content) {
         try {
             if (ServerUtils.hasSpecificUpdate("1_19")) {
-                return getMinecraftClass("IChatBaseComponent").getMethod("b", String.class).invoke(null, content);
+                return getMethod(getMinecraftClass("IChatBaseComponent"), "b", String.class).invoke(null, content);
             } else {
-                return getMinecraftClass("ChatComponentText").getConstructor(String.class).newInstance(content);
+                return getConstructor(getMinecraftClass("ChatComponentText"), String.class).invoke(content);
             }
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
@@ -514,7 +638,7 @@ public class ReflectionUtils {
      */
     public static @Nullable Object jsonChatComponent(final @Nonnull String json) {
         try {
-            return getMinecraftClass("IChatBaseComponent").getMethod("a", String.class).invoke(null, json);
+            return getMethod(getMinecraftClass("IChatBaseComponent"), "a", String.class).invoke(null, json);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -808,7 +932,7 @@ public class ReflectionUtils {
          * @param arguments - the arguments to pass to the method.
          * @return The return value, or NULL if is void.
          */
-        Object invoke(final @Nonnull Object target, final @Nonnull Object... arguments);
+        Object invoke(final @Nullable Object target, final @Nonnull Object... arguments);
     }
 
     /**
@@ -847,5 +971,11 @@ public class ReflectionUtils {
      */
     public static void refresh() {
         CLASS_CACHE.clear();
+        FIELD_CACHE.clear();
+        CONSTRUCTOR_CACHE.clear();
+        FIELD_ACCESSOR_CACHE.clear();
+        METHOD_INVOKER_CACHE.clear();
+        METHOD_RETURN_TYPE_CACHE.clear();
+        DECLARED_FIELDS_CACHE.clear();
     }
 }

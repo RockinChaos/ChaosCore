@@ -448,11 +448,11 @@ abstract class Controller {
                         final String database = jdbc(data, true);
                         Class<?> driverClass;
                         try {
-                            driverClass = Class.forName("com.mysql.cj.jdbc.Driver");
-                        } catch (ClassNotFoundException e) {
-                            driverClass = Class.forName("com.mysql.jdbc.Driver");
+                            driverClass = ReflectionUtils.getCanonicalClass("com.mysql.cj.jdbc.Driver");
+                        } catch (Exception e) {
+                            driverClass = ReflectionUtils.getCanonicalClass("com.mysql.jdbc.Driver");
                         }
-                        final Driver driver = (Driver) driverClass.getDeclaredConstructor().newInstance();
+                        final Driver driver = (Driver) ReflectionUtils.getConstructor(driverClass).invoke();
                         ServerUtils.logInfo("Loading SQL driver: " + driver.getMajorVersion() + "." + driver.getMinorVersion() + " (" + driverClass.getName() + ")");
                         long start = System.nanoTime();
                         try {

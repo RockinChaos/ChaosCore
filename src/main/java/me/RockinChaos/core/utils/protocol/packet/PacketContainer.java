@@ -17,6 +17,7 @@
  */
 package me.RockinChaos.core.utils.protocol.packet;
 
+import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 
 import javax.annotation.Nonnull;
@@ -38,9 +39,9 @@ public class PacketContainer {
         this.packet = packet;
         int fieldNumber = 0;
         try {
-            for (Field field : this.packet.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
-                dataFields.put(fieldNumber, new PacketObject(field.getName(), field.get(this.packet)));
+            for (final Field field : ReflectionUtils.getDeclaredFields(this.packet.getClass())) {
+                final ReflectionUtils.FieldAccessor<Object> accessor = ReflectionUtils.getField(this.packet.getClass(), field.getName());
+                dataFields.put(fieldNumber, new PacketObject(field.getName(), accessor.get(this.packet)));
                 fieldNumber++;
             }
         } catch (Exception e) {

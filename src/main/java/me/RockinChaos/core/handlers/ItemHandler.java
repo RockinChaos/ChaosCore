@@ -170,7 +170,7 @@ public class ItemHandler {
      */
     public static @Nullable org.bukkit.inventory.meta.trim.TrimMaterial getTrimMaterial(final @Nonnull String name) {
         try {
-            Field field = org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredField(name);
+            Field field = ReflectionUtils.getDeclaredField(org.bukkit.inventory.meta.trim.TrimMaterial.class, name);
             Object value = field.get(name);
             return (org.bukkit.inventory.meta.trim.TrimMaterial) value;
         } catch (Exception e) {
@@ -188,7 +188,7 @@ public class ItemHandler {
     public static @Nonnull List<org.bukkit.inventory.meta.trim.TrimMaterial> getTrimMaterials() {
         final List<org.bukkit.inventory.meta.trim.TrimMaterial> trimMaterials = new ArrayList<>();
         try {
-            for (Field fieldMaterial : org.bukkit.inventory.meta.trim.TrimMaterial.class.getDeclaredFields()) {
+            for (Field fieldMaterial : ReflectionUtils.getDeclaredFields(org.bukkit.inventory.meta.trim.TrimMaterial.class)) {
                 trimMaterials.add((org.bukkit.inventory.meta.trim.TrimMaterial) fieldMaterial.get(fieldMaterial.getName()));
             }
             return trimMaterials;
@@ -206,7 +206,7 @@ public class ItemHandler {
      */
     public static @Nullable org.bukkit.inventory.meta.trim.TrimPattern getTrimPattern(final @Nonnull String name) {
         try {
-            Field field = org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredField(name);
+            Field field = ReflectionUtils.getDeclaredField(org.bukkit.inventory.meta.trim.TrimPattern.class, name);
             Object value = field.get(name);
             return (org.bukkit.inventory.meta.trim.TrimPattern) value;
         } catch (Exception e) {
@@ -224,7 +224,7 @@ public class ItemHandler {
     public static @Nonnull List<org.bukkit.inventory.meta.trim.TrimPattern> getTrimPatterns() {
         final List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
         try {
-            for (Field fieldPattern : org.bukkit.inventory.meta.trim.TrimPattern.class.getDeclaredFields()) {
+            for (Field fieldPattern : ReflectionUtils.getDeclaredFields(org.bukkit.inventory.meta.trim.TrimPattern.class)) {
                 trimPatterns.add((org.bukkit.inventory.meta.trim.TrimPattern) fieldPattern.get(fieldPattern.getName()));
             }
             return trimPatterns;
@@ -530,7 +530,7 @@ public class ItemHandler {
                         bannerMeta.setPatterns(bannerState.getPatterns());
                     } else {
                         bannerMeta.setPatterns(bannerState.getPatterns());
-                        bannerMeta.getClass().getMethod("setBaseColor", DyeColor.class).invoke(bannerMeta, bannerState.getBaseColor());
+                        ReflectionUtils.getMethod(bannerMeta.getClass(), "setBaseColor", DyeColor.class).invoke(bannerMeta, bannerState.getBaseColor());
                     }
                     item.setItemMeta(bannerMeta);
                 }
@@ -765,8 +765,7 @@ public class ItemHandler {
                 } else {
                     gameProfile = (GameProfile) gameProfiles.get(skullTexture);
                 }
-                final Field declaredField = itemMeta.getClass().getDeclaredField("profile");
-                declaredField.setAccessible(true);
+                final Field declaredField = ReflectionUtils.getDeclaredField(itemMeta.getClass(), "profile");
                 declaredField.set(itemMeta, gameProfile);
             }
         } catch (Exception e) {
@@ -781,25 +780,23 @@ public class ItemHandler {
      * @param meta - The ItemMeta to have its Skull Texture found.
      * @return The found Skull Texture String value.
      */
-    @SuppressWarnings("JavaReflectionMemberAccess")
     public static @Nonnull String getSkullTexture(final @Nonnull ItemMeta meta) {
         Class<?> propertyClass = Property.class;
         try {
             final Class<?> cls = ReflectionUtils.getCraftBukkitClass("inventory.CraftMetaSkull");
             final Object real = cls.cast(meta);
-            final Field field = real.getClass().getDeclaredField("profile");
-            field.setAccessible(true);
+            final Field field = ReflectionUtils.getDeclaredField(real.getClass(), "profile");
             final GameProfile profile = (GameProfile) field.get(real);
             final Collection<Property> props = CompatUtils.getProperties(profile).get("textures");
             for (final Property property : props) {
                 try {
-                    if (propertyClass.getMethod("getName").invoke(property).equals("textures")) {
-                        return ((String) propertyClass.getMethod("getValue").invoke(property));
+                    if (ReflectionUtils.getMethod(propertyClass, "getName").invoke(property).equals("textures")) {
+                        return ((String) ReflectionUtils.getMethod(propertyClass, "getValue").invoke(property));
                     }
                 } catch (Exception e) {
                     try {
-                        if (propertyClass.getMethod("name").invoke(property).equals("textures")) {
-                            return ((String) propertyClass.getMethod("value").invoke(property));
+                        if (ReflectionUtils.getMethod(propertyClass, "name").invoke(property).equals("textures")) {
+                            return ((String) ReflectionUtils.getMethod(propertyClass, "value").invoke(property));
                         }
                     } catch (Exception e2) {
                         ServerUtils.sendSevereTrace(e);
@@ -816,31 +813,28 @@ public class ItemHandler {
      * @param skull - The Skull to have its Skull Texture found.
      * @return The found Skull Texture String value.
      */
-    @SuppressWarnings("JavaReflectionMemberAccess")
     public static @Nonnull String getSkullTexture(final @Nonnull Skull skull) {
         Class<?> propertyClass = Property.class;
         try {
-            final Field field = skull.getClass().getDeclaredField("profile");
-            field.setAccessible(true);
+            final Field field = ReflectionUtils.getDeclaredField(skull.getClass(), "profile");
             final GameProfile profile = (GameProfile) field.get(skull);
             final Collection<Property> props = CompatUtils.getProperties(profile).get("textures");
             for (final Property property : props) {
                 try {
-                    if (propertyClass.getMethod("getName").invoke(property).equals("textures")) {
-                        return ((String) propertyClass.getMethod("getValue").invoke(property));
+                    if (ReflectionUtils.getMethod(propertyClass, "getName").invoke(property).equals("textures")) {
+                        return ((String) ReflectionUtils.getMethod(propertyClass, "getValue").invoke(property));
                     }
                 } catch (Exception e) {
                     try {
-                        if (propertyClass.getMethod("name").invoke(property).equals("textures")) {
-                            return ((String) propertyClass.getMethod("value").invoke(property));
+                        if (ReflectionUtils.getMethod(propertyClass, "name").invoke(property).equals("textures")) {
+                            return ((String) ReflectionUtils.getMethod(propertyClass, "value").invoke(property));
                         }
                     } catch (Exception e2) {
                         ServerUtils.sendSevereTrace(e);
                     }
                 }
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return "";
     }
 
@@ -1175,7 +1169,7 @@ public class ItemHandler {
             if (Core.getCore().getData().dataTagsEnabled() && item != null && item.getType() != Material.AIR) {
                 try {
                     Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
-                    Object nmsItem = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, item);
+                    Object nmsItem = ReflectionUtils.getMethod(craftItemStack, "asNMSCopy", ItemStack.class).invoke(null, item);
                     if (ServerUtils.hasPreciseUpdate("1_20_5")) {
                         Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
                         Object customData = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("CustomData"), MinecraftMethod.of.getMethod(), ReflectionUtils.getMinecraftClass("NBTTagCompound")).invoke(new Object[]{null}, tag);
@@ -1183,10 +1177,10 @@ public class ItemHandler {
                         ReflectionUtils.getMethod(builder.getClass(), MinecraftMethod.set.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(builder, customDataType, customData);
                         Object componentPatch = ReflectionUtils.getMethod(builder.getClass(), MinecraftMethod.build.getMethod()).invoke(builder);
                         ReflectionUtils.getMethod(nmsItem.getClass(), MinecraftMethod.applyComponentsAndValidate.getMethod(), componentPatch.getClass()).invoke(nmsItem, componentPatch);
-                        return (ItemStack) craftItemStack.getMethod("asCraftMirror", ReflectionUtils.getMinecraftClass("ItemStack")).invoke(null, nmsItem);
+                        return (ItemStack) ReflectionUtils.getMethod(craftItemStack, "asCraftMirror", ReflectionUtils.getMinecraftClass("ItemStack")).invoke(null, nmsItem);
                     } else {
-                        nmsItem.getClass().getMethod(MinecraftMethod.setTag.getMethod(), tag.getClass()).invoke(nmsItem, tag);
-                        return (ItemStack) ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asCraftMirror", nmsItem.getClass()).invoke(null, nmsItem);
+                        ReflectionUtils.getMethod(nmsItem.getClass(), MinecraftMethod.setTag.getMethod(), tag.getClass()).invoke(nmsItem, tag);
+                        return (ItemStack) ReflectionUtils.getMethod(ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack"), "asCraftMirror", nmsItem.getClass()).invoke(null, nmsItem);
                     }
                 } catch (ConcurrentModificationException ignored) {
                 } catch (Exception e) {
@@ -1217,7 +1211,7 @@ public class ItemHandler {
                     Object tag = null;
                     Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
                     final ItemStack itemCopy = item.clone();
-                    Object nms = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack").getMethod("asNMSCopy", ItemStack.class).invoke(null, itemCopy);
+                    Object nms = ReflectionUtils.getMethod(ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).invoke(null, itemCopy);
                     if (ServerUtils.hasPreciseUpdate("1_20_5")) {
                         Object componentMap = ReflectionUtils.getMethod(itemClass, MinecraftMethod.getComponents.getMethod()).invoke(nms);
                         Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
@@ -1226,12 +1220,14 @@ public class ItemHandler {
                             tag = ReflectionUtils.getMethod(customDataOptional.getClass(), MinecraftMethod.copyTag.getMethod()).invoke(customDataOptional);
                         }
                     } else {
-                        tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod()).invoke(nms);
+                        tag = ReflectionUtils.getMethod(itemClass, MinecraftMethod.getTag.getMethod()).invoke(nms);
                     }
                     if (tag != null) {
                         StringBuilder returnData = new StringBuilder();
+                        final String getStringMethod = MinecraftMethod.getString.getMethod();
+                        final Class<?> tagClass = tag.getClass();
                         for (String dataString : dataList) {
-                            String data =  (String) (ServerUtils.hasPreciseUpdate("1_21_5") ? tag.getClass().getMethod(MinecraftMethod.getString.getMethod(), String.class, String.class).invoke(tag, dataString, null) : tag.getClass().getMethod(MinecraftMethod.getString.getMethod(), String.class).invoke(tag, dataString));
+                            String data = (String) (ServerUtils.hasPreciseUpdate("1_21_5") ? ReflectionUtils.getMethod(tagClass, getStringMethod, String.class, String.class).invoke(tag, dataString, null) : ReflectionUtils.getMethod(tagClass, getStringMethod, String.class).invoke(tag, dataString));
                             if (data != null && !data.isEmpty()) {
                                 returnData.append(data).append(" ");
                             }

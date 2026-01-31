@@ -22,7 +22,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +65,7 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Method runMethod = globalScheduler.getClass().getMethod("run", Plugin.class, Consumer.class);
-                    runMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run());
+                    ReflectionUtils.getMethod(globalScheduler.getClass(), "run", Plugin.class, Consumer.class).invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run());
                     return;
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run task.");
@@ -96,11 +94,10 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Method runDelayedMethod = globalScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class);
-                    final Object uniqueTask = runDelayedMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay);
+                    final Object uniqueTask = ReflectionUtils.getMethod(globalScheduler.getClass(), "runDelayed", Plugin.class, Consumer.class, long.class).invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay);
                     try {
-                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
-                    } catch (NoSuchMethodException e) {
+                        return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
+                    } catch (Exception e) {
                         final int id = StringUtils.getRandom(0, 100000000);
                         scheduledTasks.put(id, uniqueTask);
                         return id;
@@ -128,11 +125,10 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Method runAtFixedRateMethod = globalScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class);
-                    final Object uniqueTask = runAtFixedRateMethod.invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
+                    final Object uniqueTask = ReflectionUtils.getMethod(globalScheduler.getClass(), "runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class).invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
                     try {
-                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
-                    } catch (NoSuchMethodException e) {
+                        return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
+                    } catch (Exception e) {
                         final int id = StringUtils.getRandom(0, 100000000);
                         scheduledTasks.put(id, uniqueTask);
                         return id;
@@ -157,8 +153,7 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Method runMethod = asyncScheduler.getClass().getMethod("runNow", Plugin.class, Consumer.class);
-                    runMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run());
+                    ReflectionUtils.getMethod(asyncScheduler.getClass(), "runNow", Plugin.class, Consumer.class).invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run());
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run task asynchronously.");
                     ServerUtils.sendSevereTrace(e);
@@ -181,11 +176,10 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Method runDelayedMethod = asyncScheduler.getClass().getMethod("runDelayed", Plugin.class, Consumer.class, long.class, TimeUnit.class);
-                    final Object uniqueTask = runDelayedMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), TimeUnit.MILLISECONDS);
+                    final Object uniqueTask = ReflectionUtils.getMethod(asyncScheduler.getClass(), "runDelayed", Plugin.class, Consumer.class, long.class, TimeUnit.class).invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), TimeUnit.MILLISECONDS);
                     try {
-                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
-                    } catch (NoSuchMethodException e) {
+                        return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
+                    } catch (Exception e) {
                         final int id = StringUtils.getRandom(0, 100000000);
                         scheduledTasks.put(id, uniqueTask);
                         return id;
@@ -213,11 +207,10 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Method runAtFixedRateMethod = asyncScheduler.getClass().getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class);
-                    final Object uniqueTask = runAtFixedRateMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval == 0 ? 1 : interval), TimeUnit.MILLISECONDS);
+                    final Object uniqueTask = ReflectionUtils.getMethod(asyncScheduler.getClass(), "runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class).invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval == 0 ? 1 : interval), TimeUnit.MILLISECONDS);
                     try {
-                        return (int) uniqueTask.getClass().getMethod("getTaskId").invoke(uniqueTask);
-                    } catch (NoSuchMethodException e) {
+                        return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
+                    } catch (Exception e) {
                         final int id = StringUtils.getRandom(0, 100000000);
                         scheduledTasks.put(id, uniqueTask);
                         return id;
@@ -259,8 +252,7 @@ public class SchedulerUtils {
                 };
                 if (ServerUtils.isFolia) {
                     try {
-                        final Method runNowMethod = asyncScheduler.getClass().getMethod("runNow", Plugin.class, Consumer.class);
-                        runNowMethod.invoke(asyncScheduler, Core.getCore().getPlugin(), runnableConsumer);
+                        ReflectionUtils.getMethod(asyncScheduler.getClass(), "runNow", Plugin.class, Consumer.class).invoke(asyncScheduler, Core.getCore().getPlugin(), runnableConsumer);
                     } catch (Exception e) {
                         ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run single task asynchronously.");
                         ServerUtils.sendSevereTrace(e);
@@ -283,16 +275,12 @@ public class SchedulerUtils {
         if (ServerUtils.isFolia) {
             try {
                 try {
-                    final Method cancelTaskMethod = globalScheduler.getClass().getMethod("cancelTask", int.class);
-                    final Method cancelAsyncTaskMethod = asyncScheduler.getClass().getMethod("cancelTask", int.class);
-                    cancelTaskMethod.invoke(globalScheduler, taskId);
-                    cancelAsyncTaskMethod.invoke(asyncScheduler, taskId);
-                } catch (NoSuchMethodException e) {
+                    ReflectionUtils.getMethod(globalScheduler.getClass(), "cancelTask", int.class).invoke(globalScheduler, taskId);
+                    ReflectionUtils.getMethod(asyncScheduler.getClass(), "cancelTask", int.class).invoke(asyncScheduler, taskId);
+                } catch (Exception e) {
                     final Object uniqueTask = scheduledTasks.remove(taskId);
                     if (uniqueTask != null) {
-                        final Method cancelMethod = uniqueTask.getClass().getDeclaredMethod("cancel");
-                        cancelMethod.setAccessible(true);
-                        cancelMethod.invoke(uniqueTask);
+                        ReflectionUtils.getMethod(uniqueTask.getClass(), "cancel").invoke(uniqueTask);
                     }
                 }
             } catch (Exception e) {
@@ -310,10 +298,8 @@ public class SchedulerUtils {
     public static void cancelTasks() {
         if (ServerUtils.isFolia) {
             try {
-                final Method cancelTasksMethod = globalScheduler.getClass().getMethod("cancelTasks", Plugin.class);
-                final Method cancelAsyncTasksMethod = asyncScheduler.getClass().getMethod("cancelTasks", Plugin.class);
-                cancelTasksMethod.invoke(globalScheduler, Core.getCore().getPlugin());
-                cancelAsyncTasksMethod.invoke(asyncScheduler, Core.getCore().getPlugin());
+                ReflectionUtils.getMethod(globalScheduler.getClass(), "cancelTasks", Plugin.class).invoke(globalScheduler, Core.getCore().getPlugin());
+                ReflectionUtils.getMethod(asyncScheduler.getClass(), "cancelTasks", Plugin.class).invoke(asyncScheduler, Core.getCore().getPlugin());
             } catch (Exception e) {
                 ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to cancel all scheduled tasks.");
                 ServerUtils.sendSevereTrace(e);

@@ -28,7 +28,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import javax.annotation.Nonnull;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -151,10 +150,9 @@ public class MetricsAPI {
      */
     private int getPlayerAmount() {
         try {
-            Method onlinePlayersMethod = ReflectionUtils.getCanonicalClass("org.bukkit.Server").getMethod("getOnlinePlayers");
-            return onlinePlayersMethod.getReturnType().equals(Collection.class)
-                    ? ((Collection<?>) onlinePlayersMethod.invoke(Bukkit.getServer())).size()
-                    : ((Player[]) onlinePlayersMethod.invoke(Bukkit.getServer())).length;
+            final ReflectionUtils.MethodInvoker onlinePlayersMethod = ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("Server"), "getOnlinePlayers");
+            final Object result = onlinePlayersMethod.invoke(Bukkit.getServer());
+            return result instanceof Collection ? ((Collection<?>) result).size() : result instanceof Player[] ? ((Player[]) result).length : Bukkit.getOnlinePlayers().size();
         } catch (Exception e) {
             return Bukkit.getOnlinePlayers().size();
         }

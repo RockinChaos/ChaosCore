@@ -421,9 +421,9 @@ public class PlayerHandler {
                     try {
                         final Object handle = ReflectionUtils.getEntity(player);
                         if (handle != null) {
-                            final Object container = handle.getClass().getField(ReflectionUtils.MinecraftField.ActiveContainer.getField()).get(handle);
+                            final Object container = ReflectionUtils.getField(handle.getClass(), ReflectionUtils.MinecraftField.ActiveContainer.getField()).get(handle);
                             if (container != null) {
-                                final int windowId = (int) container.getClass().getField(ReflectionUtils.MinecraftField.windowId.getField()).get(container);
+                                final int windowId = (int) ReflectionUtils.getField(container.getClass(), ReflectionUtils.MinecraftField.windowId.getField()).get(container);
                                 for (int i = CompatUtils.getTopInventory(player).getSize() - 1; i >= 0; i--) {
                                     final ItemStack invItem = CompatUtils.getTopInventory(player).getItem(i);
                                     if (item == null || (invItem != null && invItem.clone().isSimilar(item))) {
@@ -748,7 +748,7 @@ public class PlayerHandler {
         } catch (final Throwable t1) {
             try {
                 HashSet<Byte> ignore = new HashSet<>(Arrays.asList((byte) 0, (byte) 8, (byte) 9, (byte) 10, (byte) 11));
-                block = (Block) player.getClass().getMethod("getTargetBlock", HashSet.class, int.class).invoke(player, ignore, range);
+                block = (Block) ReflectionUtils.getMethod(player.getClass(), "getTargetBlock", HashSet.class, int.class).invoke(player, ignore, range);
             } catch (Exception e) {
                 ServerUtils.sendSevereTrace(e);
             }
@@ -840,8 +840,8 @@ public class PlayerHandler {
 		  /* New method for getting the current online players.
 			 This is for MC 1.12+
 			*/
-            if (Bukkit.class.getMethod("getOnlinePlayers").getReturnType() == Collection.class) {
-                for (Object objPlayer : ((Collection<?>) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]))) {
+            if (ReflectionUtils.getReturnType(Bukkit.class, "getOnlinePlayers") == Collection.class) {
+                for (final Object objPlayer : ((Collection<?>) ReflectionUtils.getMethod(Bukkit.class, "getOnlinePlayers").invoke(null, new Object[0]))) {
                     input.accept(((Player) objPlayer));
                 }
             }
@@ -851,12 +851,12 @@ public class PlayerHandler {
 			 @deprecated Legacy version of getting online players.
 			*/
             else {
-                for (Player player : ((Player[]) Bukkit.class.getMethod("getOnlinePlayers").invoke(null, new Object[0]))) {
+                for (final Player player : ((Player[]) ReflectionUtils.getMethod(Bukkit.class, "getOnlinePlayers").invoke(null, new Object[0]))) {
                     input.accept(player);
                 }
             }
         } catch (Exception e) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
+            for (final Player player : Bukkit.getOnlinePlayers()) {
                 input.accept(player);
             }
         }
@@ -872,8 +872,8 @@ public class PlayerHandler {
 		  /* New method for getting the current offline players.
 			 This is for MC 1.12+
 			*/
-            if (Bukkit.class.getMethod("getOfflinePlayers").getReturnType() == Collection.class) {
-                for (Object objPlayer : ((Collection<?>) Bukkit.class.getMethod("getOfflinePlayers").invoke(null, new Object[0]))) {
+            if (ReflectionUtils.getReturnType(Bukkit.class, "getOfflinePlayers") == Collection.class) {
+                for (final Object objPlayer : ((Collection<?>) ReflectionUtils.getMethod(Bukkit.class, "getOfflinePlayers").invoke(null, new Object[0]))) {
                     input.accept(((OfflinePlayer) objPlayer));
                 }
             }
@@ -883,7 +883,7 @@ public class PlayerHandler {
 			 @deprecated Legacy version of getting offline players.
 			*/
             else {
-                for (OfflinePlayer player : ((OfflinePlayer[]) Bukkit.class.getMethod("getOfflinePlayers").invoke(null, new Object[0]))) {
+                for (final OfflinePlayer player : ((OfflinePlayer[]) ReflectionUtils.getMethod(Bukkit.class, "getOfflinePlayers").invoke(null, new Object[0]))) {
                     input.accept(player);
                 }
             }

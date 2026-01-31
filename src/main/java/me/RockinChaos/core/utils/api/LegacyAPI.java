@@ -49,7 +49,6 @@ import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -113,7 +112,7 @@ public class LegacyAPI {
      */
     public static boolean hasGameRule(final @Nonnull World world, final @Nonnull String gamerule) {
         try {
-            final String value = (String) world.getClass().getMethod("getGameRuleValue", String.class).invoke(world, gamerule);
+            final String value = (String) ReflectionUtils.getMethod(world.getClass(), "getGameRuleValue", String.class).invoke(world, gamerule);
             return value.isEmpty() || Boolean.parseBoolean(value);
         } catch (Throwable t) {
             return false;
@@ -252,7 +251,7 @@ public class LegacyAPI {
      */
     public static @Nonnull String getEnchantName(final @Nonnull Object enchant) {
         try {
-            return (String) enchant.getClass().getMethod("getName").invoke(enchant);
+            return (String) ReflectionUtils.getMethod(enchant.getClass(), "getName").invoke(enchant);
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Enchantment Name", e);
@@ -266,7 +265,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<Enchantment> getEnchants() {
         try {
-            return Arrays.asList((Enchantment[]) ReflectionUtils.getCanonicalClass("org.bukkit.enchantments.Enchantment").getMethod("values").invoke(null));
+            return Arrays.asList((Enchantment[]) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("enchantments.Enchantment"), "values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Enchantment#values", e);
@@ -303,7 +302,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<PotionEffectType> getEffects() {
         try {
-            return Arrays.asList((PotionEffectType[]) ReflectionUtils.getCanonicalClass("org.bukkit.potion.PotionEffectType").getMethod("values").invoke(null));
+            return Arrays.asList((PotionEffectType[]) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("potion.PotionEffectType"), "values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting PotionEffectType#values", e);
@@ -317,7 +316,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<Attribute> getAttributes() {
         try {
-            return Arrays.asList((Attribute[]) ReflectionUtils.getCanonicalClass("org.bukkit.attribute.Attribute").getMethod("values").invoke(null));
+            return Arrays.asList((Attribute[]) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("attribute.Attribute"), "values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Attribute#values", e);
@@ -332,7 +331,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<Sound> getSounds() {
         try {
-            return Arrays.asList((Sound[]) ReflectionUtils.getCanonicalClass("org.bukkit.Sound").getMethod("values").invoke(null));
+            return Arrays.asList((Sound[]) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("Sound"), "values").invoke(null));
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Sound#values", e);
@@ -418,9 +417,9 @@ public class LegacyAPI {
      */
     public static boolean setTargetExists(final @Nonnull Entity current) {
         try {
-            current.getClass().getMethod("setTarget", LivingEntity.class);
+            ReflectionUtils.getMethod(current.getClass(), "setTarget", LivingEntity.class);
             return true;
-        } catch (NoSuchMethodException e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -496,7 +495,7 @@ public class LegacyAPI {
             return (short) view.getId();
         } catch (Exception | NoSuchMethodError e) {
             try {
-                return (short) ReflectionUtils.getBukkitClass("map.MapView").getMethod("getId").invoke(view);
+                return (short) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("map.MapView"), "getId").invoke(view);
             } catch (Exception | NoSuchMethodError e2) {
                 return 1;
             }
@@ -514,7 +513,7 @@ public class LegacyAPI {
             return Core.getCore().getPlugin().getServer().getMap((short) id);
         } catch (Exception | NoSuchMethodError e) {
             try {
-                return (org.bukkit.map.MapView) ReflectionUtils.getBukkitClass("Bukkit").getMethod("getMap", short.class).invoke(ReflectionUtils.getBukkitClass("map.MapView"), (short) id);
+                return (org.bukkit.map.MapView) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("Bukkit"), "getMap", short.class).invoke(null, (short) id);
             } catch (Exception | NoSuchMethodError e2) {
                 return null;
             }
@@ -547,19 +546,19 @@ public class LegacyAPI {
                 } else {
                     slot = ItemHandler.getDesignatedSlot(tempItem.getType()).toUpperCase();
                 }
-                Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
-                Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
-                Class<?> baseClass = ReflectionUtils.getMinecraftClass("NBTBase");
-                Object nms = craftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(null, tempItem);
-                Object tag = itemClass.getMethod(MinecraftMethod.getTag.getMethod()).invoke(nms);
-                Object modifiers = ReflectionUtils.getMinecraftClass("NBTTagList").getConstructor().newInstance();
+                final Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
+                final Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
+                final Class<?> baseClass = ReflectionUtils.getMinecraftClass("NBTBase");
+                final Object nms = ReflectionUtils.getMethod(craftItemStack, "asNMSCopy", ItemStack.class).invoke(null, tempItem);
+                final Object modifiers = ReflectionUtils.getConstructor(ReflectionUtils.getMinecraftClass("NBTTagList")).invoke();
+                Object tag = ReflectionUtils.getMethod(itemClass, MinecraftMethod.getTag.getMethod()).invoke(nms);
                 if (tag == null) {
-                    tag = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
+                    tag = ReflectionUtils.getConstructor(ReflectionUtils.getMinecraftClass("NBTTagCompound")).invoke();
                 }
-                for (String attribute : attributes.keySet()) {
-                    int uuid = new BigInteger((attribIdentifier + attribute).getBytes()).intValue();
-                    Object attrib = ReflectionUtils.getMinecraftClass("NBTTagCompound").getConstructor().newInstance();
-                    double value = attributes.get(attribute);
+                for (final String attribute : attributes.keySet()) {
+                    final int uuid = new BigInteger((attribIdentifier + attribute).getBytes()).intValue();
+                    final Object attrib = ReflectionUtils.getConstructor(ReflectionUtils.getMinecraftClass("NBTTagCompound")).invoke();
+                    final double value = attributes.get(attribute);
                     StringBuilder name = new StringBuilder(attribute.toLowerCase().replaceFirst("_", "."));
                     if (name.toString().contains("_")) {
                         String[] nameSplit = name.toString().split("_");
@@ -569,17 +568,17 @@ public class LegacyAPI {
                             name.append(org.apache.commons.lang.StringUtils.capitalize(rename));
                         }
                     }
-                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "AttributeName", name.toString());
-                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "Name", name.toString());
-                    attrib.getClass().getMethod(MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "Slot", slot);
-                    attrib.getClass().getMethod(MinecraftMethod.setDouble.getMethod(), String.class, double.class).invoke(attrib, "Amount", value);
-                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "Operation", 0);
-                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "UUIDLeast", uuid);
-                    attrib.getClass().getMethod(MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "UUIDMost", (uuid / 2));
-                    modifiers.getClass().getMethod(MinecraftMethod.add.getMethod(), baseClass).invoke(modifiers, attrib);
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "AttributeName", name.toString());
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "Name", name.toString());
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setString.getMethod(), String.class, String.class).invoke(attrib, "Slot", slot);
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setDouble.getMethod(), String.class, double.class).invoke(attrib, "Amount", value);
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "Operation", 0);
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "UUIDLeast", uuid);
+                    ReflectionUtils.getMethod(attrib.getClass(), MinecraftMethod.setInt.getMethod(), String.class, int.class).invoke(attrib, "UUIDMost", (uuid / 2));
+                    ReflectionUtils.getMethod(modifiers.getClass(), MinecraftMethod.add.getMethod(), baseClass).invoke(modifiers, attrib);
                 }
-                tag.getClass().getMethod(MinecraftMethod.set.getMethod(), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
-                return (ItemStack) craftItemStack.getMethod("asCraftMirror", nms.getClass()).invoke(null, nms);
+                ReflectionUtils.getMethod(tag.getClass(), MinecraftMethod.set.getMethod(), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
+                return (ItemStack) ReflectionUtils.getMethod(craftItemStack, "asCraftMirror", nms.getClass()).invoke(null, nms);
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
             }
@@ -598,8 +597,8 @@ public class LegacyAPI {
      */
     public static @Nonnull AttributeModifier getAttribute(final @Nonnull String uuid, final @Nonnull String attrib, final double value, final @Nonnull EquipmentSlot slot) {
         try {
-            final Constructor<?> constructor = AttributeModifier.class.getConstructor(UUID.class, String.class, double.class, AttributeModifier.Operation.class, EquipmentSlot.class);
-            return (AttributeModifier) constructor.newInstance(UUID.nameUUIDFromBytes(uuid.getBytes()), attrib.toLowerCase().replace("_", "."), value, AttributeModifier.Operation.ADD_NUMBER, slot);
+            final ReflectionUtils.ConstructorInvoker constructor = ReflectionUtils.getConstructor(AttributeModifier.class, UUID.class, String.class, double.class, AttributeModifier.Operation.class, EquipmentSlot.class);
+            return (AttributeModifier) constructor.invoke(UUID.nameUUIDFromBytes(uuid.getBytes()), attrib.toLowerCase().replace("_", "."), value, AttributeModifier.Operation.ADD_NUMBER, slot);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
             throw new RuntimeException("{LegacyAPI} An error has occurred getting the attribute: " + attrib, e);
@@ -614,7 +613,7 @@ public class LegacyAPI {
      */
     public static void setRepairCost(final AnvilInventory inventory, final int cost) {
         try {
-            inventory.getClass().getDeclaredMethod("setRepairCost", int.class).invoke(inventory, cost);
+            ReflectionUtils.getMethod(inventory.getClass(), "setRepairCost", int.class).invoke(inventory, cost);
         } catch (Exception e) {
             ServerUtils.logSevere("{LegacyAPI} An error has occurred while setting the repair cost!");
             ServerUtils.sendSevereTrace(e);
@@ -661,7 +660,7 @@ public class LegacyAPI {
      */
     public static boolean legacySk89q() {
         try {
-            ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.Vector");
+            ReflectionUtils.getClass("com.sk89q.worldedit.Vector");
             return true;
         } catch (Exception ignored) {}
         return false;
@@ -697,7 +696,7 @@ public class LegacyAPI {
      */
     public static @Nonnull PatternType getPattern(final @Nonnull String patternName) {
         try {
-            return (PatternType) PatternType.class.getDeclaredMethod("valueOf", String.class).invoke(null, patternName.toUpperCase());
+            return (PatternType) ReflectionUtils.getMethod(PatternType.class, "valueOf", String.class).invoke(null, patternName.toUpperCase());
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the PatternType: " + patternName, e);
         }
@@ -711,7 +710,7 @@ public class LegacyAPI {
      */
     public static @Nonnull String getPatternName(final @Nonnull Object pattern) {
         try {
-            return (String) pattern.getClass().getMethod("name").invoke(pattern);
+            return (String) ReflectionUtils.getMethod(pattern.getClass(), "name").invoke(pattern);
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Pattern Name", e);
         }
@@ -724,7 +723,7 @@ public class LegacyAPI {
      */
     public static @Nonnull List<PatternType> getPatterns() {
         try {
-            return Arrays.asList((PatternType[]) ReflectionUtils.getCanonicalClass("org.bukkit.block.banner.PatternType").getMethod("values").invoke(null));
+            return Arrays.asList((PatternType[]) ReflectionUtils.getMethod(ReflectionUtils.getBukkitClass("block.banner.PatternType"), "values").invoke(null));
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting Pattern#values", e);
         }
@@ -738,7 +737,7 @@ public class LegacyAPI {
      */
     public static @Nonnull String getEffectName(final @Nonnull Object type) {
         try {
-            return (String) type.getClass().getMethod("getName").invoke(type);
+            return (String) ReflectionUtils.getMethod(type.getClass(), "getName").invoke(type);
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the PotionEffectType Name", e);
         }
@@ -752,7 +751,7 @@ public class LegacyAPI {
      */
     public static @Nonnull String getAttributeName(final @Nonnull Object attribute) {
         try {
-            return (String) attribute.getClass().getMethod("name").invoke(attribute);
+            return (String) ReflectionUtils.getMethod(attribute.getClass(), "name").invoke(attribute);
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute Name", e);
         }
@@ -766,7 +765,7 @@ public class LegacyAPI {
      */
     public static @Nonnull Attribute getAttribute(final @Nonnull String attributeName) {
         try {
-            return (Attribute) Attribute.class.getDeclaredMethod("valueOf", String.class).invoke(null, attributeName.toUpperCase());
+            return (Attribute) ReflectionUtils.getMethod(Attribute.class, "valueOf", String.class).invoke(null, attributeName.toUpperCase());
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Attribute: " + attributeName, e);
         }
@@ -780,7 +779,7 @@ public class LegacyAPI {
      */
     public static @Nonnull String getSoundName(final @Nonnull Object sound) {
         try {
-            return (String) sound.getClass().getMethod("name").invoke(sound);
+            return (String) ReflectionUtils.getMethod(sound.getClass(), "name").invoke(sound);
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Sound Name", e);
         }
@@ -794,7 +793,7 @@ public class LegacyAPI {
      */
     public static @Nonnull Sound getSound(final @Nonnull String soundName) {
         try {
-            return (Sound) Sound.class.getDeclaredMethod("valueOf", String.class).invoke(null, soundName.toUpperCase());
+            return (Sound) ReflectionUtils.getMethod(Sound.class, "valueOf", String.class).invoke(null, soundName.toUpperCase());
         } catch (Exception e) {
             throw new IllegalArgumentException("{LegacyAPI} An error has occurred while getting the Sound: " + soundName, e);
         }
@@ -827,8 +826,8 @@ public class LegacyAPI {
      */
     public static @Nonnull String getRenameText(final @Nonnull Object event) {
         try {
-            final Object inventory = event.getClass().getMethod("getInventory").invoke(event);
-            return (String) inventory.getClass().getMethod("getRenameText").invoke(inventory);
+            final Object inventory = ReflectionUtils.getMethod(event.getClass(), "getInventory").invoke(event);
+            return (String) ReflectionUtils.getMethod(inventory.getClass(), "getRenameText").invoke(inventory);
         } catch (Exception e) {
             ServerUtils.logSevere("{LegacyAPI} An error has occurred with InventoryEvent#getRenameText!");
             return "";

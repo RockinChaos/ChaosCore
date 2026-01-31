@@ -27,7 +27,6 @@ import org.bukkit.plugin.SimplePluginManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -282,15 +281,13 @@ public class ServerUtils {
         try {
             CommandMap commandMap = null;
             if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
-                Field f = SimplePluginManager.class.getDeclaredField("commandMap");
-                f.setAccessible(true);
-                commandMap = (CommandMap) f.get(Bukkit.getPluginManager());
+                final ReflectionUtils.FieldAccessor<CommandMap> commandMapAccessor = ReflectionUtils.getField(SimplePluginManager.class, "commandMap", CommandMap.class);
+                commandMap = commandMapAccessor.get(Bukkit.getPluginManager());
             }
-            {
-                if (commandMap != null) {
-                    for (PluginCommand command : commands) {
-                        commandMap.register(Core.getCore().getPlugin().getDescription().getName(), command);
-                    }
+
+            if (commandMap != null) {
+                for (final PluginCommand command : commands) {
+                    commandMap.register(Core.getCore().getPlugin().getDescription().getName(), command);
                 }
             }
         } catch (Exception e) {
@@ -305,20 +302,16 @@ public class ServerUtils {
      */
     @SuppressWarnings("unchecked")
     public static void unregisterCommands(final @Nonnull List<PluginCommand> commands) {
-        Field commandMap = null;
-        Field knownCommands = null;
         try {
             if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
-                commandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                commandMap.setAccessible(true);
-                knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-                knownCommands.setAccessible(true);
-            }
-            {
-                if (knownCommands != null) {
-                    for (PluginCommand command : commands) {
-                        ((Map<String, Command>) knownCommands.get(commandMap.get(Bukkit.getServer()))).remove(command.getName());
-                        command.unregister((CommandMap) commandMap.get(Bukkit.getServer()));
+                final ReflectionUtils.FieldAccessor<CommandMap> commandMapAccessor = ReflectionUtils.getField(ReflectionUtils.getCraftBukkitClass("CraftServer"), "commandMap", CommandMap.class);
+                final ReflectionUtils.FieldAccessor<Map<String, Command>> knownCommandsAccessor = (ReflectionUtils.FieldAccessor<Map<String, Command>>) (Object) ReflectionUtils.getField(SimpleCommandMap.class, "knownCommands", Map.class);
+                final CommandMap commandMap = commandMapAccessor.get(Bukkit.getServer());
+                final Map<String, Command> knownCommands = knownCommandsAccessor.get(commandMap);
+                if (knownCommands != null && commandMap != null) {
+                    for (final PluginCommand command : commands) {
+                        knownCommands.remove(command.getName());
+                        command.unregister(commandMap);
                     }
                 }
             }

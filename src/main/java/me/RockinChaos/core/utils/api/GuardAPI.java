@@ -32,8 +32,6 @@ import org.bukkit.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +45,11 @@ public class GuardAPI {
     private Object worldGuard = null;
     private WorldGuardPlugin worldGuardPlugin = null;
     private Object regionContainer = null;
-    private Method getRegionContainer = null;
-    private Method getWorldAdapter = null;
-    private Method getRegionManager = null;
-    private Constructor<?> vectorConstructor = null;
-    private Method getVector = null;
+    private ReflectionUtils.MethodInvoker getRegionContainer = null;
+    private ReflectionUtils.MethodInvoker getWorldAdapter = null;
+    private ReflectionUtils.MethodInvoker getRegionManager = null;
+    private ReflectionUtils.ConstructorInvoker vectorConstructor = null;
+    private ReflectionUtils.MethodInvoker getVector = null;
     private int guardVersion = 0;
 
     /**
@@ -81,22 +79,22 @@ public class GuardAPI {
                 if (Bukkit.getServer().getPluginManager().getPlugin("WorldGuard") instanceof WorldGuardPlugin) {
                     this.worldGuardPlugin = (WorldGuardPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
                     try {
-                        Class<?> worldGuard = ReflectionUtils.getCanonicalClass("com.sk89q.worldguard.WorldGuard");
-                        Method getInstance = worldGuard.getMethod("getInstance");
+                        final Class<?> worldGuard = ReflectionUtils.getClass("com.sk89q.worldguard.WorldGuard");
+                        final ReflectionUtils.MethodInvoker getInstance = ReflectionUtils.getMethod(worldGuard, "getInstance");
                         this.worldGuard = getInstance.invoke(null);
                     } catch (Exception ignored) {
                     }
                 }
                 if (this.worldGuard != null) {
                     try {
-                        Method getPlatForm = this.worldGuard.getClass().getMethod("getPlatform");
-                        Object platform = getPlatForm.invoke(this.worldGuard);
-                        Method getRegionContainer = platform.getClass().getMethod("getRegionContainer");
+                        final ReflectionUtils.MethodInvoker getPlatForm = ReflectionUtils.getMethod(this.worldGuard.getClass(), "getPlatform");
+                        final Object platform = getPlatForm.invoke(this.worldGuard);
+                        final ReflectionUtils.MethodInvoker getRegionContainer = ReflectionUtils.getMethod(platform.getClass(), "getRegionContainer");
                         this.regionContainer = getRegionContainer.invoke(platform);
-                        Class<?> getWorldEditWorld = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.world.World");
-                        Class<?> getWorldEditAdapter = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.bukkit.BukkitAdapter");
-                        this.getWorldAdapter = getWorldEditAdapter.getMethod("adapt", World.class);
-                        this.getRegionContainer = this.regionContainer.getClass().getMethod("get", getWorldEditWorld);
+                        final Class<?> getWorldEditWorld = ReflectionUtils.getClass("com.sk89q.worldedit.world.World");
+                        final Class<?> getWorldEditAdapter = ReflectionUtils.getClass("com.sk89q.worldedit.bukkit.BukkitAdapter");
+                        this.getWorldAdapter = ReflectionUtils.getMethod(getWorldEditAdapter, "adapt", World.class);
+                        this.getRegionContainer = ReflectionUtils.getMethod(this.regionContainer.getClass(), "get", getWorldEditWorld);
                     } catch (Exception e) {
                         ServerUtils.logSevere("{GuardAPI} Failed to bind to WorldGuard, integration will not work!");
                         ServerUtils.sendDebugTrace(e);
@@ -105,9 +103,9 @@ public class GuardAPI {
                     }
                 } else {
                     try {
-                        Method getRegionContainer = this.worldGuardPlugin.getClass().getMethod("getRegionContainer");
+                        final ReflectionUtils.MethodInvoker getRegionContainer = ReflectionUtils.getMethod(this.worldGuardPlugin.getClass(), "getRegionContainer");
                         this.regionContainer = getRegionContainer.invoke(this.worldGuardPlugin);
-                        this.getRegionContainer = this.regionContainer.getClass().getMethod("get", World.class);
+                        this.getRegionContainer = ReflectionUtils.getMethod(this.regionContainer.getClass(), "get", World.class);
                     } catch (Exception e) {
                         ServerUtils.logSevere("{GuardAPI} Failed to bind to WorldGuard, integration will not work!");
                         ServerUtils.sendDebugTrace(e);
@@ -116,14 +114,14 @@ public class GuardAPI {
                     }
                 }
                 try {
-                    Class<?> vectorClass = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.Vector");
-                    this.vectorConstructor = vectorClass.getConstructor(Double.TYPE, Double.TYPE, Double.TYPE);
-                    this.getRegionManager = RegionManager.class.getMethod("getApplicableRegions", vectorClass);
+                    final Class<?> vectorClass = ReflectionUtils.getClass("com.sk89q.worldedit.Vector");
+                    this.vectorConstructor = ReflectionUtils.getConstructor(vectorClass, Double.TYPE, Double.TYPE, Double.TYPE);
+                    this.getRegionManager = ReflectionUtils.getMethod(RegionManager.class, "getApplicableRegions", vectorClass);
                 } catch (Exception e) {
                     try {
-                        Class<?> vectorClass = ReflectionUtils.getCanonicalClass("com.sk89q.worldedit.math.BlockVector3");
-                        this.getVector = vectorClass.getMethod("at", Double.TYPE, Double.TYPE, Double.TYPE);
-                        this.getRegionManager = RegionManager.class.getMethod("getApplicableRegions", vectorClass);
+                        final Class<?> vectorClass = ReflectionUtils.getClass("com.sk89q.worldedit.math.BlockVector3");
+                        this.getVector = ReflectionUtils.getMethod(vectorClass, "at", Double.TYPE, Double.TYPE, Double.TYPE);
+                        this.getRegionManager = ReflectionUtils.getMethod(RegionManager.class, "getApplicableRegions", vectorClass);
                     } catch (Exception e2) {
                         ServerUtils.logSevere("{GuardAPI} Failed to bind to WorldGuard (no Vector class?), integration will not work!");
                         ServerUtils.sendDebugTrace(e);
@@ -216,13 +214,12 @@ public class GuardAPI {
      * @return ApplicableRegionSet The WorldGuard RegionSet.
      */
     private @Nullable ApplicableRegionSet getRegionSet(final @Nonnull Location location) {
-        RegionManager regionManager = this.getRegionManager(Objects.requireNonNull(location.getWorld()));
+        final RegionManager regionManager = this.getRegionManager(Objects.requireNonNull(location.getWorld()));
         if (regionManager == null || !this.guardEnabled()) {
             return null;
         }
         try {
-            Object vector = this.getVector == null ? this.vectorConstructor.newInstance(location.getX(), location.getY(), location.getZ())
-                    : this.getVector.invoke(null, location.getX(), location.getY(), location.getZ());
+            final Object vector = this.getVector == null ? this.vectorConstructor.invoke(location.getX(), location.getY(), location.getZ()) : this.getVector.invoke(null, location.getX(), location.getY(), location.getZ());
             return (ApplicableRegionSet) this.getRegionManager.invoke(regionManager, vector);
         } catch (Exception e) {
             ServerUtils.logSevere("{GuardAPI} An error occurred looking up a WorldGuard ApplicableRegionSet.");

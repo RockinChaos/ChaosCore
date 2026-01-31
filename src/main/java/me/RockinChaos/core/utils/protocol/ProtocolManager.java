@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.handlers.PlayerHandler;
 import me.RockinChaos.core.utils.CompatUtils;
+import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.protocol.events.*;
@@ -154,7 +155,7 @@ public class ProtocolManager {
             } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload") || packetName.contains("RenameItemPacket")) {
                 if (packetContainer.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && CompatUtils.getInventoryType(player).name().equalsIgnoreCase("ANVIL")) {
                     final Object UnbufferedPayload = packetContainer.read(1).getData();
-                    final String renameText = (String) UnbufferedPayload.getClass().getMethod(ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
+                    final String renameText = (String) ReflectionUtils.getMethod(UnbufferedPayload.getClass(), ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
                     final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(CompatUtils.getOpenInventory(player), renameText);
                     callEvent(PrepareAnvil);
                     return PrepareAnvil.isCancelled();

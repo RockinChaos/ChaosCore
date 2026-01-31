@@ -32,7 +32,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Constructor;
 import java.util.Map;
 
 public class Container {
@@ -64,28 +63,28 @@ public class Container {
         try {
             final Class<?> blockPosition = ReflectionUtils.getMinecraftClass("BlockPosition");
             final Class<?> containerAnvil = ReflectionUtils.getMinecraftClass("ContainerAnvil");
-            final Object world = player.getWorld().getClass().getMethod("getHandle").invoke(player.getWorld());
+            final Object world = ReflectionUtils.getMethod(player.getWorld().getClass(), "getHandle").invoke(player.getWorld());
             final Object entityPlayer = ReflectionUtils.getEntity(player);
             Object playerInventory = null;
             if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
-                playerInventory = entityPlayer.getClass().getMethod(MinecraftMethod.PlayerInventory.getMethod()).invoke(entityPlayer);
+                playerInventory = ReflectionUtils.getMethod(entityPlayer.getClass(), MinecraftMethod.PlayerInventory.getMethod()).invoke(entityPlayer);
             } else if (entityPlayer != null) {
-                playerInventory = entityPlayer.getClass().getField(MinecraftMethod.PlayerInventory.getMethod()).get(entityPlayer);
+                playerInventory = ReflectionUtils.getField(entityPlayer.getClass(), MinecraftMethod.PlayerInventory.getMethod()).get(entityPlayer);
             }
             this.outItem = outItem;
             this.containerId = this.getRealNextContainerId(player);
             if (ServerUtils.hasSpecificUpdate("1_14")) {
                 final Class<?> containerAccess = ReflectionUtils.getMinecraftClass("ContainerAccess");
                 final ReflectionUtils.MethodInvoker CAM = ReflectionUtils.getMethod(containerAccess, MinecraftMethod.At.getMethod(), ReflectionUtils.getMinecraftClass("World"), blockPosition);
-                final Object accessContainer = CAM.invoke(containerAccess, world, blockPosition.getConstructor(int.class, int.class, int.class).newInstance(0, 0, 0));
-                this.container = containerAnvil.getConstructor(int.class, ReflectionUtils.getMinecraftClass("PlayerInventory"), containerAccess).newInstance(this.containerId, playerInventory, accessContainer);
+                final Object accessContainer = CAM.invoke(containerAccess, world, ReflectionUtils.getConstructor(blockPosition, int.class, int.class, int.class).invoke(0, 0, 0));
+                this.container = ReflectionUtils.getConstructor(containerAnvil, int.class, ReflectionUtils.getMinecraftClass("PlayerInventory"), containerAccess).invoke(this.containerId, playerInventory, accessContainer);
             } else {
-                this.container = containerAnvil.getConstructor(ReflectionUtils.getMinecraftClass("PlayerInventory"), ReflectionUtils.getMinecraftClass("World"), blockPosition, this.humanEntity)
-                        .newInstance(playerInventory, world, blockPosition.getConstructor(int.class, int.class, int.class).newInstance(0, 0, 0), ReflectionUtils.getEntity(player));
+                this.container = ReflectionUtils.getConstructor(containerAnvil, ReflectionUtils.getMinecraftClass("PlayerInventory"), ReflectionUtils.getMinecraftClass("World"), blockPosition, this.humanEntity)
+                        .invoke(playerInventory, world, ReflectionUtils.getConstructor(blockPosition, int.class, int.class, int.class).invoke(0, 0, 0), ReflectionUtils.getEntity(player));
             }
             ReflectionUtils.getField(this.mineContainer, "checkReachable").set(this.container, false);
             if (ServerUtils.hasSpecificUpdate("1_14")) {
-                this.container.getClass().getMethod("setTitle", this.baseComponent).invoke(this.container, inventoryTitle);
+                ReflectionUtils.getMethod(this.container.getClass(), "setTitle", this.baseComponent).invoke(this.container, inventoryTitle);
             }
             ReflectionUtils.getField(containerAnvil, (ServerUtils.hasSpecificUpdate("1_13") ? "maximumRepairCost" : ServerUtils.hasSpecificUpdate("1_12") ? "levelCost" : "a"), int.class).set(this.container, 0);
         } catch (Exception e) {
@@ -112,10 +111,10 @@ public class Container {
     public void handleInventoryCloseEvent(final @Nonnull Player player) {
         final Object entityPlayer = ReflectionUtils.getEntity(player);
         try {
-            ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory").getMethod("handleInventoryCloseEvent", this.humanEntity).invoke(null, entityPlayer);
+            ReflectionUtils.getMethod(ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory"), "handleInventoryCloseEvent", this.humanEntity).invoke(null, entityPlayer);
         } catch (Exception e1) {
             try { // Likely PaperSpigot
-                ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory").getMethod("handleInventoryCloseEvent", this.humanEntity, Class.forName("org.bukkit.event.inventory.InventoryCloseEvent$Reason")).invoke(null, entityPlayer, null);
+                ReflectionUtils.getMethod(ReflectionUtils.getCraftBukkitClass("event.CraftEventFactory"), "handleInventoryCloseEvent", this.humanEntity, ReflectionUtils.getClass("org.bukkit.event.inventory.InventoryCloseEvent$Reason")).invoke(null, entityPlayer, null);
             } catch (Exception e2) {
                 ServerUtils.sendSevereTrace(e1);
                 ServerUtils.sendSevereTrace(e2);
@@ -134,12 +133,12 @@ public class Container {
             Object packets;
             if (ServerUtils.hasSpecificUpdate("1_14")) {
                 final Class<?> mineContainers = ReflectionUtils.getMinecraftClass("Containers");
-                FieldAccessor<?> anvilContainers = ReflectionUtils.getField(mineContainers, MinecraftField.Anvil.getField());
-                Constructor<?> packetConstructor = this.playOpenWindow.getConstructor(int.class, mineContainers, this.baseComponent);
-                packets = packetConstructor.newInstance(this.containerId, anvilContainers.get(mineContainers), inventoryTitle);
+                final FieldAccessor<?> anvilContainers = ReflectionUtils.getField(mineContainers, MinecraftField.Anvil.getField());
+                final ReflectionUtils.ConstructorInvoker packetConstructor = ReflectionUtils.getConstructor(this.playOpenWindow, int.class, mineContainers, this.baseComponent);
+                packets = packetConstructor.invoke(this.containerId, anvilContainers.get(mineContainers), inventoryTitle);
             } else {
-                Constructor<?> packetConstructor = this.playOpenWindow.getConstructor(int.class, String.class, this.baseComponent);
-                packets = packetConstructor.newInstance(this.containerId, "minecraft:anvil", inventoryTitle);
+                final ReflectionUtils.ConstructorInvoker packetConstructor = ReflectionUtils.getConstructor(this.playOpenWindow, int.class, String.class, this.baseComponent);
+                packets = packetConstructor.invoke(this.containerId, "minecraft:anvil", inventoryTitle);
             }
             ReflectionUtils.sendPacket(player, packets);
         } catch (Exception e) {
@@ -154,7 +153,7 @@ public class Container {
      */
     public void sendPacketCloseWindow(final @Nonnull Player player) {
         try {
-            Object packets = this.playCloseWindow.getConstructor(int.class).newInstance(this.containerId);
+            final Object packets = ReflectionUtils.getConstructor(this.playCloseWindow, int.class).invoke(this.containerId);
             ReflectionUtils.sendPacket(player, packets);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
@@ -197,9 +196,9 @@ public class Container {
         try {
             final Object entityPlayer = ReflectionUtils.getEntity(player);
             if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
-                entityPlayer.getClass().getMethod(MinecraftMethod.AddSlotListener.getMethod(), this.mineContainer).invoke(entityPlayer, this.container);
+                ReflectionUtils.getMethod(entityPlayer.getClass(), MinecraftMethod.AddSlotListener.getMethod(), this.mineContainer).invoke(entityPlayer, this.container);
             } else {
-                this.mineContainer.getMethod(MinecraftMethod.AddSlotListener.getMethod(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, entityPlayer);
+                ReflectionUtils.getMethod(this.mineContainer, MinecraftMethod.AddSlotListener.getMethod(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, entityPlayer);
             }
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
@@ -213,7 +212,7 @@ public class Container {
      */
     public @Nonnull String getRenameText() {
         try {
-            return (String) this.mineContainer.getMethod(MinecraftField.RenameText.getField()).invoke(this.container);
+            return (String) ReflectionUtils.getMethod(this.mineContainer, MinecraftField.RenameText.getField()).invoke(this.container);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -227,16 +226,16 @@ public class Container {
      */
     public void setRenameText(final @Nonnull String text) {
         try {
-            Object inputLeft = this.mineContainer.getMethod(MinecraftField.GetSlot.getField(), int.class).invoke(this.container, 0);
-            boolean inputLeftF = (boolean) inputLeft.getClass().getMethod(MinecraftField.HasItem.getField()).invoke(inputLeft);
+            final Object inputLeft = ReflectionUtils.getMethod(this.mineContainer, MinecraftField.GetSlot.getField(), int.class).invoke(this.container, 0);
+            final boolean inputLeftF = (boolean) ReflectionUtils.getMethod(inputLeft.getClass(), MinecraftField.HasItem.getField()).invoke(inputLeft);
             if (inputLeftF) {
-                Object inputLeftE = inputLeft.getClass().getMethod(MinecraftField.GetItem.getField()).invoke(inputLeft);
+                final Object inputLeftE = ReflectionUtils.getMethod(inputLeft.getClass(), MinecraftField.GetItem.getField()).invoke(inputLeft);
                 if (ServerUtils.hasPreciseUpdate("1_20_5")) {
-                    inputLeftE.getClass().getMethod("b", ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(inputLeftE, dataComponent.getField(MinecraftField.CustomName.getField()).get(null), ReflectionUtils.literalChatComponent(text));
+                    ReflectionUtils.getMethod(inputLeftE.getClass(), "b", ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(inputLeftE, ReflectionUtils.getField(dataComponent, MinecraftField.CustomName.getField()).get(null), ReflectionUtils.literalChatComponent(text));
                 } else if (ServerUtils.hasSpecificUpdate("1_13")) {
-                    inputLeftE.getClass().getMethod("a", this.baseComponent).invoke(inputLeftE, ReflectionUtils.literalChatComponent(text));
+                    ReflectionUtils.getMethod(inputLeftE.getClass(), "a", this.baseComponent).invoke(inputLeftE, ReflectionUtils.literalChatComponent(text));
                 } else {
-                    inputLeftE.getClass().getMethod((ServerUtils.hasSpecificUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE, text);
+                    ReflectionUtils.getMethod(inputLeftE.getClass(), (ServerUtils.hasSpecificUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE, text);
                 }
             }
         } catch (Exception e) {
@@ -257,7 +256,7 @@ public class Container {
         try {
             final ItemMeta itemMeta = item.getItemMeta();
             if (itemMeta != null) {
-                boolean isAction = renameText.startsWith("-->") || this.isAction;
+                final boolean isAction = renameText.startsWith("-->") || this.isAction;
                 renameText = renameText.substring((renameText.startsWith("--> ") ? 4 : renameText.startsWith("-->") ? 3 : renameText.startsWith("-> ") ? 3 : renameText.startsWith("->") ? 2 : renameText.startsWith("--") ? 2 : renameText.startsWith("-") ? 1 : 0));
                 if (renameText.isEmpty() && isAction && this.outText != null && !this.outText.isEmpty()) {
                     renameText = this.outText + this.getSpacers();
@@ -306,15 +305,15 @@ public class Container {
      */
     public void removeCost(final @Nonnull PrepareAnvilEvent event) {
         CompatUtils.resolveByVersion("1_21",
-            () -> {
-                event.getView().setRepairCost(0); // still experimental... not even supported across all server platforms...
-                return null;
+                () -> {
+                    event.getView().setRepairCost(0);
+                    return null;
                 }, () -> {
-                if (ServerUtils.hasSpecificUpdate("1_11")) {
-                    LegacyAPI.setRepairCost(event.getInventory(), 0);
+                    if (ServerUtils.hasSpecificUpdate("1_11")) {
+                        LegacyAPI.setRepairCost(event.getInventory(), 0);
+                    }
+                    return null;
                 }
-                return null;
-            }
         );
     }
 
