@@ -125,7 +125,7 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Object uniqueTask = ReflectionUtils.getMethod(globalScheduler.getClass(), "runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class).invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay, interval == 0 ? 1 : interval);
+                    final Object uniqueTask = ReflectionUtils.getMethod(globalScheduler.getClass(), "runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class).invoke(globalScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), delay == 0 ? 1 : delay, interval == 0 ? 1 : interval);
                     try {
                         return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
                     } catch (Exception e) {
@@ -207,7 +207,7 @@ public class SchedulerUtils {
         if (Core.getCore().getPlugin().isEnabled()) {
             if (ServerUtils.isFolia) {
                 try {
-                    final Object uniqueTask = ReflectionUtils.getMethod(asyncScheduler.getClass(), "runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class).invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay), StringUtils.ticksToMillis(interval == 0 ? 1 : interval), TimeUnit.MILLISECONDS);
+                    final Object uniqueTask = ReflectionUtils.getMethod(asyncScheduler.getClass(), "runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class).invoke(asyncScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), StringUtils.ticksToMillis(delay == 0 ? 1 : delay), StringUtils.ticksToMillis(interval == 0 ? 1 : interval), TimeUnit.MILLISECONDS);
                     try {
                         return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
                     } catch (Exception e) {
