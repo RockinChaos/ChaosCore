@@ -315,6 +315,11 @@ public class DependAPI {
      * @return The found Skin Texture value.
      */
     public String getSkinValue(final @Nonnull UUID uuid, final @Nonnull String owner) {
+        if (Bukkit.isPrimaryThread()) {
+            ServerUtils.logDebug("SkinsRestorer support is currently disabled due to API instability causing servers to crash when fetching skins synchronously.");
+            //ServerUtils.logSevere("getSkinValue must not be called on the main thread as SkinsRestorer API calls can freeze the server unless ran asynchronously.");
+            return null;
+        }
         try {
             final Object playerData = ReflectionUtils.getMethod(this.skinsRestorer.getClass(), "getSkinForPlayer", UUID.class, String.class).invoke(this.skinsRestorer, uuid, owner);
             final Object skinData = ReflectionUtils.getMethod(playerData.getClass(), "get").invoke(playerData);
