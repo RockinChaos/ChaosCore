@@ -301,7 +301,18 @@ public class DependAPI {
      * @param cause - The Throwable reference to fetch the cause message.
      */
     private void isSkinsProxy(final @Nonnull Throwable cause) {
-        if (!this.proxySkins && (!StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorer API is not initialized yet!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorerAPI is not enabled!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "SkinsRestorer API is not enabled!") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxymode") && !StringUtils.containsIgnoreCase(cause.getMessage(), "proxy mode"))) {
+        Throwable root = cause;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        if (!this.proxySkins && (root.getMessage() == null
+                || (!StringUtils.containsIgnoreCase(root.getMessage(), "SkinsRestorerAPI is not initialized yet!")
+                && !StringUtils.containsIgnoreCase(root.getMessage(), "SkinsRestorer API is not initialized yet!")
+                && !StringUtils.containsIgnoreCase(root.getMessage(), "SkinsRestorerAPI is not enabled!")
+                && !StringUtils.containsIgnoreCase(root.getMessage(), "SkinsRestorer API is not enabled!")
+                && !StringUtils.containsIgnoreCase(root.getMessage(), "proxymode")
+                && !StringUtils.containsIgnoreCase(root.getMessage(), "proxy mode")
+                && !StringUtils.containsIgnoreCase(root.getMessage(), "proxy-mode")))) {
             ServerUtils.sendSevereThrowable(cause);
         } else {
             this.proxySkins = true;
@@ -316,7 +327,10 @@ public class DependAPI {
      */
     public String getSkinValue(final @Nonnull UUID uuid, final @Nonnull String owner) {
         if (Bukkit.isPrimaryThread()) {
-            ServerUtils.logDebug("SkinsRestorer support is currently disabled due to API instability causing servers to crash when fetching skins synchronously.");
+            if (!alertedSkinsDisabled) {
+                alertedSkinsDisabled = true;
+                ServerUtils.logDebug("SkinsRestorer support is currently disabled due to API instability causing servers to crash when fetching skins synchronously.");
+            }
             //ServerUtils.logSevere("getSkinValue must not be called on the main thread as SkinsRestorer API calls can freeze the server unless ran asynchronously.");
             return null;
         }
@@ -351,6 +365,7 @@ public class DependAPI {
         }
         return null;
     }
+    private boolean alertedSkinsDisabled = false;
 
     /**
      * Checks if Citizens is Enabled.
