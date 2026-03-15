@@ -192,7 +192,6 @@ public class ProtocolManager {
                 continue;
             }
             try {
-                registration.getPlugin();
                 registration.callEvent(event);
             } catch (AuthorNagException e) {
                 final Plugin plugin = registration.getPlugin();

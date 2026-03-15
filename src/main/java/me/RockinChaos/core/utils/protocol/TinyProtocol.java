@@ -443,7 +443,7 @@ public abstract class TinyProtocol {
         public volatile Player player;
 
         /**
-         * Register bukkit events.
+         * Handles an incoming packet from the client.
          *
          * @param ctx - the channel handler context.
          * @param msg - the client packet being sent.
@@ -463,14 +463,14 @@ public abstract class TinyProtocol {
         }
 
         /**
-         * Register bukkit events.
+         * Handles an outgoing packet to the client.
          *
          * @param ctx     - the channel handler context.
          * @param msg     - the server packet being sent.
          * @param promise - the channel promise.
          */
         @Override
-        public void write(final @Nonnull ChannelHandlerContext ctx, @Nonnull Object msg, final @Nonnull ChannelPromise promise) throws Exception {
+        public void write(final ChannelHandlerContext ctx, Object msg, final ChannelPromise promise) throws Exception {
             try {
                 msg = onPacketOutAsync(player, ctx.channel(), msg);
             } catch (Exception e) {
@@ -478,12 +478,16 @@ public abstract class TinyProtocol {
             }
 
             if (msg != null) {
-                super.write(ctx, msg, promise);
+                try {
+                    super.write(ctx, msg, promise);
+                } catch (Exception e) { // Fallback for when ProtocolLib is handling.
+                    ctx.write(msg, promise);
+                }
             }
         }
 
         /**
-         * Register bukkit events.
+         * Handles the login start packet to cache the player's channel.
          *
          * @param channel - the channel the packet was called on.
          * @param packet  - the packet object.
