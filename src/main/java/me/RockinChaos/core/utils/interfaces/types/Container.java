@@ -37,7 +37,7 @@ import java.util.Map;
 public class Container {
 
     private final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
-    private final Class<?> dataComponent = (ServerUtils.hasPreciseUpdate("1_20_5") ? ReflectionUtils.getMinecraftClass("DataComponents") : null);
+    private final Class<?> dataComponent = (ServerUtils.hasUpdate("1_20_5") ? ReflectionUtils.getMinecraftClass("DataComponents") : null);
     private final Class<?> humanEntity = ReflectionUtils.getMinecraftClass("EntityHuman");
     private final Class<?> mineContainer = ReflectionUtils.getMinecraftClass("Container");
     private final FieldAccessor<?> activeContainer = ReflectionUtils.getField(this.humanEntity, MinecraftField.ActiveContainer.getField());
@@ -66,14 +66,14 @@ public class Container {
             final Object world = ReflectionUtils.getMethod(player.getWorld().getClass(), "getHandle").invoke(player.getWorld());
             final Object entityPlayer = ReflectionUtils.getEntity(player);
             Object playerInventory = null;
-            if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
+            if (ServerUtils.hasUpdate("1_17") && entityPlayer != null) {
                 playerInventory = ReflectionUtils.getMethod(entityPlayer.getClass(), MinecraftMethod.PlayerInventory.getMethod()).invoke(entityPlayer);
             } else if (entityPlayer != null) {
                 playerInventory = ReflectionUtils.getField(entityPlayer.getClass(), MinecraftMethod.PlayerInventory.getMethod()).get(entityPlayer);
             }
             this.outItem = outItem;
             this.containerId = this.getRealNextContainerId(player);
-            if (ServerUtils.hasSpecificUpdate("1_14")) {
+            if (ServerUtils.hasUpdate("1_14")) {
                 final Class<?> containerAccess = ReflectionUtils.getMinecraftClass("ContainerAccess");
                 final ReflectionUtils.MethodInvoker CAM = ReflectionUtils.getMethod(containerAccess, MinecraftMethod.At.getMethod(), ReflectionUtils.getMinecraftClass("World"), blockPosition);
                 final Object accessContainer = CAM.invoke(containerAccess, world, ReflectionUtils.getConstructor(blockPosition, int.class, int.class, int.class).invoke(0, 0, 0));
@@ -83,10 +83,10 @@ public class Container {
                         .invoke(playerInventory, world, ReflectionUtils.getConstructor(blockPosition, int.class, int.class, int.class).invoke(0, 0, 0), ReflectionUtils.getEntity(player));
             }
             ReflectionUtils.getField(this.mineContainer, "checkReachable").set(this.container, false);
-            if (ServerUtils.hasSpecificUpdate("1_14")) {
+            if (ServerUtils.hasUpdate("1_14")) {
                 ReflectionUtils.getMethod(this.container.getClass(), "setTitle", this.baseComponent).invoke(this.container, inventoryTitle);
             }
-            ReflectionUtils.getField(containerAnvil, (ServerUtils.hasSpecificUpdate("1_13") ? "maximumRepairCost" : ServerUtils.hasSpecificUpdate("1_12") ? "levelCost" : "a"), int.class).set(this.container, 0);
+            ReflectionUtils.getField(containerAnvil, (ServerUtils.hasUpdate("1_13") ? "maximumRepairCost" : ServerUtils.hasUpdate("1_12") ? "levelCost" : "a"), int.class).set(this.container, 0);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -131,7 +131,7 @@ public class Container {
     public void sendPacketOpenWindow(final @Nonnull Player player, final @Nonnull Object inventoryTitle) {
         try {
             Object packets;
-            if (ServerUtils.hasSpecificUpdate("1_14")) {
+            if (ServerUtils.hasUpdate("1_14")) {
                 final Class<?> mineContainers = ReflectionUtils.getMinecraftClass("Containers");
                 final FieldAccessor<?> anvilContainers = ReflectionUtils.getField(mineContainers, MinecraftField.Anvil.getField());
                 final ReflectionUtils.ConstructorInvoker packetConstructor = ReflectionUtils.getConstructor(this.playOpenWindow, int.class, mineContainers, this.baseComponent);
@@ -182,7 +182,7 @@ public class Container {
      * Sets the supplied windowId of the supplied Container.
      */
     public void setActiveContainerId() {
-        if (!ServerUtils.hasSpecificUpdate("1_14")) {
+        if (!ServerUtils.hasUpdate("1_14")) {
             ReflectionUtils.getField(this.mineContainer, "windowId").set(this.container, this.containerId);
         }
     }
@@ -195,7 +195,7 @@ public class Container {
     public void addActiveContainerSlotListener(final @Nonnull Player player) {
         try {
             final Object entityPlayer = ReflectionUtils.getEntity(player);
-            if (ServerUtils.hasSpecificUpdate("1_17") && entityPlayer != null) {
+            if (ServerUtils.hasUpdate("1_17") && entityPlayer != null) {
                 ReflectionUtils.getMethod(entityPlayer.getClass(), MinecraftMethod.AddSlotListener.getMethod(), this.mineContainer).invoke(entityPlayer, this.container);
             } else {
                 ReflectionUtils.getMethod(this.mineContainer, MinecraftMethod.AddSlotListener.getMethod(), ReflectionUtils.getMinecraftClass("ICrafting")).invoke(this.container, entityPlayer);
@@ -230,12 +230,12 @@ public class Container {
             final boolean inputLeftF = (boolean) ReflectionUtils.getMethod(inputLeft.getClass(), MinecraftField.HasItem.getField()).invoke(inputLeft);
             if (inputLeftF) {
                 final Object inputLeftE = ReflectionUtils.getMethod(inputLeft.getClass(), MinecraftField.GetItem.getField()).invoke(inputLeft);
-                if (ServerUtils.hasPreciseUpdate("1_20_5")) {
-                    ReflectionUtils.getMethod(inputLeftE.getClass(), "b", ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(inputLeftE, ReflectionUtils.getField(dataComponent, MinecraftField.CustomName.getField()).get(null), ReflectionUtils.literalChatComponent(text));
-                } else if (ServerUtils.hasSpecificUpdate("1_13")) {
+                if (ServerUtils.hasUpdate("1_20_5")) {
+                    ReflectionUtils.getMethod(inputLeftE.getClass(), MinecraftMethod.setComponent.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType"), Object.class).invoke(inputLeftE, ReflectionUtils.getField(dataComponent, MinecraftField.CustomName.getField()).get(null), ReflectionUtils.literalChatComponent(text));
+                } else if (ServerUtils.hasUpdate("1_13")) {
                     ReflectionUtils.getMethod(inputLeftE.getClass(), "a", this.baseComponent).invoke(inputLeftE, ReflectionUtils.literalChatComponent(text));
                 } else {
-                    ReflectionUtils.getMethod(inputLeftE.getClass(), (ServerUtils.hasSpecificUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE, text);
+                    ReflectionUtils.getMethod(inputLeftE.getClass(), (ServerUtils.hasUpdate("1_11") ? "g" : "c"), String.class).invoke(inputLeftE, text);
                 }
             }
         } catch (Exception e) {
@@ -265,7 +265,7 @@ public class Container {
                 }
                 itemMeta.setDisplayName(StringUtils.translateLayout(renameText, player));
                 item.setItemMeta(itemMeta);
-                if (!ServerUtils.hasSpecificUpdate("1_12")) {
+                if (!ServerUtils.hasUpdate("1_12")) {
                     LegacyAPI.updateInventory(player);
                 }
             }
@@ -306,10 +306,10 @@ public class Container {
     public void removeCost(final @Nonnull PrepareAnvilEvent event) {
         CompatUtils.resolveByVersion("1_21",
                 () -> {
-                    event.getView().setRepairCost(0);
+                    event.getView().setRepairCost(0); // still experimental... not even supported across all server platforms...
                     return null;
                 }, () -> {
-                    if (ServerUtils.hasSpecificUpdate("1_11")) {
+                    if (ServerUtils.hasUpdate("1_11")) {
                         LegacyAPI.setRepairCost(event.getInventory(), 0);
                     }
                     return null;
@@ -363,6 +363,7 @@ public class Container {
      * @return The Inventory (Bukkit) instance of the Minecraft Inventory Container.
      */
     public @Nonnull Inventory getBukkitInventory() {
-        return (Inventory) ReflectionUtils.invokeMethod("getTopInventory", ReflectionUtils.invokeMethod("getBukkitView", this.container));
+        final Object bukkitView = ReflectionUtils.getMethod(this.container.getClass(), "getBukkitView").invoke(this.container);
+        return (Inventory) ReflectionUtils.getMethod(bukkitView.getClass(), "getTopInventory").invoke(bukkitView);
     }
 }

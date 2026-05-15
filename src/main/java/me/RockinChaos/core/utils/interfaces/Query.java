@@ -104,7 +104,7 @@ public class Query {
      */
     private void openInventory() {
         Bukkit.getPluginManager().registerEvents(this.inventoryListener, Core.getCore().getPlugin());
-        if (ServerUtils.hasSpecificUpdate("1_13")) {
+        if (ServerUtils.hasUpdate("1_13")) {
             Bukkit.getPluginManager().registerEvents(this.typingListener, Core.getCore().getPlugin());
         } else {
             if (ProtocolManager.isDead()) {
@@ -144,7 +144,7 @@ public class Query {
         }
         this.open = false;
         HandlerList.unregisterAll(this.inventoryListener);
-        if (ServerUtils.hasSpecificUpdate("1_11")) {
+        if (ServerUtils.hasUpdate("1_11")) {
             HandlerList.unregisterAll(this.typingListener);
         } else {
             HandlerList.unregisterAll(this.typingListener_LEGACY);
@@ -194,7 +194,7 @@ public class Query {
      * @param preserveRenameText Whether to preserve the entered rename text.
      */
     private void setTitle(final Object title, final boolean preserveRenameText) {
-        if (!ServerUtils.hasSpecificUpdate("1_14")) {
+        if (!ServerUtils.hasUpdate("1_14")) {
             return;
         }
         String renameText = this.container.getRenameText();
@@ -310,7 +310,7 @@ public class Query {
                     /*
                         Prevents the output from ghosting when double-clicking.
                      */
-                    if (!ServerUtils.hasSpecificUpdate("1_11") && outItem != null) {
+                    if (!ServerUtils.hasUpdate("1_11") && outItem != null) {
                         final ItemStack outItemCloned = outItem.clone();
                         final ItemMeta outMeta = outItemCloned.getItemMeta();
                         if (outMeta != null) {

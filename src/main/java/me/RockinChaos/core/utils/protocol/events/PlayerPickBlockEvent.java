@@ -171,7 +171,7 @@ public class PlayerPickBlockEvent extends PlayerEvent implements Cancellable {
     public @Nullable ItemStack getItemStack() throws Exception {
         if (this.block == null) return null;
         else if (this.itemStack != null) return this.itemStack;
-        else if (!ServerUtils.hasSpecificUpdate("1_14") || Bukkit.isPrimaryThread()) {
+        else if (!ServerUtils.hasUpdate("1_14") || Bukkit.isPrimaryThread()) {
             this.itemStack = ItemHandler.getItemStack(this.block, super.getPlayer());
             return this.itemStack;
         }

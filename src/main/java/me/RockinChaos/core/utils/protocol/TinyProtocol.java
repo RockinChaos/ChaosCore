@@ -470,7 +470,7 @@ public abstract class TinyProtocol {
          * @param promise - the channel promise.
          */
         @Override
-        public void write(final ChannelHandlerContext ctx, Object msg, final ChannelPromise promise) throws Exception {
+        public void write(final ChannelHandlerContext ctx, Object msg, final ChannelPromise promise) {
             try {
                 msg = onPacketOutAsync(player, ctx.channel(), msg);
             } catch (Exception e) {
@@ -495,7 +495,7 @@ public abstract class TinyProtocol {
         private void handleLoginStart(final @Nonnull Channel channel, final @Nonnull Object packet) {
             if (PACKET_LOGIN_IN_START.isInstance(packet)) {
                 GameProfile profile;
-                if (ServerUtils.hasSpecificUpdate("1_19")) {
+                if (ServerUtils.hasUpdate("1_19")) {
                     profile = new GameProfile(UUID.randomUUID(), ReflectionUtils.getField(PACKET_LOGIN_IN_START, String.class, 0).get(packet));
                 } else {
                     profile = ReflectionUtils.getField(PACKET_LOGIN_IN_START, GameProfile.class, 0).get(packet);

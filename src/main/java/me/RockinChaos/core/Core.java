@@ -69,7 +69,7 @@ public class Core {
      * @return If ChaosCore is enabled.
      */
     public boolean isEnabled() {
-        final boolean isSupported = ServerUtils.hasSpecificUpdate("1_8");
+        final boolean isSupported = ServerUtils.hasUpdate("1_8");
         if (!isSupported) {
             ServerUtils.logSevere("detected incompatible server version.");
             ServerUtils.logSevere("only Minecraft 1.8 and above is supported... disabling...");

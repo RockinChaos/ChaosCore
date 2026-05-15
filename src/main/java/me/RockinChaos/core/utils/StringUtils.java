@@ -218,7 +218,7 @@ public class StringUtils {
      */
     public static @Nonnull ItemStack colorEncode(final @Nonnull ItemStack itemStack, final @Nonnull String endData) {
         final ItemMeta itemMeta = itemStack.getItemMeta();
-        if (ServerUtils.hasSpecificUpdate("1_14") && itemMeta != null) {
+        if (ServerUtils.hasUpdate("1_14") && itemMeta != null) {
             final org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(Core.getCore().getPlugin(), "Item_Data");
             itemMeta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, endData);
             itemStack.setItemMeta(itemMeta);
@@ -240,7 +240,7 @@ public class StringUtils {
      */
     public static @Nonnull String colorDecode(final @Nonnull ItemStack itemStack) {
         final ItemMeta itemMeta = itemStack.getItemMeta();
-        if (ServerUtils.hasSpecificUpdate("1_14") && itemMeta != null) {
+        if (ServerUtils.hasUpdate("1_14") && itemMeta != null) {
             final org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(Core.getCore().getPlugin(), "Item_Data");
             final org.bukkit.persistence.PersistentDataContainer container = itemMeta.getPersistentDataContainer();
             if (container.has(key, org.bukkit.persistence.PersistentDataType.STRING)) {

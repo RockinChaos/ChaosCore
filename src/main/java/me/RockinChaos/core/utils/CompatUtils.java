@@ -52,7 +52,7 @@ import java.util.function.Supplier;
  * These methods exist to bridge the gap between newer and older Minecraft versions
  * with the goal to be able to compile using the latest Minecraft version.
  */
-@SuppressWarnings({"unchecked", "ConstantExpression", "ConstantValue"})
+@SuppressWarnings({"unchecked"})
 public class CompatUtils {
 
     /**
@@ -314,7 +314,7 @@ public class CompatUtils {
      * @return The name of the Object.
      */
     public static String getName(final @Nonnull Object object) {
-        if (ServerUtils.hasSpecificUpdate("1_9") && object instanceof Attribute) {
+        if (ServerUtils.hasUpdate("1_9") && object instanceof Attribute) {
             return ((String) resolveByVersion("1_21", () -> getKey(object).getKey(), () -> LegacyAPI.getAttributeName(object))).toUpperCase();
         } else if (object instanceof Sound) {
             return ((String) resolveByVersion("1_21", () -> getKey(object).getKey(), () -> LegacyAPI.getSoundName(object))).toUpperCase();
@@ -384,7 +384,7 @@ public class CompatUtils {
      * @return The values of the Object Class.
      */
     public static <T> List<T> values(final @Nonnull Class<T> clazz) {
-        if (ServerUtils.hasSpecificUpdate("1_9") && clazz.equals(Attribute.class)) {
+        if (ServerUtils.hasUpdate("1_9") && clazz.equals(Attribute.class)) {
             return (List<T>) resolveByVersion("1_21_3", () -> ImmutableList.copyOf(Registry.ATTRIBUTE.iterator()), LegacyAPI::getAttributes);
         } else if (clazz.equals(Sound.class)) {
             return (List<T>) resolveByVersion("1_21_3", () -> ImmutableList.copyOf(Registry.SOUNDS.iterator()), LegacyAPI::getSounds);
@@ -409,7 +409,7 @@ public class CompatUtils {
      * @return The Class Object of the clazzName.
      */
     public static <T> Object valueOf(final @Nonnull Class<T> clazz, final @Nonnull String clazzName) {
-        if (ServerUtils.hasSpecificUpdate("1_9") && clazz.equals(Attribute.class)) {
+        if (ServerUtils.hasUpdate("1_9") && clazz.equals(Attribute.class)) {
             return resolveByVersion("1_21_3", () -> Registry.ATTRIBUTE.get(NamespacedKey.minecraft(clazzName.toLowerCase().replace("generic_", ""))), () -> LegacyAPI.getAttribute(clazzName));
         } else if (clazz.equals(Sound.class)) {
             return resolveByVersion("1_21_3", () -> Registry.SOUNDS.get(NamespacedKey.minecraft(clazzName.toLowerCase())), () -> LegacyAPI.getSound(clazzName));
@@ -450,9 +450,9 @@ public class CompatUtils {
         return (GameProfile) resolveByVersion("1_21_9", () -> {
             ImmutableListMultimap.Builder<String, Property> propertyBuilder = ImmutableListMultimap.builder();
             propertyBuilder.put("textures", new Property("textures", texture));
-            return new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16), new PropertyMap(propertyBuilder.build()));
+            return new GameProfile(uuid, uuid.toString().replace("_", "").replace("-", "").substring(0, 16), new PropertyMap(propertyBuilder.build()));
         }, () -> {
-            GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16));
+            GameProfile gameProfile = new GameProfile(uuid, uuid.toString().replace("_", "").replace("-", "").substring(0, 16));
             CompatUtils.getProperties(gameProfile).put("textures", new Property("textures", texture));
             return gameProfile;
         });
@@ -468,7 +468,7 @@ public class CompatUtils {
      * @param itemMeta The {@link ItemMeta} to modify.
      */
     public static void setDummyAttributes(final ItemMeta itemMeta) {
-        if (ServerUtils.hasPreciseUpdate("1_20_5") && ServerUtils.isPaper && itemMeta.getAttributeModifiers() == null) {
+        if (ServerUtils.hasUpdate("1_20_5") && ServerUtils.isPaper && itemMeta.getAttributeModifiers() == null) {
             itemMeta.setAttributeModifiers(HashMultimap.create());
         }
     }
@@ -485,7 +485,7 @@ public class CompatUtils {
      */
     public static Object resolveByVersion(final String updateVersion, final Supplier<Object> modernGetter, final Supplier<Object> legacyGetter) {
         try {
-            return ServerUtils.hasPreciseUpdate(updateVersion) ? modernGetter.get() != null ? modernGetter.get() : legacyGetter.get() : legacyGetter.get();
+            return ServerUtils.hasUpdate(updateVersion) ? modernGetter.get() != null ? modernGetter.get() : legacyGetter.get() : legacyGetter.get();
         } catch (Throwable t) {
             return legacyGetter.get();
         }

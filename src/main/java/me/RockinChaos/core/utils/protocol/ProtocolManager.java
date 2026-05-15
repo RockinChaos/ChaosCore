@@ -26,6 +26,7 @@ import me.RockinChaos.core.utils.SchedulerUtils;
 import me.RockinChaos.core.utils.ServerUtils;
 import me.RockinChaos.core.utils.protocol.events.*;
 import me.RockinChaos.core.utils.protocol.packet.PacketContainer;
+import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -145,7 +146,7 @@ public class ProtocolManager {
                 callEvent(PickEntity);
                 return PickEntity.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInAutoRecipe") || packetName.contains("PlaceRecipePacket")) {
-                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasPreciseUpdate("1_20_5") && packetContainer.read(3).getData() instanceof Boolean ? packetContainer.read(3) : packetContainer.read(2)).getData());
+                final PlayerAutoCraftEvent AutoCraft = new PlayerAutoCraftEvent(player, CompatUtils.getTopInventory(player), (boolean) (ServerUtils.hasUpdate("1_20_5") && packetContainer.read(3).getData() instanceof Boolean ? packetContainer.read(3) : packetContainer.read(2)).getData());
                 callEvent(AutoCraft);
                 return AutoCraft.isCancelled();
             } else if (packetName.equalsIgnoreCase("PacketPlayInCloseWindow") || packetName.contains("ContainerClosePacket")) {
@@ -155,7 +156,7 @@ public class ProtocolManager {
             } else if (packetName.equalsIgnoreCase("PacketPlayInCustomPayload") || packetName.contains("RenameItemPacket")) {
                 if (packetContainer.read(0).getData().toString().equalsIgnoreCase("MC|ItemName") && CompatUtils.getInventoryType(player).name().equalsIgnoreCase("ANVIL")) {
                     final Object UnbufferedPayload = packetContainer.read(1).getData();
-                    final String renameText = (String) ReflectionUtils.getMethod(UnbufferedPayload.getClass(), ServerUtils.hasSpecificUpdate("1_9") ? "e" : "c", int.class).invoke(UnbufferedPayload, 31);
+                    final String renameText = (String) ReflectionUtils.getMethod(UnbufferedPayload.getClass(), MinecraftMethod.readUtf.getMethod(), int.class).invoke(UnbufferedPayload, 31);
                     final PrepareAnvilEvent PrepareAnvil = new PrepareAnvilEvent(CompatUtils.getOpenInventory(player), renameText);
                     callEvent(PrepareAnvil);
                     return PrepareAnvil.isCancelled();
@@ -166,7 +167,7 @@ public class ProtocolManager {
                 }
             } else if (packetName.equalsIgnoreCase("PacketPlayInWindowClick") || packetName.contains("ContainerClickPacket")) { // yeeted in Minecraft 1.21+, thanks Microsoft...
                 if (packetContainer.read(5).getData().toString().equalsIgnoreCase("QUICK_CRAFT")) {
-                    final int slot = (ServerUtils.hasSpecificUpdate("1_17") ? (int) packetContainer.read(3).getData() : (int) packetContainer.read(1).getData());
+                    final int slot = (ServerUtils.hasUpdate("1_17") ? (int) packetContainer.read(3).getData() : (int) packetContainer.read(1).getData());
                     if (slot >= 0) {
                         final PlayerCloneItemEvent CloneItem = new PlayerCloneItemEvent(player, slot, ClickType.MIDDLE);
                         callEvent(CloneItem);

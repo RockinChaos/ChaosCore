@@ -130,7 +130,7 @@ public class PlayerHandler {
         inventory.setLeggings(new ItemStack(Material.AIR));
         inventory.setBoots(new ItemStack(Material.AIR));
         player.setItemOnCursor(new ItemStack(Material.AIR));
-        if (ServerUtils.hasSpecificUpdate("1_9")) {
+        if (ServerUtils.hasUpdate("1_9")) {
             PlayerHandler.setOffHandItem(player, new ItemStack(Material.AIR));
         }
         inventory.clear();
@@ -244,11 +244,11 @@ public class PlayerHandler {
      * @return The current ItemStack in the players hand.
      */
     public static @Nonnull ItemStack getHandItem(final @Nonnull Player player) {
-        if (ServerUtils.hasSpecificUpdate("1_9") && player.getInventory().getItemInMainHand().getType() != Material.AIR) {
+        if (ServerUtils.hasUpdate("1_9") && player.getInventory().getItemInMainHand().getType() != Material.AIR) {
             return player.getInventory().getItemInMainHand();
-        } else if (ServerUtils.hasSpecificUpdate("1_9") && player.getInventory().getItemInOffHand().getType() != Material.AIR) {
+        } else if (ServerUtils.hasUpdate("1_9") && player.getInventory().getItemInOffHand().getType() != Material.AIR) {
             return player.getInventory().getItemInOffHand();
-        } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (!ServerUtils.hasUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
         return new ItemStack(Material.AIR);
@@ -264,11 +264,11 @@ public class PlayerHandler {
      * @return The current ItemStack in the players hand.
      */
     public static @Nonnull ItemStack getPerfectHandItem(final @Nonnull Player player, final @Nullable String type) {
-        if (ServerUtils.hasSpecificUpdate("1_9") && type != null && type.equalsIgnoreCase("HAND")) {
+        if (ServerUtils.hasUpdate("1_9") && type != null && type.equalsIgnoreCase("HAND")) {
             return player.getInventory().getItemInMainHand();
-        } else if (ServerUtils.hasSpecificUpdate("1_9") && type != null && type.equalsIgnoreCase("OFF_HAND")) {
+        } else if (ServerUtils.hasUpdate("1_9") && type != null && type.equalsIgnoreCase("OFF_HAND")) {
             return player.getInventory().getItemInOffHand();
-        } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (!ServerUtils.hasUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
         return new ItemStack(Material.AIR);
@@ -283,9 +283,9 @@ public class PlayerHandler {
      * @return The current ItemStack in the players hand.
      */
     public static @Nonnull ItemStack getMainHandItem(final @Nonnull Player player) {
-        if (ServerUtils.hasSpecificUpdate("1_9")) {
+        if (ServerUtils.hasUpdate("1_9")) {
             return player.getInventory().getItemInMainHand();
-        } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (!ServerUtils.hasUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
         return new ItemStack(Material.AIR);
@@ -300,9 +300,9 @@ public class PlayerHandler {
      * @return The current ItemStack in the players hand.
      */
     public static @Nonnull ItemStack getOffHandItem(final @Nonnull Player player) {
-        if (ServerUtils.hasSpecificUpdate("1_9")) {
+        if (ServerUtils.hasUpdate("1_9")) {
             return player.getInventory().getItemInOffHand();
-        } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (!ServerUtils.hasUpdate("1_9")) {
             return LegacyAPI.getInHandItem(player);
         }
         return new ItemStack(Material.AIR);
@@ -317,9 +317,9 @@ public class PlayerHandler {
      * @param item   - The ItemStack to be set.
      */
     public static void setMainHandItem(final @Nonnull Player player, final @Nonnull ItemStack item) {
-        if (ServerUtils.hasSpecificUpdate("1_9")) {
+        if (ServerUtils.hasUpdate("1_9")) {
             player.getInventory().setItemInMainHand(item);
-        } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (!ServerUtils.hasUpdate("1_9")) {
             LegacyAPI.setInHandItem(player, item);
         }
     }
@@ -333,9 +333,9 @@ public class PlayerHandler {
      * @param item   - The ItemStack to be set.
      */
     public static void setOffHandItem(final @Nonnull Player player, final @Nonnull ItemStack item) {
-        if (ServerUtils.hasSpecificUpdate("1_9")) {
+        if (ServerUtils.hasUpdate("1_9")) {
             player.getInventory().setItemInOffHand(item);
-        } else if (!ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (!ServerUtils.hasUpdate("1_9")) {
             LegacyAPI.setInHandItem(player, item);
         }
     }
@@ -396,7 +396,7 @@ public class PlayerHandler {
                     }
                 }
                 /* Updates Offhand Slot. */
-                if (ServerUtils.hasSpecificUpdate("1_9")) {
+                if (ServerUtils.hasUpdate("1_9")) {
                     if (item == null || (getOffHandItem(player).clone().isSimilar(item))) {
                         ReflectionUtils.sendPacketPlayOutSetSlot(player, getOffHandItem(player), 45, 0);
                     }
@@ -451,7 +451,7 @@ public class PlayerHandler {
     public static @Nonnull String getSkullOwner(final @Nonnull ItemStack item) {
         if (item.hasItemMeta()) {
             final ItemMeta itemMeta = item.getItemMeta();
-            if (ServerUtils.hasSpecificUpdate("1_12") && itemMeta != null && ItemHandler.isSkull(item.getType())
+            if (ServerUtils.hasUpdate("1_12") && itemMeta != null && ItemHandler.isSkull(item.getType())
                     && ((SkullMeta) itemMeta).hasOwner() && ItemHandler.usesOwningPlayer()) {
                 final OfflinePlayer owner = ((SkullMeta) itemMeta).getOwningPlayer();
                 if (owner != null && owner.getName() != null) {
@@ -738,7 +738,7 @@ public class PlayerHandler {
         Block block = null;
         try {
             Set<Material> ignore = new HashSet<>();
-            if (ServerUtils.hasSpecificUpdate("1_13")) {
+            if (ServerUtils.hasUpdate("1_13")) {
                 ignore.addAll(Arrays.asList(Material.AIR, Material.WATER, Material.LAVA));
             } else {
                 ignore.addAll(Arrays.asList(Material.AIR, ItemHandler.getMaterial("STATIONARY_WATER", null), ItemHandler.getMaterial("FLOWING_WATER", null), Material.WATER,
@@ -765,7 +765,7 @@ public class PlayerHandler {
      */
     public static @Nonnull String getNearbyPlayer(final @Nonnull Player player, final int range) {
         if (SchedulerUtils.isMainThread()) {
-            if (ServerUtils.hasSpecificUpdate("1_14")) { // raytrace doesn't exist in versions below 1.14.
+            if (ServerUtils.hasUpdate("1_14")) { // raytrace doesn't exist in versions below 1.14.
                 final Location eyeLocation = player.getEyeLocation();
                 final org.bukkit.util.Vector direction = eyeLocation.getDirection().normalize();
                 double closestDistanceSquared = Double.MAX_VALUE;

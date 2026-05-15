@@ -51,7 +51,7 @@ public abstract class ChatComponent {
      */
     public static void sendTo(final @Nonnull TextSection text, final Player player) {
         try {
-            if (ServerUtils.hasPreciseUpdate("1_21_6")) { // IChatBaseComponent$ChatSerializer no longer exists in 1.21.6 and there is no feasible option for parsing JSON now. There's no real point in continuing to write reflections for this.
+            if (ServerUtils.hasUpdate("1_21_6")) { // IChatBaseComponent$ChatSerializer no longer exists in 1.21.6 and there is no feasible option for parsing JSON now. There's no real point in continuing to write reflections for this.
                 player.spigot().sendMessage(net.md_5.bungee.chat.ComponentSerializer.parse(text.toString()));
             } else {
                 final Object craftPlayer = ReflectionUtils.getEntity(player);
@@ -75,9 +75,9 @@ public abstract class ChatComponent {
      * @param player - The Player being referenced.
      * @return the newly created IChatBaseComponent.
      */
-    private static @Nonnull Object getComponent(final TextSection text, final @Nonnull Player player) throws Exception {
+    private static @Nonnull Object getComponent(final TextSection text, final @Nonnull Player player) {
         final Class<?> serializer = ReflectionUtils.getMinecraftClass("IChatBaseComponent$ChatSerializer");
-        if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+        if (ServerUtils.hasUpdate("1_20_5")) {
             final Object craftServer = ReflectionUtils.invokeMethod("getHandle", player.getServer());
             final Object mineServer = ReflectionUtils.invokeMethod(MinecraftMethod.getServer.getMethod(), craftServer);
             final Object registryAccess = ReflectionUtils.invokeMethod(MinecraftMethod.registryAccess.getMethod(), mineServer);
@@ -93,17 +93,17 @@ public abstract class ChatComponent {
      * @param player - The Player being referenced.
      * @return The Packet Constructor.
      */
-    private static @Nonnull ReflectionUtils.ConstructorInvoker getPacketConstructor(final @Nonnull Player player) throws Exception {
+    private static @Nonnull ReflectionUtils.ConstructorInvoker getPacketConstructor(final @Nonnull Player player) {
         final Class<?> baseComponent = ReflectionUtils.getMinecraftClass("IChatBaseComponent");
-        final Class<?> chatPacket = ReflectionUtils.getMinecraftClass((ServerUtils.hasSpecificUpdate("1_19") ? "ClientboundSystemChatPacket" : "PacketPlayOutChat"));
+        final Class<?> chatPacket = ReflectionUtils.getMinecraftClass((ServerUtils.hasUpdate("1_19") ? "ClientboundSystemChatPacket" : "PacketPlayOutChat"));
         ReflectionUtils.ConstructorInvoker packetConstructor;
-        if (ServerUtils.hasPreciseUpdate("1_20_5") || ServerUtils.hasSpecificUpdate("1_19")) {
+        if (ServerUtils.hasUpdate("1_20_5") || ServerUtils.hasUpdate("1_19")) {
             try {
                 packetConstructor = ReflectionUtils.getConstructor(chatPacket, baseComponent, int.class);
             } catch (Exception e) {
                 packetConstructor = ReflectionUtils.getConstructor(chatPacket, baseComponent, boolean.class);
             }
-        } else if (ServerUtils.hasSpecificUpdate("1_16")) {
+        } else if (ServerUtils.hasUpdate("1_16")) {
             final Class<?> messageType = ReflectionUtils.getMinecraftClass("ChatMessageType");
             packetConstructor = ReflectionUtils.getConstructor(chatPacket, baseComponent, messageType, player.getUniqueId().getClass());
         } else {
@@ -119,7 +119,7 @@ public abstract class ChatComponent {
      * @param player        - The Player being referenced.
      * @return The newly created Chat Packet instance.
      */
-    private static @Nonnull Object createPacket(final @Nonnull Object textComponent, final @Nonnull Player player) throws Exception {
+    private static @Nonnull Object createPacket(final @Nonnull Object textComponent, final @Nonnull Player player) {
         final ReflectionUtils.ConstructorInvoker packetConstructor = getPacketConstructor(player);
         Object packet;
         try {
@@ -288,7 +288,7 @@ public abstract class ChatComponent {
         private TextSection parent;
         private HoverEvent hoverEvent;
         private ClickEvent clickEvent;
-        private ChatColor color = (ServerUtils.hasPreciseUpdate("1_20_3") ? ChatColor.WHITE : ChatColor.RESET);
+        private ChatColor color = (ServerUtils.hasUpdate("1_20_3") ? ChatColor.WHITE : ChatColor.RESET);
         private List<TextSection> extra;
         private boolean bold = false;
         private boolean italics = false;

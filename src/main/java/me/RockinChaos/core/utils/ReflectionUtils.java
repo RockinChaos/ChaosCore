@@ -51,9 +51,10 @@ public class ReflectionUtils {
     private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
     private static final String MC_PREFIX = "net.minecraft";
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-    private static final boolean MC_REMAPPED = ServerUtils.hasPreciseUpdate("1_17_0");
+    private static final boolean MC_REMAPPED = ServerUtils.hasUpdate("1_17");
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
-    private static final boolean MC_DEOBFUSCATION = isPaperObfuscation();
+    private static final boolean MODERN_NBT = ServerUtils.hasUpdate("26");
+    private static final boolean MC_DEOBFUSCATION = MODERN_NBT || isPaperObfuscation();
 
     /**
      * Retrieve a field accessor for a specific field type and name.
@@ -433,13 +434,6 @@ public class ReflectionUtils {
     }
 
     /**
-     * Retrieve a version referenced in the packages.
-     */
-    public static @Nonnull String getServerVersion() {
-        return VERSION;
-    }
-
-    /**
      * Retrieve a class from its full name.
      * <p>
      * Strings enclosed with curly brackets - such as {TEXT} - will be replaced according to the following table:
@@ -574,7 +568,7 @@ public class ReflectionUtils {
      * @param item   - The ItemStack to be sent to the slot.
      * @param index  - The slot to have the item sent.
      */
-    public static void sendPacketPlayOutSetSlot(final @Nonnull Player player, final @Nullable ItemStack item, int index, int windowId) throws Exception {
+    public static void sendPacketPlayOutSetSlot(final @Nonnull Player player, final @Nullable ItemStack item, int index, int windowId) {
         final Class<?> itemStack = getMinecraftClass("ItemStack");
         final Object nms = getMethod(getCraftBukkitClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).invoke(null, item);
         final Class<?> playOutSlot = getMinecraftClass("PacketPlayOutSetSlot");
@@ -597,10 +591,10 @@ public class ReflectionUtils {
      * @param player - The player receiving the packet.
      * @param packet - The Packet Object being sent.
      */
-    public static void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) throws Exception {
+    public static void sendPacket(final @Nonnull Player player, final @Nonnull Object packet) {
         final Object nmsPlayer = getEntity(player);
         if (nmsPlayer == null) return;
-        if (ServerUtils.hasPreciseUpdate("1_21_7") && ServerUtils.isPaper) {
+        if (ServerUtils.hasUpdate("1_21_7") && ServerUtils.isPaper) {
             final Object connection = getField(nmsPlayer.getClass(), "connection").get(nmsPlayer);
             final Class<?> packetClass = getMinecraftClass("Packet");
             getMethod(connection.getClass(), "send", packetClass).invoke(connection, packet);
@@ -619,8 +613,8 @@ public class ReflectionUtils {
      */
     public static @Nullable Object literalChatComponent(final @Nonnull String content) {
         try {
-            if (ServerUtils.hasSpecificUpdate("1_19")) {
-                return getMethod(getMinecraftClass("IChatBaseComponent"), "b", String.class).invoke(null, content);
+            if (ServerUtils.hasUpdate("1_19")) {
+                return getMethod(getMinecraftClass("IChatBaseComponent"), MinecraftMethod.literal.getMethod(), String.class).invoke(null, content);
             } else {
                 return getConstructor(getMinecraftClass("ChatComponentText"), String.class).invoke(content);
             }
@@ -638,7 +632,7 @@ public class ReflectionUtils {
      */
     public static @Nullable Object jsonChatComponent(final @Nonnull String json) {
         try {
-            return getMethod(getMinecraftClass("IChatBaseComponent"), "a", String.class).invoke(null, json);
+            return getMethod(getMinecraftClass("IChatBaseComponent"), MinecraftMethod.fromJson.getMethod(), String.class).invoke(null, json);
         } catch (Exception e) {
             ServerUtils.sendSevereTrace(e);
         }
@@ -712,7 +706,7 @@ public class ReflectionUtils {
     public static @Nonnull Class<?> getMinecraftTag(final @Nonnull String name) {
         for (MinecraftTags tag : MinecraftTags.values()) {
             if (tag.name().equalsIgnoreCase(name)) {
-                return getCanonicalClass(MC_PREFIX + tag.tag + "." + name);
+                return getCanonicalClass(MC_PREFIX + tag.tag + "." + tag.getClassName());
             }
         }
         return getCanonicalClass(NMS_PREFIX + "." + name);
@@ -724,7 +718,7 @@ public class ReflectionUtils {
      * @return If the server classes are obfuscated.
      */
     public static boolean isPaperObfuscation() {
-        if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+        if (ServerUtils.hasUpdate("1_20_5")) {
             try {
                 getField(getMinecraftClass("EntityHuman"), MinecraftField.DefaultContainer.getField());
                 return false;
@@ -748,37 +742,45 @@ public class ReflectionUtils {
      * Searchable methods that no longer require NBT Reflections.
      */
     public enum MinecraftMethod {
-        valueOf("valueOf", "valueOf", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "valueOf")),
-        add("add", "add", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "add")),
-        set("set", "set", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "set")),
+        valueOf("valueOf", "valueOf", (ServerUtils.hasUpdate("1_18") ? "a" : "valueOf")),
+        add("add", "add", (ServerUtils.hasUpdate("1_18") ? "c" : "add")),
+        set("set", "set", (ServerUtils.hasUpdate("1_18") ? "a" : "set")),
         get("get", "get", "a"),
         getBase("get", "get", "c"),
         of("of", "of", "a"),
-        setInt("setInt", "setInt", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setInt")),
+        setInt("setInt", "setInt", (ServerUtils.hasUpdate("1_18") ? "a" : "setInt")),
         getPage("a", "a", "a"),
-        getTag("getTag", "getTag", (ServerUtils.hasSpecificUpdate("1_19") ? "v" : ServerUtils.hasPreciseUpdate("1_18_2") ? "t" : ServerUtils.hasSpecificUpdate("1_18") ? "s" : "getTag")),
-        setTag("setTag", "setTag", (ServerUtils.hasSpecificUpdate("1_18") ? "c" : "setTag")),
-        addTag("addTag", "addTag", (ServerUtils.hasSpecificUpdate("1_18") ? "d" : "addTag")),
+        getTag("getTag", "getTag", (ServerUtils.hasUpdate("1_19") ? "v" : ServerUtils.hasUpdate("1_18_2") ? "t" : ServerUtils.hasUpdate("1_18") ? "s" : "getTag")),
+        setTag("setTag", "setTag", (ServerUtils.hasUpdate("1_18") ? "c" : "setTag")),
+        addTag("addTag", "addTag", (ServerUtils.hasUpdate("1_18") ? "d" : "addTag")),
         setCompound("setCompound", "put", "a"),
-        getKeys((ServerUtils.hasSpecificUpdate("1_13") ? "getKeys": "c"), (ServerUtils.hasPreciseUpdate("1_21_7") ? "keySet" : "getAllKeys"), (ServerUtils.hasSpecificUpdate("1_20") ? "e" : "d")),
-        getTypeId("getTypeId", "getId", (ServerUtils.hasSpecificUpdate("1_20") ? "b" : "a")),
-        setString("setString", "putString", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setString")),
-        getString("getString", ServerUtils.hasPreciseUpdate("1_21_5") ? "getStringOr" : "getString", ServerUtils.hasPreciseUpdate("1_21_5") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "l" : "getString"),
-        setDouble("setDouble", "setDouble", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "setDouble")),
-        put("set", "put", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "put")),
+        getKeys((ServerUtils.hasUpdate("1_13") ? "getKeys": "c"), (ServerUtils.hasUpdate("1_21_7") ? "keySet" : "getAllKeys"), (ServerUtils.hasUpdate("1_20") ? "e" : "d")),
+        getTypeId("getTypeId", "getId", (ServerUtils.hasUpdate("1_20") ? "b" : "a")),
+        setString("setString", "putString", (ServerUtils.hasUpdate("1_18") ? "a" : "setString")),
+        getString("getString", ServerUtils.hasUpdate("1_21_5") ? "getStringOr" : "getString", ServerUtils.hasUpdate("1_21_5") ? "b" : ServerUtils.hasUpdate("1_18") ? "l" : "getString"),
+        setDouble("setDouble", "setDouble", (ServerUtils.hasUpdate("1_18") ? "a" : "setDouble")),
+        fromJson("a", MODERN_NBT ? "fromJson" : "a", "a"),
+        literal("b", MODERN_NBT ? "literal" : "a", "b"),
+        setComponent("b", MODERN_NBT ? "set" : "b", "b"),
+        readUtf("c", MODERN_NBT ? "readUtf" : "e", (ServerUtils.hasUpdate("1_9") ? "e" : "c")),
+        put("set", "put", (ServerUtils.hasUpdate("1_18") ? "a" : "put")),
         build("build", "build", "a"),
         builder("builder", "builder", "a"),
-        copyTag("copyTag", "copyTag", ServerUtils.hasPreciseUpdate("1_21_9") ? "b" : ServerUtils.hasPreciseUpdate("1_21_4") ? "d" : "c"),
+        copyTag("copyTag", "copyTag", ServerUtils.hasUpdate("1_21_9") ? "b" : ServerUtils.hasUpdate("1_21_4") ? "d" : "c"),
         getServer("getServer", "getServer", "b"),
         registryAccess("registryAccess", "registryAccess", "bc"),
-        At("at", "create", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "at")),
-        AddSlotListener("addSlotListener", "initMenu", (ServerUtils.hasSpecificUpdate("1_18") ? "a" : "initMenu")),
-        PlayerInventory("inventory", "getInventory", (ServerUtils.hasPreciseUpdate("1_21_11") ? "gK" : ServerUtils.hasPreciseUpdate("1_21_9") ? "gB" : ServerUtils.hasPreciseUpdate("1_21_6") ? "gs" : ServerUtils.hasPreciseUpdate("1_21_5") ? "gj" : ServerUtils.hasPreciseUpdate("1_21_2") ? "gi" : ServerUtils.hasSpecificUpdate("1_21") ? "fY" : ServerUtils.hasPreciseUpdate("1_20_5") ? "gc" : ServerUtils.hasPreciseUpdate("1_20_3") ? "fS" : ServerUtils.hasPreciseUpdate("1_20_2") ? "fR" : ServerUtils.hasSpecificUpdate("1_20") ? "fN" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fJ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "fE" :
-                ServerUtils.hasSpecificUpdate("1_19") ? "fB" : ServerUtils.hasPreciseUpdate("1_18_2") ? "fr" : ServerUtils.hasSpecificUpdate("1_18") ? "fq" : "getInventory")),
+        At("at", "create", (ServerUtils.hasUpdate("1_18") ? "a" : "at")),
+        AddSlotListener("addSlotListener", "initMenu", (ServerUtils.hasUpdate("1_18") ? "a" : "initMenu")),
+        PlayerInventory("inventory", "getInventory", (ServerUtils.hasUpdate("1_21_11") ? "gK" : ServerUtils.hasUpdate("1_21_9") ? "gB"
+                : ServerUtils.hasUpdate("1_21_6") ? "gs" : ServerUtils.hasUpdate("1_21_5") ? "gj" : ServerUtils.hasUpdate("1_21_2") ? "gi"
+                : ServerUtils.hasUpdate("1_21") ? "fY" : ServerUtils.hasUpdate("1_20_5") ? "gc" : ServerUtils.hasUpdate("1_20_3") ? "fS"
+                : ServerUtils.hasUpdate("1_20_2") ? "fR" : ServerUtils.hasUpdate("1_20") ? "fN" : ServerUtils.hasUpdate("1_19_3") ? "fJ"
+                : ServerUtils.hasUpdate("1_19_3") ? "fE" : ServerUtils.hasUpdate("1_19") ? "fB" : ServerUtils.hasUpdate("1_18_2") ? "fr"
+                : ServerUtils.hasUpdate("1_18") ? "fq" : "getInventory")),
         withReplacedPages("withReplacedPages", "withReplacedPages", "b"),
         getComponents("getComponents", "getComponents", "a"),
         applyComponentsAndValidate("applyComponentsAndValidate", "applyComponentsAndValidate", "a"),
-        sendPacket("sendPacket", "sendPacket", (ServerUtils.hasPreciseUpdate("1_20_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "sendPacket"));
+        sendPacket("sendPacket", "sendPacket", (ServerUtils.hasUpdate("1_20_2") ? "b" : ServerUtils.hasUpdate("1_18") ? "a" : "sendPacket"));
         public final String legacy;
         public final String original;
         public final String remapped;
@@ -802,17 +804,22 @@ public class ReflectionUtils {
      * Searchable tags that no longer require NBT Reflections.
      */
     public enum MinecraftField {
-        PlayerConnection("playerConnection", "connection", (ServerUtils.hasPreciseUpdate("1_21_6") ? "g" : ServerUtils.hasPreciseUpdate("1_21_2") ? "f" : ServerUtils.hasSpecificUpdate("1_20") ? "c" : "b")),
-        ActiveContainer("activeContainer", "containerMenu", (ServerUtils.hasPreciseUpdate("1_21_11") ? "cn" : ServerUtils.hasPreciseUpdate("1_21_9") ? "cl" : ServerUtils.hasPreciseUpdate("1_21_6") ? "cn" : ServerUtils.hasPreciseUpdate("1_21_5") ? "bR" : ServerUtils.hasSpecificUpdate("1_21") ? "cd" : ServerUtils.hasPreciseUpdate("1_20_5") ? "cb" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bS" : ServerUtils.hasSpecificUpdate("1_20") ? "bR" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bP" :
-                ServerUtils.hasSpecificUpdate("1_19") ? "bU" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bV" : ServerUtils.hasSpecificUpdate("1_18") ? "bW" : "bV")),
-        DefaultContainer("defaultContainer", "inventoryMenu", (ServerUtils.hasPreciseUpdate("1_21_11") ? "cm" : ServerUtils.hasPreciseUpdate("1_21_9") ? "ck" : ServerUtils.hasPreciseUpdate("1_21_6") ? "cm" : ServerUtils.hasPreciseUpdate("1_21_5") ? "bQ" : ServerUtils.hasSpecificUpdate("1_21") ? "cc" : ServerUtils.hasPreciseUpdate("1_20_5") ? "ca" : ServerUtils.hasPreciseUpdate("1_20_2") ? "bR" : ServerUtils.hasSpecificUpdate("1_20") ? "bQ" : ServerUtils.hasPreciseUpdate("1_19_3") ? "bO" :
-                ServerUtils.hasSpecificUpdate("1_19") ? "bT" : ServerUtils.hasPreciseUpdate("1_18_2") ? "bU" : ServerUtils.hasSpecificUpdate("1_18") ? "bV" : "bU")),
-        Anvil("ANVIL", "ANVIL", ServerUtils.hasPreciseUpdate("1_20_3") ? "i" : "h"),
+        PlayerConnection("playerConnection", "connection", (ServerUtils.hasUpdate("1_21_6") ? "g" : ServerUtils.hasUpdate("1_21_2") ? "f" : ServerUtils.hasUpdate("1_20") ? "c" : "b")),
+        ActiveContainer("activeContainer", "containerMenu", (ServerUtils.hasUpdate("1_21_11") ? "cn" : ServerUtils.hasUpdate("1_21_9") ? "cl" : ServerUtils.hasUpdate("1_21_6") ? "cn"
+                : ServerUtils.hasUpdate("1_21_5") ? "bR" : ServerUtils.hasUpdate("1_21") ? "cd" : ServerUtils.hasUpdate("1_20_5") ? "cb"
+                : ServerUtils.hasUpdate("1_20_2") ? "bS" : ServerUtils.hasUpdate("1_20") ? "bR" : ServerUtils.hasUpdate("1_19_3") ? "bP"
+                : ServerUtils.hasUpdate("1_19") ? "bU" : ServerUtils.hasUpdate("1_18_2") ? "bV" : ServerUtils.hasUpdate("1_18") ? "bW" : "bV")),
+        DefaultContainer("defaultContainer", "inventoryMenu", (ServerUtils.hasUpdate("1_21_11") ? "cm" : ServerUtils.hasUpdate("1_21_9") ? "ck"
+                : ServerUtils.hasUpdate("1_21_6") ? "cm" : ServerUtils.hasUpdate("1_21_5") ? "bQ" : ServerUtils.hasUpdate("1_21") ? "cc"
+                : ServerUtils.hasUpdate("1_20_5") ? "ca" : ServerUtils.hasUpdate("1_20_2") ? "bR" : ServerUtils.hasUpdate("1_20") ? "bQ"
+                : ServerUtils.hasUpdate("1_19_3") ? "bO" : ServerUtils.hasUpdate("1_19") ? "bT" : ServerUtils.hasUpdate("1_18_2") ? "bU"
+                : ServerUtils.hasUpdate("1_18") ? "bV" : "bU")),
+        Anvil("ANVIL", "ANVIL", ServerUtils.hasUpdate("1_20_3") ? "i" : "h"),
         RenameText("renameText", "renameText", "v"),
-        CustomName("CUSTOM_NAME", "CUSTOM_NAME", ServerUtils.hasPreciseUpdate("1_21_11") ? "h" : "g"),
-        GetSlot("getSlot", "getSlot", (ServerUtils.hasPreciseUpdate("1_18_2") ? "b" : ServerUtils.hasSpecificUpdate("1_18") ? "a" : "getSlot")),
-        HasItem("hasItem", "hasItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "h" : ServerUtils.hasSpecificUpdate("1_18") ? "f" : "hasItem")),
-        GetItem("getItem", "getItem", (ServerUtils.hasPreciseUpdate("1_20_3") ? "g" : ServerUtils.hasSpecificUpdate("1_18") ? "e" : "getItem")),
+        CustomName("CUSTOM_NAME", "CUSTOM_NAME", ServerUtils.hasUpdate("1_21_11") ? "h" : "g"),
+        GetSlot("getSlot", "getSlot", (ServerUtils.hasUpdate("1_18_2") ? "b" : ServerUtils.hasUpdate("1_18") ? "a" : "getSlot")),
+        HasItem("hasItem", "hasItem", (ServerUtils.hasUpdate("1_20_3") ? "h" : ServerUtils.hasUpdate("1_18") ? "f" : "hasItem")),
+        GetItem("getItem", "getItem", (ServerUtils.hasUpdate("1_20_3") ? "g" : ServerUtils.hasUpdate("1_18") ? "e" : "getItem")),
         CustomData("CUSTOM_DATA", "CUSTOM_DATA", "b"),
         CanPlaceOn("CAN_PLACE_ON", "CAN_PLACE_ON", "m"),
         CanBreak("CAN_BREAK", "CAN_BREAK", "n"),
@@ -822,9 +829,9 @@ public class ReflectionUtils {
         UseCooldown("USE_COOLDOWN", "USE_COOLDOWN", "y"),
         Equippable("EQUIPPABLE", "EQUIPPABLE", "D"),
         Repairable("REPAIRABLE", "REPAIRABLE", "E"),
-        windowId("windowId", ServerUtils.hasSpecificUpdate("1_21") ? "containerId" : "windowId", ServerUtils.hasPreciseUpdate("1_21_3") ? "l" : "j"),
+        windowId("windowId", ServerUtils.hasUpdate("1_21") ? "containerId" : "windowId", ServerUtils.hasUpdate("1_21_3") ? "l" : "j"),
         WrittenBookContent("WRITTEN_BOOK_CONTENT", "WRITTEN_BOOK_CONTENT", "J"),
-        NetworkManager("networkManager", "networkManager", (ServerUtils.hasSpecificUpdate("1_19") ? "b" : "a"));
+        NetworkManager("networkManager", "networkManager", (ServerUtils.hasUpdate("1_19") ? "b" : "a"));
 
         public final String legacy;
         public final String original;
@@ -849,50 +856,50 @@ public class ReflectionUtils {
      * Searchable tags that no longer require NBT Reflections.
      */
     public enum MinecraftTags {
-        NBTTagCompound(".nbt"),
-        NBTTagList(".nbt"),
-        NBTTagString(".nbt"),
-        NBTBase(".nbt"),
+        NBTTagCompound(".nbt", "CompoundTag"),
+        NBTTagList(".nbt", "ListTag"),
+        NBTTagString(".nbt", "StringTag"),
+        NBTBase(".nbt", "Tag"),
         ItemStack(".world.item"),
         Packet(".network.protocol"),
-        PacketLoginInStart(".network.protocol.login"),
-        PacketPlayOutSetSlot(".network.protocol.game"),
-        PacketPlayOutOpenWindow(".network.protocol.game"),
-        PacketPlayOutCloseWindow(".network.protocol.game"),
-        PlayerConnection(".server.network"),
-        EntityPlayer(".server.level"),
-        NetworkManager(".network"),
+        PacketLoginInStart(".network.protocol.login", "ServerboundHelloPacket"),
+        PacketPlayOutSetSlot(".network.protocol.game", "ClientboundContainerSetSlotPacket"),
+        PacketPlayOutOpenWindow(".network.protocol.game", "ClientboundOpenScreenPacket"),
+        PacketPlayOutCloseWindow(".network.protocol.game", "ClientboundContainerClosePacket"),
+        PlayerConnection(".server.network", "ServerGamePacketListenerImpl"),
+        EntityPlayer(".server.level", "ServerPlayer"),
+        NetworkManager(".network", "Connection"),
         MinecraftServer(".server"),
-        ServerConnection(".server.network"),
-        IChatBaseComponent(".network.chat"),
+        ServerConnection(".server.network", "ServerConnectionListener"),
+        IChatBaseComponent(".network.chat", "Component"),
+        ChatComponentText(".network.chat", "Component"),
         IChatBaseComponent$ChatSerializer(".network.chat"), // < 1.21.6, no longer exists.
         HolderLookup$a(".core"),
-        PacketPlayOutChat(".network.protocol.game"),
+        PacketPlayOutChat(".network.protocol.game", "ClientboundPlayerChatPacket"),
         ClientboundSystemChatPacket(".network.protocol.game"),
-        ChatMessageType(".network.chat"),
-        ChatMessage(".server"),
+        ChatMessageType(".network.chat", "ChatType"),
+        ChatMessage(".server", "IChatBaseComponent"),
         HolderSet(".core"),
         BuiltInRegistries(".core.registries"),
-        CriterionConditionBlock(".advancements.critereon"),
-        BlockPosition(".core"),
+        CriterionConditionBlock(".advancements.critereon", "BlockPredicate"),
+        BlockPosition(".core", "BlockPos"),
         Block(".world.level.block"),
         Blocks(".world.level.block"),
-        ContainerAnvil(".world.inventory"),
-        EntityHuman(".world.entity.player"),
-        ICrafting(".world.inventory"),
-        ContainerAccess(".world.inventory"),
-        Containers(".world.inventory"),
-        Container(".world.inventory"),
+        ContainerAnvil(".world.inventory", "AnvilMenu"),
+        EntityHuman(".world.entity.player", "Player"),
+        ICrafting(".world.inventory", "ContainerListener"),
+        ContainerAccess(".world.inventory", "ContainerLevelAccess"),
+        Containers(".world.inventory", "MenuType"),
+        Container(".world.inventory", "AbstractContainerMenu"),
         ContainerProperty(".world.inventory"),
-        ChatComponentText(".network.chat"),
-        World(".world.level"),
-        PlayerInventory(".world.entity.player"),
+        World(".world.level", "Level"),
+        PlayerInventory(".world.entity.player", "Inventory"),
         DataComponents(".core.component"),
         DataComponentPatch(".core.component"),
         DataComponentType(".core.component"),
         DataComponentGetter(".core.component"),
         DataComponentMap(".core.component"),
-        MinecraftKey(".resources"),
+        MinecraftKey(".resources", "ResourceLocation"),
         CustomData(".world.item.component"),
         AdventureModePredicate(".world.item"),
         TooltipDisplay(".world.item.component"),
@@ -901,10 +908,21 @@ public class ReflectionUtils {
         Repairable(".world.item.enchantment"),
         BookContent(".world.item.component"),
         WrittenBookContent(".world.item.component");
+
         public final String tag;
+        public final String modernName;
 
         MinecraftTags(final String tag) {
+            this(tag, null);
+        }
+
+        MinecraftTags(final String tag, final String modernName) {
             this.tag = tag;
+            this.modernName = modernName;
+        }
+
+        public String getClassName() {
+            return MODERN_NBT && this.modernName != null ? this.modernName : this.name();
         }
     }
 

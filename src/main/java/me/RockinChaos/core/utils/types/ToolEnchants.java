@@ -50,7 +50,7 @@ public enum ToolEnchants {
      */
     public static boolean isEnchant(final @Nonnull Enchantment enchant) {
         for (ToolEnchants ench : ToolEnchants.values()) {
-            if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+            if (ServerUtils.hasUpdate("1_20_3")) {
                 if (enchant.toString().split(":")[1].replace("]", "").equalsIgnoreCase(ench.key())) {
                     return true;
                 }

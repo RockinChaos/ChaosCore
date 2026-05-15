@@ -19,6 +19,7 @@ package me.RockinChaos.core.utils;
 
 import me.RockinChaos.core.Core;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
@@ -104,6 +105,46 @@ public class SchedulerUtils {
                     }
                 } catch (Exception e) {
                     ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run task later.");
+                    ServerUtils.sendSevereTrace(e);
+                    return 0;
+                }
+            }
+            return Bukkit.getScheduler().runTaskLater(Core.getCore().getPlugin(), runnable, delay).getTaskId();
+        }
+        return 0;
+    }
+
+    /**
+     * Runs the task on the player's region thread (Folia) or the main thread (Bukkit/Paper).
+     *
+     * @param player   - The player to run the task for.
+     * @param delay    - The ticks to wait before performing the task.
+     * @param runnable - The task to be performed.
+     * @return The task identifier.
+     */
+    public static int runPlayerLater(final @Nonnull Player player, final long delay, final @Nonnull Runnable runnable) {
+        if (delay <= 0) {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                run(runnable);
+            }
+            return 0;
+        }
+        if (Core.getCore().getPlugin().isEnabled()) {
+            if (ServerUtils.isFolia) {
+                try {
+                    final Object entityScheduler = ReflectionUtils.invokeMethod("getScheduler", player);
+                    final Object uniqueTask = ReflectionUtils.getMethod(entityScheduler.getClass(), "runDelayed", Plugin.class, Consumer.class, Runnable.class, long.class).invoke(entityScheduler, Core.getCore().getPlugin(), (Consumer<?>) task -> runnable.run(), null, delay);
+                    try {
+                        return (int) ReflectionUtils.getMethod(uniqueTask.getClass(), "getTaskId").invoke(uniqueTask);
+                    } catch (Exception e) {
+                        final int id = StringUtils.getRandom(0, 100000000);
+                        scheduledTasks.put(id, uniqueTask);
+                        return id;
+                    }
+                } catch (Exception e) {
+                    ServerUtils.logSevere("{SchedulerUtils (Folia)} Failed to run player task later.");
                     ServerUtils.sendSevereTrace(e);
                     return 0;
                 }

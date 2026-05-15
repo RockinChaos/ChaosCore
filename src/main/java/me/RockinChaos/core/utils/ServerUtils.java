@@ -36,15 +36,14 @@ import java.util.regex.Pattern;
 public class ServerUtils {
 
     private static final String packageVersion = Bukkit.getServer().getBukkitVersion();
-    private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-')).replace(".", "_");
-    private static final String serverVersion = packageSub.replace("_", "").replaceAll("[a-z]", "");
-    private static final String serverPreciseVersion = packageSub.replace("_", "").replaceAll("[a-z]", "") + (StringUtils.countCharacters(packageSub, "_") == 1 ? 0 : "");
+    private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-'));
+    private static final int[] serverVersionParts = parseVersion(packageSub);
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
     private static boolean devListening = false;
 
-    public static boolean isFolia = isFolia();
-    public static boolean isPaper = isPaper();
+    public static final boolean isFolia = isFolia();
+    public static final boolean isPaper = isPaper();
 
     /**
      * Gets the current server version.
@@ -52,27 +51,35 @@ public class ServerUtils {
      * @return The specific server version in the format of (x_xx_x).
      */
     public static @Nonnull String getVersion() {
-        return packageSub.split("-")[0].replace(".", "_").replace("R", "").replaceAll("[a-z]", "");
+        return packageSub.replace(".", "_");
     }
 
     /**
-     * Checks if the server is running the specified version.
+     * Checks if the server is running the specified version or higher.
+     * Version strings use underscores as separators and are compared segment by segment,
+     * supporting any number of segments e.g. "26", "26_1", "26_1_2", "1_13", "1_20_5".
+     * This means "26" is correctly greater than "1_21_11".
      *
-     * @param versionString - The version to compare against the server version, example: '1_13'.
-     * @return If the server version is greater than or equal to the specified version.
+     * @param versionString The version to compare against, using underscores as separators.
+     * @return True if the server version is greater than or equal to the specified version, false otherwise.
+     */
+    public static boolean hasUpdate(final @Nonnull String versionString) {
+        final int[] target = parseVersion(versionString.replace("_", "."));
+        return compareVersions(serverVersionParts, target) >= 0;
+    }
+
+    /**
+     * @deprecated Since 1.1.6, use {@link #hasUpdate(String)} instead.
      */
     public static boolean hasSpecificUpdate(final @Nonnull String versionString) {
-        return Integer.parseInt(serverVersion) >= Integer.parseInt(versionString.replace("_", "") + (StringUtils.countCharacters(packageSub, "_") > 1 ? 0 : ""));
+        return hasUpdate(versionString);
     }
 
     /**
-     * Checks if the server is running the specified version.
-     *
-     * @param versionString - The version to compare against the server version, example: '1_13'.
-     * @return If the server version is greater than or equal to the specified version.
+     * @deprecated Since 1.1.6, use {@link #hasUpdate(String)} instead.
      */
     public static boolean hasPreciseUpdate(final @Nonnull String versionString) {
-        return Integer.parseInt(serverPreciseVersion) >= Integer.parseInt(versionString.replace("_", "") + (StringUtils.countCharacters(versionString, "_") == 1 ? 0 : ""));
+        return hasUpdate(versionString);
     }
 
     /**
@@ -318,5 +325,37 @@ public class ServerUtils {
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
         }
+    }
+
+    /**
+     * Parses a version string into an int array of its parts.
+     * e.g. "26.1.2" -> [26, 1, 2], "1.21.11" -> [1, 21, 11]
+     */
+    private static int[] parseVersion(final @Nonnull String version) {
+        final String[] parts = version.split("\\.");
+        final List<Integer> result = new ArrayList<>();
+        for (final String part : parts) {
+            final String cleaned = part.replaceAll("[a-zA-Z]", "").trim();
+            if (!cleaned.isEmpty()) {
+                result.add(Integer.parseInt(cleaned));
+            } else {
+                break;
+            }
+        }
+        return result.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /**
+     * Compares two version int arrays segment by segment.
+     * Returns negative if a < b, 0 if equal, positive if a > b.
+     */
+    private static int compareVersions(final int[] a, final int[] b) {
+        final int length = Math.max(a.length, b.length);
+        for (int i = 0; i < length; i++) {
+            final int partA = i < a.length ? a[i] : 0;
+            final int partB = i < b.length ? b[i] : 0;
+            if (partA != partB) return partA - partB;
+        }
+        return 0;
     }
 }

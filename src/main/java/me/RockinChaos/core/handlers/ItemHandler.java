@@ -42,6 +42,8 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.map.MapView;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.PistonExtensionMaterial;
@@ -135,7 +137,7 @@ public class ItemHandler {
      * @return The String name of the Bukkit Enchantment.
      */
     public static @Nonnull String getEnchantName(final @Nonnull Enchantment enchant) {
-        if (!ServerUtils.hasSpecificUpdate("1_13")) {
+        if (!ServerUtils.hasUpdate("1_13")) {
             return LegacyAPI.getEnchantName(enchant);
         } else {
             return CompatUtils.getKey(enchant).getKey();
@@ -149,7 +151,7 @@ public class ItemHandler {
      * @return The proper Bukkit Enchantment instance.
      */
     public static @Nullable Enchantment getEnchantByName(final @Nonnull String name) {
-        if (ServerUtils.hasSpecificUpdate("1_13")) {
+        if (ServerUtils.hasUpdate("1_13")) {
             try {
                 Enchantment enchantName = LegacyAPI.getEnchantByKey(name);
                 if (enchantName != null) {
@@ -221,11 +223,11 @@ public class ItemHandler {
      *
      * @return The full list of available armor trim patterns.
      */
-    public static @Nonnull List<org.bukkit.inventory.meta.trim.TrimPattern> getTrimPatterns() {
-        final List<org.bukkit.inventory.meta.trim.TrimPattern> trimPatterns = new ArrayList<>();
+    public static @Nonnull List<TrimPattern> getTrimPatterns() {
+        final List<TrimPattern> trimPatterns = new ArrayList<>();
         try {
-            for (Field fieldPattern : ReflectionUtils.getDeclaredFields(org.bukkit.inventory.meta.trim.TrimPattern.class)) {
-                trimPatterns.add((org.bukkit.inventory.meta.trim.TrimPattern) fieldPattern.get(fieldPattern.getName()));
+            for (Field fieldPattern : ReflectionUtils.getDeclaredFields(TrimPattern.class)) {
+                trimPatterns.add((TrimPattern) fieldPattern.get(fieldPattern.getName()));
             }
             return trimPatterns;
         } catch (Exception e) {
@@ -241,9 +243,9 @@ public class ItemHandler {
         final ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta != null) {
             final org.bukkit.inventory.meta.trim.TrimMaterial trimMaterial = getTrimMaterial(material);
-            final org.bukkit.inventory.meta.trim.TrimPattern trimPattern = getTrimPattern(pattern);
+            final TrimPattern trimPattern = getTrimPattern(pattern);
             if (trimMaterial != null && trimPattern != null) {
-                ((ArmorMeta) itemMeta).setTrim(new org.bukkit.inventory.meta.trim.ArmorTrim(trimMaterial, trimPattern));
+                ((ArmorMeta) itemMeta).setTrim(new ArmorTrim(trimMaterial, trimPattern));
                 item.setItemMeta(itemMeta);
             }
         }
@@ -256,7 +258,7 @@ public class ItemHandler {
      * @return The Durability value of the ItemStack.
      */
     public static short getDurability(final @Nonnull ItemStack item) {
-        if (!ServerUtils.hasSpecificUpdate("1_13")) {
+        if (!ServerUtils.hasUpdate("1_13")) {
             return LegacyAPI.getDurability(item);
         } else if (item.getItemMeta() != null) {
             return ((short) ((Damageable) item.getItemMeta()).getDamage());
@@ -273,7 +275,7 @@ public class ItemHandler {
      */
     public static @Nonnull ItemStack setDurability(final @Nonnull ItemStack item, final int durability) {
         if (item.getType().getMaxDurability() != 0 && durability != 0) {
-            if (ServerUtils.hasSpecificUpdate("1_13")) {
+            if (ServerUtils.hasUpdate("1_13")) {
                 final ItemMeta tempMeta = item.getItemMeta();
                 if (tempMeta != null) {
                     ((Damageable) tempMeta).setDamage(durability);
@@ -357,7 +359,7 @@ public class ItemHandler {
             refMat = material;
             material = "POTION";
         }
-        if (ServerUtils.hasSpecificUpdate("1_13")) {
+        if (ServerUtils.hasUpdate("1_13")) {
             final Material bukkitMaterial = getMaterial(material, null);
             try {
                 tempItem = new ItemStack(bukkitMaterial != Material.AIR ? bukkitMaterial : Material.STONE, count);
@@ -409,20 +411,20 @@ public class ItemHandler {
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_PLACED_ON);
             tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
-            if (!ServerUtils.hasPreciseUpdate("1_20_5")) {
+            if (!ServerUtils.hasUpdate("1_20_5")) {
                 tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
             } else {
                 tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             }
-            if (ServerUtils.hasSpecificUpdate("1_20")) {
+            if (ServerUtils.hasUpdate("1_20")) {
                 tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ARMOR_TRIM);
             }
-            if (ServerUtils.hasSpecificUpdate("1_17")) {
+            if (ServerUtils.hasUpdate("1_17")) {
                 tempMeta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DYE);
             }
         }
-        if (ServerUtils.hasSpecificUpdate("1_9") && refMat.equalsIgnoreCase("WATER_BOTTLE") && tempMeta != null) {
-            if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+        if (ServerUtils.hasUpdate("1_9") && refMat.equalsIgnoreCase("WATER_BOTTLE") && tempMeta != null) {
+            if (ServerUtils.hasUpdate("1_20_3")) {
                 ((PotionMeta) tempMeta).setBasePotionType(PotionType.WATER);
             } else {
                 LegacyAPI.setPotionData(((PotionMeta) tempMeta), PotionType.WATER);
@@ -459,7 +461,7 @@ public class ItemHandler {
             existingItem = equipment.getLeggings();
         } else if (CustomSlot.BOOTS.isSlot(checkSlot) && equipment != null) {
             existingItem = equipment.getBoots();
-        } else if (ServerUtils.hasSpecificUpdate("1_9") && CustomSlot.OFFHAND.isSlot(checkSlot) && equipment != null) {
+        } else if (ServerUtils.hasUpdate("1_9") && CustomSlot.OFFHAND.isSlot(checkSlot) && equipment != null) {
             existingItem = equipment.getItemInOffHand();
         } else if (craftSlot != -1) {
             existingItem = CompatUtils.getTopInventory(player).getItem(craftSlot);
@@ -476,7 +478,7 @@ public class ItemHandler {
     public static Material getBlockMaterial(final Block block) {
         Material blockType = block.getType();
         if (blockType.name().equals("PISTON_HEAD") || blockType.name().equals("PISTON_EXTENSION")) {
-            if (ServerUtils.hasSpecificUpdate("1_13")) {
+            if (ServerUtils.hasUpdate("1_13")) {
                 blockType = ((PistonHead) block.getBlockData()).getType() == PistonHead.Type.STICKY ? Material.STICKY_PISTON : Material.PISTON;
             } else {
                 final MaterialData data = block.getState().getData();
@@ -499,7 +501,7 @@ public class ItemHandler {
         if (block == null) return null;
         final Material blockType = getBlockMaterial(block);
         ItemStack item;
-        if (ServerUtils.hasSpecificUpdate("1_13")) {
+        if (ServerUtils.hasUpdate("1_13")) {
             item = new ItemStack(Altered.getAlter(blockType));
         } else {
             Material itemMaterial = Altered.getAlter(blockType);
@@ -526,7 +528,7 @@ public class ItemHandler {
                 if (itemMeta instanceof BannerMeta) {
                     final Banner bannerState = (Banner) blockState;
                     final BannerMeta bannerMeta = (BannerMeta) itemMeta;
-                    if (ServerUtils.hasSpecificUpdate("1_12")) {
+                    if (ServerUtils.hasUpdate("1_12")) {
                         bannerMeta.setPatterns(bannerState.getPatterns());
                     } else {
                         bannerMeta.setPatterns(bannerState.getPatterns());
@@ -543,8 +545,8 @@ public class ItemHandler {
                         if (!skullTexture.isEmpty()) {
                             setSkullTexture(skullMeta, skullTexture);
                         } else if (skullState.hasOwner()) {
-                            if (ServerUtils.hasSpecificUpdate("1_12")) {
-                                if (ServerUtils.hasPreciseUpdate("1_18_2")) {
+                            if (ServerUtils.hasUpdate("1_12")) {
+                                if (ServerUtils.hasUpdate("1_18_2")) {
                                     if (skullState.getOwnerProfile() != null && skullState.getOwnerProfile().getName() != null) {
                                         setSkullOwner(skullMeta, player, skullState.getOwnerProfile().getName());
                                     }
@@ -611,7 +613,7 @@ public class ItemHandler {
                     break;
             }
         } else if (entityType.contains("BOAT")) {
-            if (ServerUtils.hasSpecificUpdate("1_13")) {
+            if (ServerUtils.hasUpdate("1_13")) {
                 try {
                     String woodType = ((Boat) entity).getWoodType().name();
                     item = new ItemStack(ItemHandler.getMaterial(woodType + "_BOAT", null));
@@ -635,7 +637,7 @@ public class ItemHandler {
             final Material spawnEgg = ItemHandler.getMaterial(entityType + "_SPAWN_EGG", null);
             if (spawnEgg != Material.AIR) {
                 item = new ItemStack(spawnEgg);
-            } else if (!ServerUtils.hasSpecificUpdate("1_13")) {
+            } else if (!ServerUtils.hasUpdate("1_13")) {
                 item = LegacyAPI.newItemStack(ItemHandler.getMaterial("MONSTER_EGG", null), 1, (short) Monster.getId(entity.getType()));
             } else  {
                 item = new ItemStack(Material.AIR);
@@ -662,9 +664,9 @@ public class ItemHandler {
                     isLegacy = true;
                 }
             }
-            if (StringUtils.isInt(material) && !ServerUtils.hasSpecificUpdate("1_13")) {
+            if (StringUtils.isInt(material) && !ServerUtils.hasUpdate("1_13")) {
                 return LegacyAPI.findMaterial(Integer.parseInt(material));
-            } else if (StringUtils.isInt(material) && ServerUtils.hasSpecificUpdate("1_13") || isLegacy && ServerUtils.hasSpecificUpdate("1_13")) {
+            } else if (StringUtils.isInt(material) && ServerUtils.hasUpdate("1_13") || isLegacy && ServerUtils.hasUpdate("1_13")) {
                 int dataValue;
                 if (!StringUtils.isInt(material)) {
                     material = "LEGACY_" + material;
@@ -684,7 +686,7 @@ public class ItemHandler {
                 } else {
                     return LegacyAPI.getMaterial(Integer.parseInt(material), (byte) dataValue);
                 }
-            } else if (!ServerUtils.hasSpecificUpdate("1_13")) {
+            } else if (!ServerUtils.hasUpdate("1_13")) {
                 final Material mat = Material.getMaterial(material.toUpperCase());
                 if (mat != null) {
                     return mat;
@@ -739,11 +741,11 @@ public class ItemHandler {
      */
     public static @Nonnull ItemMeta setSkullTexture(final @Nonnull ItemMeta itemMeta, final @Nonnull String skullTexture) {
         try {
-            if (ServerUtils.hasPreciseUpdate("1_18_2")) {
+            if (ServerUtils.hasUpdate("1_18_2")) {
                 PlayerProfile playerProfile;
                 if (!gameProfiles.containsKey(skullTexture)) {
                     final UUID uuid = UUID.randomUUID();
-                    playerProfile = Bukkit.createPlayerProfile(uuid, uuid.toString().replaceAll("_", "").replaceAll("-", "").substring(0, 16));
+                    playerProfile = Bukkit.createPlayerProfile(uuid, uuid.toString().replace("_", "").replace("-", "").substring(0, 16));
                     final PlayerTextures textures = playerProfile.getTextures();
                     final URI textureURI = StringUtils.toTextureURI(skullTexture);
                     if (textureURI != null) {
@@ -1170,7 +1172,7 @@ public class ItemHandler {
                 try {
                     Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
                     Object nmsItem = ReflectionUtils.getMethod(craftItemStack, "asNMSCopy", ItemStack.class).invoke(null, item);
-                    if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+                    if (ServerUtils.hasUpdate("1_20_5")) {
                         Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
                         Object customData = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("CustomData"), MinecraftMethod.of.getMethod(), ReflectionUtils.getMinecraftClass("NBTTagCompound")).invoke(new Object[]{null}, tag);
                         Object builder = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass("DataComponentPatch"), MinecraftMethod.builder.getMethod()).invoke(new Object[]{null});
@@ -1212,10 +1214,10 @@ public class ItemHandler {
                     Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
                     final ItemStack itemCopy = item.clone();
                     Object nms = ReflectionUtils.getMethod(ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).invoke(null, itemCopy);
-                    if (ServerUtils.hasPreciseUpdate("1_20_5")) {
+                    if (ServerUtils.hasUpdate("1_20_5")) {
                         Object componentMap = ReflectionUtils.getMethod(itemClass, MinecraftMethod.getComponents.getMethod()).invoke(nms);
                         Object customDataType = ReflectionUtils.getField(ReflectionUtils.getMinecraftClass("DataComponents"), MinecraftField.CustomData.getField()).get(null);
-                        Object customDataOptional = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass(ServerUtils.hasPreciseUpdate("1_21_5") ? "DataComponentGetter" : "DataComponentMap"), MinecraftMethod.get.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType")).invoke(componentMap, customDataType);
+                        Object customDataOptional = ReflectionUtils.getMethod(ReflectionUtils.getMinecraftClass(ServerUtils.hasUpdate("1_21_5") ? "DataComponentGetter" : "DataComponentMap"), MinecraftMethod.get.getMethod(), ReflectionUtils.getMinecraftClass("DataComponentType")).invoke(componentMap, customDataType);
                         if (customDataOptional != null) {
                             tag = ReflectionUtils.getMethod(customDataOptional.getClass(), MinecraftMethod.copyTag.getMethod()).invoke(customDataOptional);
                         }
@@ -1227,7 +1229,7 @@ public class ItemHandler {
                         final String getStringMethod = MinecraftMethod.getString.getMethod();
                         final Class<?> tagClass = tag.getClass();
                         for (String dataString : dataList) {
-                            String data = (String) (ServerUtils.hasPreciseUpdate("1_21_5") ? ReflectionUtils.getMethod(tagClass, getStringMethod, String.class, String.class).invoke(tag, dataString, null) : ReflectionUtils.getMethod(tagClass, getStringMethod, String.class).invoke(tag, dataString));
+                            String data = (String) (ServerUtils.hasUpdate("1_21_5") ? ReflectionUtils.getMethod(tagClass, getStringMethod, String.class, String.class).invoke(tag, dataString, null) : ReflectionUtils.getMethod(tagClass, getStringMethod, String.class).invoke(tag, dataString));
                             if (data != null && !data.isEmpty()) {
                                 returnData.append(data).append(" ");
                             }
@@ -1278,7 +1280,7 @@ public class ItemHandler {
      */
     public static @Nonnull String getDesignatedSlot(final @Nonnull Material material) {
         String name = material.name().contains("_") ? material.name().split("_")[1] : material.name();
-        String hand = (ServerUtils.hasSpecificUpdate("1_13") ? "hand" : "mainhand");
+        String hand = (ServerUtils.hasUpdate("1_13") ? "hand" : "mainhand");
         return (name != null ? (name.equalsIgnoreCase("HELMET") ? "head" : name.equalsIgnoreCase("CHESTPLATE") ? "chest" : name.equalsIgnoreCase("LEGGINGS") ? "legs" : name.equalsIgnoreCase("BOOTS") ? "feet" :
                 name.equalsIgnoreCase("HOE") ? hand : name.equalsIgnoreCase("SWORD") ? hand : name.equalsIgnoreCase("SHOVEL") ? hand : name.equalsIgnoreCase("AXE") ? hand : name.equalsIgnoreCase("PICKAXE") ? hand : "noslot") : "noslot");
     }

@@ -297,7 +297,7 @@ public class Interface implements InventoryHolder {
             }
             inventory.setItem(inventory.getSize() - 9, exitItem);
             inventory.setItem(inventory.getSize() - 1, exitItem);
-            ItemStack blackPane = ItemHandler.getItem((ServerUtils.hasSpecificUpdate("1_13") ? "BLACK_STAINED_GLASS_PANE" : "STAINED_GLASS_PANE:15"), 1, false, false, "&f", "");
+            ItemStack blackPane = ItemHandler.getItem((ServerUtils.hasUpdate("1_13") ? "BLACK_STAINED_GLASS_PANE" : "STAINED_GLASS_PANE:15"), 1, false, false, "&f", "");
             inventory.setItem(inventory.getSize() - 3, blackPane);
             inventory.setItem(inventory.getSize() - 4, blackPane);
             inventory.setItem(inventory.getSize() - 6, blackPane);
@@ -353,7 +353,7 @@ public class Interface implements InventoryHolder {
      * @return If the inventory clicked is the same as the current inventory page.
      */
     public boolean clickInventory(final @Nonnull InventoryClickEvent event) {
-        if (ServerUtils.hasSpecificUpdate("1_14")) {
+        if (ServerUtils.hasUpdate("1_14")) {
             return (event.getSlot() == -999 || event.getSlot() == -1 || event.getClickedInventory() == event.getWhoClicked().getInventory());
         } else {
             final ItemStack clickItem = event.getCurrentItem();

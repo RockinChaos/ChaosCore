@@ -178,7 +178,7 @@ public class LegacyAPI {
         final Material[] foundMaterial = new Material[1];
         EnumSet.allOf(Material.class).forEach(material -> {
             try {
-                if (StringUtils.containsIgnoreCase(material.toString(), "LEGACY_") && material.getId() == typeID || !ServerUtils.hasSpecificUpdate("1_13") && material.getId() == typeID) {
+                if (StringUtils.containsIgnoreCase(material.toString(), "LEGACY_") && material.getId() == typeID || !ServerUtils.hasUpdate("1_13") && material.getId() == typeID) {
                     try {
                         initializeLegacy();
                     } catch (Exception e) {
@@ -196,7 +196,7 @@ public class LegacyAPI {
      * Sends an info/debug message if the server is running Minecraft 1.13+ and is attempting to call a Legacy material.
      */
     private static void initializeLegacy() {
-        if (ServerUtils.hasSpecificUpdate("1_13") && !legacyMaterial) {
+        if (ServerUtils.hasUpdate("1_13") && !legacyMaterial) {
             legacyMaterial = true;
             ServerUtils.logInfo("Initializing Legacy Material Support ...");
             ServerUtils.logDebug("Your items.yml has one or more item(s) containing a numerical id and/or data values.");
@@ -279,7 +279,7 @@ public class LegacyAPI {
      * @return The PotionEffectType instance.
      */
     public static @Nullable PotionEffectType getEffectByName(final @Nonnull String effect) {
-        if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+        if (ServerUtils.hasUpdate("1_20_3")) {
             PotionEffectType type = null;
             try {
                 type = Registry.EFFECT.get(Objects.requireNonNull(NamespacedKey.fromString(effect.toLowerCase())));
@@ -388,7 +388,7 @@ public class LegacyAPI {
     public static @Nonnull ItemMeta setSkullOwner(final @Nonnull SkullMeta skullMeta, final @Nonnull String owner) {
         skullMeta.setOwner(owner);
         SchedulerUtils.run(() -> {
-            if (!ServerUtils.hasSpecificUpdate("1_13")) {
+            if (!ServerUtils.hasUpdate("1_13")) {
                 final Location loc = new Location(Bukkit.getWorlds().get(0), 200, 1, 200);
                 final BlockState blockState = loc.getBlock().getState();
                 try {
@@ -538,7 +538,7 @@ public class LegacyAPI {
      * @return The new ItemStack with set Attributes.
      */
     public static @Nonnull ItemStack setAttributes(final @Nonnull ItemStack tempItem, final @Nonnull String attribIdentifier, final @Nonnull Map<String, Double> attributes) {
-        if (!ServerUtils.hasSpecificUpdate("1_13") && !attributes.isEmpty()) {
+        if (!ServerUtils.hasUpdate("1_13") && !attributes.isEmpty()) {
             try {
                 String slot;
                 if (ItemHandler.getDesignatedSlot(tempItem.getType()).equalsIgnoreCase("noslot")) {
@@ -806,7 +806,7 @@ public class LegacyAPI {
      * @return the Enchantment instance.
      */
     public static @Nullable Enchantment getEnchantByKey(final @Nonnull String name) {
-        if (ServerUtils.hasPreciseUpdate("1_20_3")) {
+        if (ServerUtils.hasUpdate("1_20_3")) {
             final Enchantment enchant = Registry.ENCHANTMENT.get(org.bukkit.NamespacedKey.minecraft(name.toLowerCase()));
             if (enchant != null) {
                 return enchant;
@@ -909,7 +909,7 @@ public class LegacyAPI {
             return 1;
         } else if (StringUtils.containsIgnoreCase(material.toString(), "INK_SAC")) {
             return 15;
-        } else if (StringUtils.containsIgnoreCase(material.toString(), "SKULL_ITEM") && ServerUtils.hasSpecificUpdate("1_9")) {
+        } else if (StringUtils.containsIgnoreCase(material.toString(), "SKULL_ITEM") && ServerUtils.hasUpdate("1_9")) {
             return 5;
         } else if (StringUtils.containsIgnoreCase(material.toString(), "SKULL_ITEM")) {
             return 4;
