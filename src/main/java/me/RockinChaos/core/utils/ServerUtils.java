@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class ServerUtils {
 
     private static final String packageVersion = Bukkit.getServer().getBukkitVersion();
-    private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-'));
+    private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-')).replaceAll("[a-zA-Z].*", "").replaceAll("\\.$", "");
     private static final int[] serverVersionParts = parseVersion(packageSub);
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
