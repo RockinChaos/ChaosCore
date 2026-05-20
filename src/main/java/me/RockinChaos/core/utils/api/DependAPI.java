@@ -25,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -300,7 +301,8 @@ public class DependAPI {
      *
      * @param cause - The Throwable reference to fetch the cause message.
      */
-    private void isSkinsProxy(final @Nonnull Throwable cause) {
+    private void isSkinsProxy(final @Nullable Throwable cause) {
+        if (cause == null) return;
         Throwable root = cause;
         while (root.getCause() != null) {
             root = root.getCause();
