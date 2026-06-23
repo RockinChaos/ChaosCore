@@ -440,6 +440,9 @@ abstract class Controller {
     protected @Nonnull Connection getConnection(final boolean...force) throws SQLException {
         synchronized ("CC_SQL") {
             if (this.isClosed(this.connection) || (force.length > 0 && force[0])) {
+                if (!Core.getCore().getPlugin().isEnabled()) {
+                    throw new SQLException("{SQL} Plugin is disabling, aborting connection.");
+                }
                 ServerUtils.logDebug("{SQL} Connection was detected as being closed, initializing... isClosed: " + this.connection + " " + (this.connection == null || this.connection.isClosed()) + " forced: " + (force.length > 0 && force[0]));
                 if (Core.getCore().getData().sqlEnabled()) {
                     ServerUtils.logDebug("{SQL} Detected MySQL configuration, setting up!");

@@ -38,8 +38,11 @@ public class SQL {
     public SQL() {
         initialized = false;
         Database.kill();
+        if (!Core.getCore().getPlugin().isEnabled()) return;
         Database.getDatabase();
+        if (!Core.getCore().getPlugin().isEnabled()) return;
         this.createTables();
+        if (!Core.getCore().getPlugin().isEnabled()) return;
         initialized = true;
         ServerUtils.logDebug("{SQL} Database Connected.");
     }
@@ -231,6 +234,7 @@ public class SQL {
      * Loads all the database data into memory.
      */
     private void loadData() {
+        if (!Core.getCore().getPlugin().isEnabled()) return;
         this.databaseData = Core.getCore().getData().getDatabaseData();
     }
 
