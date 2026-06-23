@@ -672,7 +672,8 @@ public class StringUtils {
      * @return The newly formatted String.
      */
     public static @Nonnull String nullCheck(@Nullable String input) {
-        if (input == null || input.equalsIgnoreCase("NULL") || input.equalsIgnoreCase("NULL&7") || input.contains("[]") || input.contains("{}") || input.equals("0&7") || input.equals("-1&a%") || input.isEmpty() || input.equals(" ")) {
+        final String strippedInput = input != null ? input.replaceAll("&[0-9a-fA-Fk-orK-OR]", "").trim() : null;
+        if (input == null || strippedInput.equalsIgnoreCase("NULL") || strippedInput.equalsIgnoreCase("UNDEFINED") || input.contains("[]") || input.contains("{}") || input.equals("0&7") || input.equals("-1&a%") || input.isEmpty() || input.equals(" ")) {
             return "NONE";
         }
         if (input.startsWith("[") && input.endsWith("]")) {
