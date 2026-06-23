@@ -144,7 +144,7 @@ public class Query {
         }
         this.open = false;
         HandlerList.unregisterAll(this.inventoryListener);
-        if (ServerUtils.hasUpdate("1_11")) {
+        if (ServerUtils.hasUpdate("1_13")) {
             HandlerList.unregisterAll(this.typingListener);
         } else {
             HandlerList.unregisterAll(this.typingListener_LEGACY);

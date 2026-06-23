@@ -762,7 +762,7 @@ public class ReflectionUtils {
         fromJson("a", MODERN_NBT ? "fromJson" : "a", "a"),
         literal("b", MODERN_NBT ? "literal" : "a", "b"),
         setComponent("b", MODERN_NBT ? "set" : "b", "b"),
-        readUtf("c", MODERN_NBT ? "readUtf" : "e", (ServerUtils.hasUpdate("1_9") ? "e" : "c")),
+        readUtf((ServerUtils.hasUpdate("1_9") ? "e" : "c"), MODERN_NBT ? "readUtf" : "e", (ServerUtils.hasUpdate("1_9") ? "e" : "c")),
         put("set", "put", (ServerUtils.hasUpdate("1_18") ? "a" : "put")),
         build("build", "build", "a"),
         builder("builder", "builder", "a"),
