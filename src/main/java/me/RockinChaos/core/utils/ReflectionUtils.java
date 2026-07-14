@@ -53,7 +53,7 @@ public class ReflectionUtils {
     private static final String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
     private static final boolean MC_REMAPPED = ServerUtils.hasUpdate("1_17");
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^}]+)}");
-    private static final boolean MODERN_NBT = ServerUtils.hasUpdate("26");
+    private static final boolean MODERN_NBT = ServerUtils.hasUpdate("26") || !isServerRemapped();
     private static final boolean MC_DEOBFUSCATION = MODERN_NBT || isPaperObfuscation();
 
     /**
@@ -727,6 +727,25 @@ public class ReflectionUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * Checks if the server classes are obfuscated.
+     * Skipped if server is outside the 1.20.5 - 1.21.11 version range.
+     *
+     * @return If the server classes are obfuscated.
+     */
+    private static boolean isServerRemapped() {
+        if (ServerUtils.hasUpdate("1_20_5") && !ServerUtils.hasUpdate("26")) {
+            try {
+                final Class<?> compoundTag = Class.forName("net.minecraft.nbt.CompoundTag");
+                compoundTag.getMethod("putString", String.class, String.class);
+                return false;
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
+                return true;
+            }
+        }
+        return true;
     }
 
     /**
