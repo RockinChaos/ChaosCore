@@ -850,7 +850,9 @@ public class ReflectionUtils {
         Repairable("REPAIRABLE", "REPAIRABLE", "E"),
         windowId("windowId", ServerUtils.hasUpdate("1_21") ? "containerId" : "windowId", ServerUtils.hasUpdate("1_21_3") ? "l" : "j"),
         WrittenBookContent("WRITTEN_BOOK_CONTENT", "WRITTEN_BOOK_CONTENT", "J"),
-        NetworkManager("networkManager", "networkManager", (ServerUtils.hasUpdate("1_19") ? "b" : "a"));
+        NetworkManager("networkManager", "networkManager", (ServerUtils.hasUpdate("1_19") ? "b" : "a")),
+        PlayerAbilities("abilities", "abilities", (ServerUtils.hasUpdate("1_21_9") ? "cG" : ServerUtils.hasUpdate("1_21_8") ? "cT" : ServerUtils.hasUpdate("1_21_3") ? "i" : ServerUtils.hasUpdate("1_20_6") ? "cA" : ServerUtils.hasUpdate("1_20_4") ? "co" : ServerUtils.hasUpdate("1_20") ? "cn" : ServerUtils.hasUpdate("1_19_4") ? "cm" : ServerUtils.hasUpdate("1_19_1") ? "cr" : "cq")),
+        Invulnerable("isInvulnerable", "invulnerable", "a");
 
         public final String legacy;
         public final String original;
