@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class ServerUtils {
 
     private static final String packageVersion = Bukkit.getServer().getBukkitVersion();
-    private static final String packageSub = packageVersion.substring(0, packageVersion.indexOf('-')).replaceAll("[a-zA-Z].*", "").replaceAll("\\.$", "");
+    private static final String packageSub = trimVersion(packageVersion);
     private static final int[] serverVersionParts = parseVersion(packageSub);
     private static final List<String> errorStatements = new ArrayList<>();
     private static final String devPlayer = "ad6e8c0e-6c47-4e7a-a23d-8a2266d7baee";
@@ -325,6 +325,15 @@ public class ServerUtils {
         } catch (Exception e) {
             ServerUtils.sendDebugTrace(e);
         }
+    }
+
+    /**
+     * Trims a raw Bukkit version string down to its numeric version.
+     * e.g. "1.21.4-R0.1-SNAPSHOT" -> "1.21.4", "26.1.2" -> "26.1.2"
+     */
+    private static @Nonnull String trimVersion(final @Nonnull String version) {
+        final int dash = version.indexOf('-');
+        return (dash >= 0 ? version.substring(0, dash) : version).replaceAll("[a-zA-Z].*", "").replaceAll("\\.$", "");
     }
 
     /**
