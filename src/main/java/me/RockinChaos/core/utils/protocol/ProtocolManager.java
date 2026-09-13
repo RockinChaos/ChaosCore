@@ -38,6 +38,7 @@ import org.bukkit.plugin.RegisteredListener;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,32 +94,33 @@ public class ProtocolManager {
      */
     public static void handlePermissions() {
         if (permissionTask == 0) {
-            final Map<Player, List<String>> playerPermissions = new HashMap<>();
-            permissionTask = SchedulerUtils.runAsyncAtInterval(5L, 0L, () -> PlayerHandler.forOnlinePlayers(player -> {
-                final List<String> currentPermissions = player.getEffectivePermissions().stream().map(p -> p.getPermission() + ":" + p.getValue()).sorted().collect(Collectors.toList());
-                final List<String> previousPermissions = playerPermissions.get(player);
-                if (!currentPermissions.equals(previousPermissions)) {
-                    final List<String> changedPermissions = new ArrayList<>();
-                    if (previousPermissions != null) {
-                        final List<String> addedPermissions = new ArrayList<>(currentPermissions);
-                        addedPermissions.removeAll(previousPermissions);
-                        List<String> removedPermissions = new ArrayList<>(previousPermissions);
-                        removedPermissions.removeAll(currentPermissions);
-                        removedPermissions = removedPermissions.stream().map(r -> {
-                            int idx = r.indexOf(':');
-                            return (idx > -1 ? r.substring(0, idx) : r) + ":false";
-                        }).collect(Collectors.toList());
-                        final Set<String> toggledNames = removedPermissions.stream().map(r -> r.substring(0, r.indexOf(':'))).filter(name -> addedPermissions.stream().anyMatch(a -> a.startsWith(name + ":"))).collect(Collectors.toSet());
-                        final List<String> changes = new ArrayList<>(addedPermissions);
-                        removedPermissions.stream().filter(r -> !toggledNames.contains(r.substring(0, r.indexOf(':')))).forEach(changes::add);
-                        changedPermissions.addAll(changes);
-                    }
-                    playerPermissions.put(player, currentPermissions);
-                    if (!changedPermissions.isEmpty()) {
-                        callEvent(new PermissionChangedEvent(player, changedPermissions));
-                    }
-                }
-            }));
+            final Map<UUID, List<String>> playerPermissions = new ConcurrentHashMap<>();
+            permissionTask = SchedulerUtils.runAtInterval(5L, 1L, () -> PlayerHandler.forOnlinePlayers(player ->
+                    SchedulerUtils.runPlayerLater(player, 1L, () -> {
+                        final List<String> currentPermissions = player.getEffectivePermissions().stream().map(p -> p.getPermission() + ":" + p.getValue()).sorted().collect(Collectors.toList());
+                        final List<String> previousPermissions = playerPermissions.get(player.getUniqueId());
+                        if (!currentPermissions.equals(previousPermissions)) {
+                            final List<String> changedPermissions = new ArrayList<>();
+                            if (previousPermissions != null) {
+                                final List<String> addedPermissions = new ArrayList<>(currentPermissions);
+                                addedPermissions.removeAll(previousPermissions);
+                                List<String> removedPermissions = new ArrayList<>(previousPermissions);
+                                removedPermissions.removeAll(currentPermissions);
+                                removedPermissions = removedPermissions.stream().map(r -> {
+                                    int idx = r.indexOf(':');
+                                    return (idx > -1 ? r.substring(0, idx) : r) + ":false";
+                                }).collect(Collectors.toList());
+                                final Set<String> toggledNames = removedPermissions.stream().map(r -> r.substring(0, r.indexOf(':'))).filter(name -> addedPermissions.stream().anyMatch(a -> a.startsWith(name + ":"))).collect(Collectors.toSet());
+                                final List<String> changes = new ArrayList<>(addedPermissions);
+                                removedPermissions.stream().filter(r -> !toggledNames.contains(r.substring(0, r.indexOf(':')))).forEach(changes::add);
+                                changedPermissions.addAll(changes);
+                            }
+                            playerPermissions.put(player.getUniqueId(), currentPermissions);
+                            if (!changedPermissions.isEmpty()) {
+                                callEvent(new PermissionChangedEvent(player, changedPermissions));
+                            }
+                        }
+                    })));
         }
     }
 
@@ -210,8 +212,14 @@ public class ProtocolManager {
      * Closes the currently open protocol handler(s).
      */
     public static void closeProtocol() {
-        if (protocol != null) {
-            protocol.close();
+        final TinyProtocol activeProtocol = protocol;
+        protocol = null;
+        if (permissionTask != 0) {
+            SchedulerUtils.cancelTask(permissionTask);
+            permissionTask = 0;
+        }
+        if (activeProtocol != null) {
+            activeProtocol.close();
         }
     }
 
