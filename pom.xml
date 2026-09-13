@@ -11,7 +11,7 @@
     <description>A shaded core utility.</description>
     <url>https://github.com/RockinChaos/ChaosCore/</url>
 
-    <version>1.1.6-SNAPSHOT</version>
+    <version>1.1.6-RELEASE</version>
 
     <properties>
         <minecraft.version>26.2</minecraft.version>
