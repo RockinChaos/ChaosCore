@@ -386,7 +386,7 @@ public class PlayerHandler {
      * @param delay  - The ticks to wait before updating the inventory.
      */
     public static void updateInventory(final @Nonnull Player player, final @Nullable ItemStack item, final long delay) {
-        SchedulerUtils.runAsyncLater(delay, () -> {
+        SchedulerUtils.runPlayerLater(player, Math.max(1L, delay), () -> {
             try {
                 /* Updates Main Inventory Slot(s) */
                 for (int i = 0; i < 36; i++) {

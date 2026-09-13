@@ -245,14 +245,13 @@ public class UpdateHandler {
                 JSONObject objectReader = (JSONObject) JSONValue.parseWithException(JsonString);
                 String gitVersion = objectReader.get("tag_name").toString();
                 reader.close();
-                if (gitVersion.length() <= 7) {
-                    this.latestVersion = gitVersion.replaceAll("[a-z]", "").replace("-SNAPSHOT", "").replace("-BETA", "").replace("-ALPHA", "").replace("-RELEASE", "");
-                    int latestNumber = !this.devVersion ? Integer.parseInt(this.latestVersion.replaceAll("[^0-9]", "")) : 0;
-                    int localeNumber = !this.devVersion ? Integer.parseInt(this.localeVersion.replaceAll("[^0-9]", "")) : 0;
+                this.latestVersion = normalizeVersion(gitVersion);
+                if (!this.latestVersion.isEmpty()) {
+                    final int versionComparison = !this.devVersion ? compareVersions(this.latestVersion, this.localeVersion) : 0;
                     if (this.devVersion) {
                         return Update.DEV;
-                    } else if (latestNumber > localeNumber
-                            || (this.betaVersion && latestNumber == localeNumber)) {
+                    } else if (versionComparison > 0
+                            || (this.betaVersion && versionComparison == 0)) {
                         return Update.RELEASE;
                     } else if (this.betaVersion) {
                         try {
@@ -292,6 +291,35 @@ public class UpdateHandler {
             ServerUtils.messageSender(sender, this.getLangMessage("commands.updates.updatesDisabled", "%prefix% &cUpdate checking is currently disabled in the config.yml \n%prefix% &cIf you wish to use the auto update feature, you will need to enable it."), false);
         }
         return Update.UP_TO_DATE;
+    }
+
+    /**
+     * Normalizes a version string.
+     * @param version - The version string to normalize.
+     * @return The normalized version string.
+     */
+    private String normalizeVersion(final @Nonnull String version) {
+        return version.replaceFirst("^[vV]", "").replaceAll("(?i)-(SNAPSHOT|BETA|ALPHA|RELEASE)$", "");
+    }
+
+    /**
+     * Compares two version strings to determine which is greater.
+     * @param first  - The first version string.
+     * @param second - The second version string.
+     * @return The result of the comparison.
+     */
+    private int compareVersions(final @Nonnull String first, final @Nonnull String second) {
+        final String[] firstParts = first.split("\\.");
+        final String[] secondParts = second.split("\\.");
+        final int length = Math.max(firstParts.length, secondParts.length);
+        for (int index = 0; index < length; index++) {
+            final int firstPart = index < firstParts.length ? Integer.parseInt(firstParts[index].replaceAll("[^0-9]", "")) : 0;
+            final int secondPart = index < secondParts.length ? Integer.parseInt(secondParts[index].replaceAll("[^0-9]", "")) : 0;
+            if (firstPart != secondPart) {
+                return Integer.compare(firstPart, secondPart);
+            }
+        }
+        return 0;
     }
 
     /**
