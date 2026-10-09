@@ -56,6 +56,25 @@ import java.util.function.Supplier;
 public class CompatUtils {
 
     /**
+     * Creates a Bukkit mirror of the given NMS ItemStack.
+     * Paper 26.3 renamed asCraftMirror to asBukkitMirror.
+     *
+     * @param item The NMS ItemStack to mirror.
+     * @return The Bukkit ItemStack sharing the given NMS ItemStack.
+     */
+    public static @Nonnull ItemStack asCraftMirror(final @Nonnull Object item) {
+        final Class<?> craftItemStack = ReflectionUtils.getCraftBukkitClass("inventory.CraftItemStack");
+        final Class<?> itemClass = ReflectionUtils.getMinecraftClass("ItemStack");
+        ReflectionUtils.MethodInvoker mirror;
+        try {
+            mirror = ReflectionUtils.getMethod(craftItemStack, "asCraftMirror", itemClass);
+        } catch (IllegalStateException ignored) {
+            mirror = ReflectionUtils.getMethod(craftItemStack, "asBukkitMirror", itemClass);
+        }
+        return (ItemStack) mirror.invoke(null, item);
+    }
+
+    /**
      * Attempts to get the Open Inventory of the Player.
      * In API versions 1.21 (and above), InventoryView is an interface.
      * In versions 1.20.6 and below, InventoryView is a class.

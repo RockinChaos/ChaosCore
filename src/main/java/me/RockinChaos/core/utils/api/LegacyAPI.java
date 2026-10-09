@@ -19,6 +19,7 @@ package me.RockinChaos.core.utils.api;
 
 import me.RockinChaos.core.Core;
 import me.RockinChaos.core.handlers.ItemHandler;
+import me.RockinChaos.core.utils.CompatUtils;
 import me.RockinChaos.core.utils.ReflectionUtils;
 import me.RockinChaos.core.utils.ReflectionUtils.MinecraftMethod;
 import me.RockinChaos.core.utils.SchedulerUtils;
@@ -578,7 +579,7 @@ public class LegacyAPI {
                     ReflectionUtils.getMethod(modifiers.getClass(), MinecraftMethod.add.getMethod(), baseClass).invoke(modifiers, attrib);
                 }
                 ReflectionUtils.getMethod(tag.getClass(), MinecraftMethod.set.getMethod(), String.class, baseClass).invoke(tag, "AttributeModifiers", modifiers);
-                return (ItemStack) ReflectionUtils.getMethod(craftItemStack, "asCraftMirror", nms.getClass()).invoke(null, nms);
+                return CompatUtils.asCraftMirror(nms);
             } catch (Exception e) {
                 ServerUtils.sendDebugTrace(e);
             }
